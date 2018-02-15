@@ -71,4 +71,6 @@ Ankh.NoLoad
 #########################
 # PROJECT
 #########################
-settings*
+settings.xml
+libPvAPI.dylib
+PvApi.h
