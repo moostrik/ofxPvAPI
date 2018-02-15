@@ -26,7 +26,7 @@ previous versions tested on Windows 7
 ```
 *	before `#ifndef PVAPI_H_INCLUDE` (line 79) will do fine
 4. 	Create examples using the projectGenerator
-*	When adding the addons manually in Xcode make sure to add `../../../addons/ofxProsilica/libs/PvAPI/lib/osx/libPvAPI.dylib` to Project -> Build Settings -> Other Linker Flags
+*	When adding the addon manually in Xcode make sure to add the .dylib to Project -> Build Settings -> Other Linker Flags `../../../addons/ofxProsilica/libs/PvAPI/lib/osx/libPvAPI.dylib`
 5. 	Copy `libPvAPI.dylib` into the examples bin folders
 6. 	Turn off the Firewall
 7. 	~~Set MTU to Jumbo / 9000 (System Preferences -> Network -> Ethernet -> Advanced -> Hardware -> Configure Manually -> MTU)~~
