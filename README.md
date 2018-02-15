@@ -3,21 +3,21 @@
 # README #
 
 openframeworks > 0.9 addon for use with Allied Vision Prosilica cameras.
-Based on previously private repository for openframeworks < 8.4.
-The static libPvAPI.a would not compile with OF 0.9, after switching to the dynamic library things worked out although libPvAPI.dylib needs to be copied into directory of the application that depends on it.
+
+Based on a previously private repository for openframeworks < 8.4.
+The static libPvAPI.a will not compile with OF 0.9. Switched to the dynamic library and things worked out, although libPvAPI.dylib now needs to be copied into the directory of the application.
 The PvApi.h must be slightly modified (see below)
 
 Tested with the Prosilica GC750 (monochrome) and the Mako G-125C (color) on OSX 10.13
 previous versions tested on Windows 7
 
-
 # FOR MAC #
 
-1.	Add `ofxProsilica' to your addons folder
-1.	Download the legacy SDK from [Allied Vision](https://www.alliedvision.com/en/support/software-downloads.html "software-downloads") and copy the following files from the SDK to the addon.
-*	 `/inc-pc/PvApi.h` into `/ofxProsilica/libs/PvAPI/include`
+1.	Add `ofxProsilica` to your addons folder
+2.	Download the [legacy SDK](https://www.alliedvision.com/fileadmin/content/software/software/PvAPI/PvAPI_1.28_OSX.tgz "PvAPI_1.28_OSX.tgz") from [Allied Vision](https://www.alliedvision.com/en/support/software-downloads.html "Software Downloads") and copy the following files from the SDK to the addon.
 *	 `/lib-pc/x86/4.2/libPvAPI.dylib` into `/ofxProsilica/libs/PvAPI/lib/osx/`
-2. 	modify `PvApi.h` to include
+*	 `/inc-pc/PvApi.h` into `/ofxProsilica/libs/PvAPI/include`
+3. 	modify `PvApi.h` to include
 ```
     #ifdef TARGET_OSX
     #define _OSX
@@ -25,21 +25,20 @@ previous versions tested on Windows 7
     #endif
 ```
 *	before `#ifndef PVAPI_H_INCLUDE` (line 79) will do fine
-3.	Create example or app using the projectGenerator
-4. 	When adding the addon manually add the ibPvAPI.dylib to Project -> Build Settings -> Other Linker Flags
-	`../../../addons/ofxProsilica/libs/PvAPI/lib/osx/libPvAPI.dylib`
-5. 	Copy libPvAPI.dylib into the projects bin folder
+4. 	Create examples using the projectGenerator
+*	When adding the addons manually in Xcode make sure to add `../../../addons/ofxProsilica/libs/PvAPI/lib/osx/libPvAPI.dylib` to Project -> Build Settings -> Other Linker Flags
+5. 	Copy `libPvAPI.dylib` into the examples bin folders
 6. 	Turn off the Firewall
 7. 	~~Set MTU to Jumbo / 9000 (System Preferences -> Network -> Ethernet -> Advanced -> Hardware -> Configure Manually -> MTU)~~
 
 
 
 # FOR WINDOWS #
-
+PvAPI SDK for Windows  v1.28
 NOT TESTED FOR OF 0.9 / Win 10, but procedure should be similar
 
-1.	Add `ofxProsilica' to your addons folder
-2.	Download the legacy SDK from [Allied Vision](https://www.alliedvision.com/en/support/software-downloads.html "software-downloads") and copy the following files from the SDK to the addon.
+1.	Add `ofxProsilica` to your addons folder
+2.	Download the [legacy SDK](https://www.alliedvision.com/fileadmin/content/software/software/PvAPI/PvAPI_win_1.28.exe "PvAPI SDK for Windows  v1.28") from  [Allied Vision](https://www.alliedvision.com/en/support/software-downloads.html "Software Downloads") and copy the following files from the SDK to the addon.
 *	`/inc-pc/PvApi.h` into `/ofxProsilica/libs/PvAPI/include`
 *	`/lib-pc/PvAPI.lib` into `/ofxProsilica/libs/PvAPI/lib/win32/`
 *	`PvAPI.dll` into `/ofxProsilica/libs/PvAPI/lib/win32/`
@@ -55,7 +54,7 @@ NOT TESTED FOR OF 0.9 / Win 10, but procedure should be similar
 6.	Turn off the Firewall (cameras don't work otherwise)
 
 
-# KNOWN ISSUES AND FACTS#
+# KNOWN ISSUES AND FACTS #
 
 *	Turn off the Firewall!
 *	when setting persistentIP to false, unplug and replug the the camera.
@@ -72,5 +71,4 @@ NOT TESTED FOR OF 0.9 / Win 10, but procedure should be similar
 - [  ] fix tearing
 - [  ] make threaded
 - [  ] test windows
-- [  ] make linux
-
+[  ] make linux
