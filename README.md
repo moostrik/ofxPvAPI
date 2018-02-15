@@ -18,10 +18,12 @@ previous versions tested on Windows 7
 *	 `/inc-pc/PvApi.h` into `/ofxProsilica/libs/PvAPI/include`
 *	 `/lib-pc/x86/4.2/libPvAPI.dylib` into `/ofxProsilica/libs/PvAPI/lib/osx/`
 2. 	modify `PvApi.h` to include
+```
     #ifdef TARGET_OSX
     #define _OSX
     #define _x86
     #endif
+```
 *	before `#ifndef PVAPI_H_INCLUDE` (line 79) will do fine
 3.	Create example or app using the projectGenerator
 4. 	When adding the addon manually add the ibPvAPI.dylib to Project -> Build Settings -> Other Linker Flags
@@ -67,8 +69,8 @@ NOT TESTED FOR OF 0.9 / Win 10, but procedure should be similar
 
 # TODO #
 
-[ ] fix tearing
-[ ] make threaded
-[ ] test windows
-[ ] make linux
+- [  ] fix tearing
+- [  ] make threaded
+- [  ] test windows
+- [  ] make linux
 
