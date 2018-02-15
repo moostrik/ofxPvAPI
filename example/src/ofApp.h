@@ -13,9 +13,7 @@ public:
     void exit();
 	
 	ofxProsilica::ParameterConnector	camera;
-	
-	bool enableSetIpWithSpace;
-	
+		
 	ofxPanel gui;
 	ofParameter<int> fps;
 	ofParameter<bool> fullScreen;

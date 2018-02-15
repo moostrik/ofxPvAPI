@@ -7,24 +7,21 @@ void ofApp::setup(){
 	camera.listDevices();
 	ofSetLogLevel(OF_LOG_NOTICE);
 	
-	int deviceID = camera.getDeviceIDFromIpAdress("10.0.0.50");
-	camera.setDeviceID(deviceID);
-	//	camera.setDeviceID(6002494);
+	//	PRE SETUP FEATURES
 	
-	//	pre setup features
-//	camera.setPixelFormat(OF_PIXELS_RGB);  // when using color cam
+	//  select camera, default is first in list
+	//  select camera by deviceID
+//	camera.setDeviceID(6002494);
+	
+	//	select camera by IP
+//	int deviceID = camera.getDeviceIDFromIpAdress("10.0.0.50");
+//	camera.setDeviceID(deviceID);
+	
+	//	set to mono or color, default is OF_PIXELS_MONO
+//	camera.setPixelFormat(OF_PIXELS_MONO);
+//	camera.setPixelFormat(OF_PIXELS_RGB);
 	
 	camera.setup();
-	
-	enableSetIpWithSpace = false;
-	// IP settings (not in parameters)
-	// these will only work when camera is connected
-	// make sure all are set
-	// moved to 'keyPressed()'
-	//	camera.setPersistentIpAdress("10.0.0.50");
-	//	camera.setPersistentIpSubnetMask("255.0.0.0");
-	//	camera.setPersistentIpGateway("0.0.0.0");
-	//	camera.setPersistentIp(true);
 	
 	gui.setup("settings");
 	gui.add(fps.set("FPS", 0, 0, 100));
@@ -83,11 +80,11 @@ void ofApp::draw(){
 void ofApp::keyPressed(int key){
 	switch (key) {
 		case ' ':
-			ofSetWindowShape(30 + gui.getWidth() + camera.getWidth() , MAX(720, 20 + camera.getHeight()) );
-			camera.setPersistentIpAdress("10.0.0.50");
-			camera.setPersistentIpSubnetMask("255.255.0.0");
-			camera.setPersistentIpGateway("10.0.0.60");
-			camera.setPersistentIp(true);
+			// BE CAREFULL USING THESE
+//			camera.setPersistentIpAdress("10.0.0.50");
+//			camera.setPersistentIpSubnetMask("255.255.0.0");
+//			camera.setPersistentIpGateway("10.0.0.60");
+//			camera.setPersistentIp(true);
 			break;
 		case 'f':
 		case 'F':
