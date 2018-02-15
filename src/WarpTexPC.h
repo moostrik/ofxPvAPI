@@ -3,9 +3,8 @@
 #include "ofMain.h"
 #include "TexPC.h"
 
-#define GLSL120(shader)  "#version 120 \n" #shader
-//#define GLSL120(shader)  "#version 120 \n #extension GL_ARB_texture_rectangle : enable \n" #shader
-#define GLSL150(shader)  "#version 150 \n" #shader
+#define GLSL_120(shader)  "#version 120 \n" #shader
+#define GLSL_150(shader)  "#version 150 \n" #shader
 
 namespace ofxProsilica {
 	
@@ -24,6 +23,8 @@ namespace ofxProsilica {
 		int 	getWarpWidth()			{ return warpFbo.getWidth(); }
 		int 	getWarpHeight()			{ return warpFbo.getHeight(); }
 		
+		void reloadShader() {invWarpShader.load("invWarp");}
+		
 	private:		
 		ofParameterGroup	warpParameters;
 		ofParameter<ofVec2f>*   warpPoints;
@@ -31,8 +32,6 @@ namespace ofxProsilica {
 		
 		ofFbo 				warpFbo;
 		ofShader			invWarpShader;
-		string				fragmentShader;
-		string				vertexShader;
 		ofPlanePrimitive	warpPlane;
 		ofPolyline			warpLine;
 		
