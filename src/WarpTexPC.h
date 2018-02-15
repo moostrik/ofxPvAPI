@@ -23,8 +23,6 @@ namespace ofxProsilica {
 		int 	getWarpWidth()			{ return warpFbo.getWidth(); }
 		int 	getWarpHeight()			{ return warpFbo.getHeight(); }
 		
-		void reloadShader() {invWarpShader.load("invWarp");}
-		
 	private:		
 		ofParameterGroup	warpParameters;
 		ofParameter<ofVec2f>*   warpPoints;

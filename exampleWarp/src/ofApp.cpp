@@ -82,9 +82,6 @@ void ofApp::keyPressed(int key){
 		case 'F':
 			fullScreen.set(1-fullScreen.get());
 			break;
-		case ' ':
-			camera.reloadShader();
-			break;
 			
 		default:
 			break;

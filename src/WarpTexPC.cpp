@@ -28,11 +28,10 @@ namespace ofxProsilica {
 		
 		warpFbo.begin();
 		ofClear(0,0,255);
-//		texture.draw(0,0);
+		texture.draw(0,0);
 		warpFbo.end();
 		
 		createShader();
-//		invWarpShader.load("invWarp");
 		
 		ofVec2f p1 = warpParameters.get<ofVec2f>("p0");
 		ofVec2f p2 = warpParameters.get<ofVec2f>("p1");
@@ -50,7 +49,7 @@ namespace ofxProsilica {
 	void WarpTexPC::update() {
 		TexPC::update();
 		
-//		if (isFrameNew()){
+		if (isFrameNew()){
 		
 			ofVec2f p1 = warpParameters.get<ofVec2f>("p0");
 			ofVec2f p2 = warpParameters.get<ofVec2f>("p1");
@@ -60,8 +59,8 @@ namespace ofxProsilica {
 			vector<ofPoint> verts = {p1, p2, p4, p3, p1};
 			warpLine = ofPolyline(verts);
 			
-			float w = max(fabs(p2.x - p1.x), fabs(p4.x - p3.x)) * texture.getWidth();
-			float h = max(fabs(p3.y - p1.y), fabs(p4.y - p2.y)) * texture.getHeight();
+			float w = max(fabs(p2.x - p1.x), fabs(p4.x - p3.x)) * getWidth();
+			float h = max(fabs(p3.y - p1.y), fabs(p4.y - p2.y)) * getHeight();
 			
 			warpPlane.set(w, h, 16, 16);
 			
@@ -73,27 +72,22 @@ namespace ofxProsilica {
 			ofClear(0);
 			invWarpShader.begin();
 			TexPC::getTexture().bind();
-			invWarpShader.setUniform2f("inputDimensions", texture.getWidth(), texture.getHeight());
+			invWarpShader.setUniform2f("inputDimensions", getWidth(), getHeight());
 			invWarpShader.setUniform2f("upper_left", p1.x, p1.y);
 			invWarpShader.setUniform2f("upper_right", p2.x, p2.y);
 			invWarpShader.setUniform2f("lower_left", p3.x, p3.y);
 			invWarpShader.setUniform2f("lower_right", p4.x, p4.y);
 			invWarpShader.setUniform2f("powr", 1, 1);
 		
-		invWarpShader.setUniform1f("timeValX", ofGetElapsedTimef() * 0.1 );
-		invWarpShader.setUniform1f("timeValY", -ofGetElapsedTimef() * 0.18 );
-		
 			ofPushMatrix();
 			ofTranslate(w/2, h/2);
 			warpPlane.draw();
 			ofPopMatrix();
-		
-//		ofDrawRectangle(0,0,w/2,h / 2);
-		
+			
 			TexPC::getTexture().unbind();
 			invWarpShader.end();
 			warpFbo.end();
-//		}
+		}
 	}
 	
 	//--------------------------------------------------------------
