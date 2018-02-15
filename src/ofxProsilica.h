@@ -27,3 +27,8 @@
  ofxProsilica::texPC adds a texture to the ParameterConnector
  *///--------------------------------------------------------------------
 #include "TexPC.h"
+
+/*	--------------------------------------------------------------------
+ ofxProsilica::texPC adds warp funcyionality to the TexPC
+ *///--------------------------------------------------------------------
+#include "WarpTexPC.h"
