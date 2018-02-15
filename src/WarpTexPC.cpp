@@ -11,7 +11,7 @@
 
 namespace ofxProsilica {
 	
-	bool WarpTexPC::setup(int _width, int _height){
+	bool WarpTexPC::setup(){
 		TexPC::setup();
 		
 		warpParameters.setName("warp");
@@ -24,15 +24,15 @@ namespace ofxProsilica {
 //		for (int i=0; i<5; i++) { warpPoints[i].addListener(this, &::ofxProsilica::WarpTexPC::warpPointListener); }
 		parameters.add(warpParameters);
 		
-		warpFbo.allocate(_width, _height, GL_RGB);
+		warpFbo.allocate(getTexture().getWidth(), getTexture().getHeight(), GL_RGB);
 		
 		warpFbo.begin();
 		ofClear(0);
-		texture.draw(_width, _height);
+		texture.draw(0,0);
 		warpFbo.end();
 		
-//		createShader();
-		invWarpShader.load("invWarpShader");
+		createShader();
+//		invWarpShader.load("invWarpShader");
 		
 		ofVec2f p1 = warpParameters.get<ofVec2f>("p0");
 		ofVec2f p2 = warpParameters.get<ofVec2f>("p1");
@@ -58,15 +58,16 @@ namespace ofxProsilica {
 			ofVec2f p4 = warpParameters.get<ofVec2f>("p3");
 			
 			vector<ofPoint> verts = {p1, p2, p4, p3, p1};
-			warpLine = ofPolyline(verts);			
+			warpLine = ofPolyline(verts);
 			
-			int w = warpFbo.getWidth();
-			int h = warpFbo.getHeight();
-			
-			//		int bestWidth = max(fabs(p2.x - p1.x), fabs(p4.x - p3.x)) * camW;
-			//		int bestHeight = max(fabs(p3.y - p1.y), fabs(p4.y - p2.y)) * camH;
+			float w = max(fabs(p2.x - p1.x), fabs(p4.x - p3.x)) * getWidth();
+			float h = max(fabs(p3.y - p1.y), fabs(p4.y - p2.y)) * getHeight();
 			
 			warpPlane.set(w, h, 16, 16);
+			
+			if(warpFbo.getWidth() != w || warpFbo.getHeight() != h) {
+				warpFbo.allocate(w, h, GL_RGB);
+			}
 			
 			warpFbo.begin();
 			ofClear(0);
@@ -92,12 +93,8 @@ namespace ofxProsilica {
 	
 	//--------------------------------------------------------------
 	void WarpTexPC::createShader() {
-		if (ofIsGLProgrammableRenderer()) { createShader2(); }
-		else { createShader3(); }
-		
-//		warpQuad.getVertices().resize(4);
-//		warpQuad.getTexCoords().resize(4);
-//		warpQuad.setMode(OF_PRIMITIVE_TRIANGLE_FAN);
+		if (ofIsGLProgrammableRenderer()) { createShader3(); }
+		else {  createShader2(); }
 	}
 	
 	//--------------------------------------------------------------
@@ -155,11 +152,55 @@ namespace ofxProsilica {
 	
 	//--------------------------------------------------------------
 	void WarpTexPC::createShader3() {
+		vertexShader = GLSL120(
+							   varying vec2 texCoordVarying;
+							   
+							   void main()
+							   {
+								   vec2 texcoord = gl_MultiTexCoord0.xy;
+								   
+								   // here we move the texture coordinates
+								   texCoordVarying = vec2(texcoord.x, texcoord.y);
+								   
+								   // send the vertices to the fragment shader
+								   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;;
+							   }
+							   );
 		
+		fragmentShader = GLSL120(
+								 uniform sampler2DRect tex0;
+								 
+								 varying vec2 texCoordVarying;
+								 uniform vec2 inputDimentions;
+								 
+								 uniform vec2 upper_left;
+								 uniform vec2 upper_right;
+								 uniform vec2 lower_left;
+								 uniform vec2 lower_right;
+								 
+								 uniform vec2 powr;
+								 
+								 void main()
+								 {
+									 vec2 texcoord0 = texCoordVarying;
+									 
+									 float destX = pow(texcoord0.x, powr.x);
+									 float destY = pow(texcoord0.y, powr.y);;
+									 
+									 float sourceXUp = destX * (upper_right.x - upper_left.x) + upper_left.x;
+									 float sourceXDown = destX * (lower_right.x - lower_left.x) + lower_left.x;
+									 float sourceX = mix(sourceXUp, sourceXDown, destY);
+									 
+									 float sourceYLeft = destY * (lower_left.y - upper_left.y) + upper_left.y;
+									 float sourceYRight = destY * (lower_right.y - upper_right.y) + upper_right.y;
+									 float sourceY = mix(sourceYLeft, sourceYRight, destX);
+									 
+									 gl_FragColor = texture2DRect(tex0,vec2(sourceX * inputDimentions.x, sourceY * inputDimentions.y));
+								 }
+								 );
+		invWarpShader.setupShaderFromSource(GL_VERTEX_SHADER, vertexShader);
+		invWarpShader.setupShaderFromSource(GL_FRAGMENT_SHADER, fragmentShader);
+		invWarpShader.linkProgram();
 	}
-	
-	
-	
-	
 }
 

@@ -7,8 +7,7 @@ void ofApp::setup(){
 	camera.listDevices();
 	ofSetLogLevel(OF_LOG_NOTICE);
 	
-	//	set size for warp output
-	camera.setup(512,512);
+	camera.setup();
 	
 	gui.setup("settings");
 	gui.add(fps.set("FPS", 0, 0, 100));
@@ -42,7 +41,7 @@ void ofApp::draw(){
 	float wW = camera.getWarpWidth();
 	float wH = camera.getWarpHeight();
 	float wAr = wW / wH;
-	float scale = ofGetWindowHeight() / (tH + wH + 30);
+	float scale = ofGetWindowHeight() / (tH + wH + 40);
 	
 	int x,y,w,h;
 	

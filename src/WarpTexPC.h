@@ -15,7 +15,7 @@ namespace ofxProsilica {
 		WarpTexPC() {}
 		virtual ~WarpTexPC() {;}
 		
-		bool	setup(int _width, int _height);
+		bool	setup();
 		void	update();
 		
 		ofTexture& getWarpedTexture() 	{ return warpFbo.getTexture(); }
