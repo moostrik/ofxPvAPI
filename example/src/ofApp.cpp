@@ -67,7 +67,7 @@ void ofApp::draw(){
 			tex.allocate(w, h, glFormat);
 		}
 		
-		tex.loadData(camera.getPixels(), w, h, glFormat);
+		tex.loadData(camera.getData(), w, h, glFormat);
 	}
 	if (tex.isAllocated()) {
 		tex.draw(gui.getWidth() + gui.getPosition().x + 10, gui.getPosition().y);

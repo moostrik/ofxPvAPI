@@ -65,7 +65,7 @@ namespace ofxProsilica {
 	bool Camera::setup() {
 		vector<ofVideoDevice> deviceList = listDevices();
         if (deviceList.size() == 0) {
-			ofLog(OF_LOG_WARNING, "Camera: no cameras found", deviceID);
+			ofLog(OF_LOG_WARNING, "Camera: %lu no cameras found", deviceID);
 			return false;
 		}
         
@@ -79,7 +79,7 @@ namespace ofxProsilica {
                 }
             }
             if (foundAvailableCamera){
-                ofLog(OF_LOG_NOTICE, "Camera: no camera ID specified, defaulting to camera %i", requestedDeviceID);
+                ofLog(OF_LOG_NOTICE, "Camera: no camera ID specified, defaulting to camera %lu", requestedDeviceID);
             }
             else {
                 ofLog(OF_LOG_WARNING, "Camera: found no camera available ");
@@ -94,16 +94,16 @@ namespace ofxProsilica {
 				requestedDeviceFound = true;
 				if (deviceList[i].bAvailable) {
 					requestedDeviceAvailable = true;
-					ofLog(OF_LOG_VERBOSE, "Camera: %i found", requestedDeviceID);
+					ofLog(OF_LOG_VERBOSE, "Camera: %lu found", requestedDeviceID);
 				}
 			}
 		}
 		if (!requestedDeviceFound) {
-			ofLog(OF_LOG_WARNING, "Camera: %i not found", requestedDeviceID);
+			ofLog(OF_LOG_WARNING, "Camera: %lu not found", requestedDeviceID);
 			return false;
 		}
 		if (!requestedDeviceAvailable) {
-			ofLog(OF_LOG_WARNING, "Camera: %i not available", requestedDeviceID);
+			ofLog(OF_LOG_WARNING, "Camera: %lu not available", requestedDeviceID);
 			return false;
 		}
 		
@@ -129,7 +129,7 @@ namespace ofxProsilica {
 		
 		bInitialized = true;
 		numCamerasInUse++;
-		ofLog(OF_LOG_NOTICE,"Camera: %i up and running", deviceID);
+		ofLog(OF_LOG_NOTICE,"Camera: %lu up and running", deviceID);
 		return true;
 	}
 	
@@ -181,7 +181,7 @@ namespace ofxProsilica {
 			bInitialized = false;
 			numCamerasInUse--;
 			
-			ofLog(OF_LOG_NOTICE, "Camera: %i closed", deviceID);
+			ofLog(OF_LOG_NOTICE, "Camera: %lu closed", deviceID);
 		}
 	}
 	
@@ -192,10 +192,10 @@ namespace ofxProsilica {
 	bool Camera::openCamera() {
 		tPvErr error = PvCameraOpen( deviceID, ePvAccessMaster, &cameraHandle );
 		if( error == ePvErrSuccess ){
-			ofLog(OF_LOG_VERBOSE, "Camera: %i opened", deviceID);
+			ofLog(OF_LOG_VERBOSE, "Camera: %lu opened", deviceID);
 			return true;
 		} else {
-			ofLog(OF_LOG_ERROR, "Camera: %i failed to open", deviceID);
+			ofLog(OF_LOG_ERROR, "Camera: %lu failed to open", deviceID);
 			logError(error);
 			return false;
 		}
@@ -204,11 +204,11 @@ namespace ofxProsilica {
 	bool Camera::closeCamera() {
 		tPvErr error = PvCameraClose(cameraHandle);
 		if( error == ePvErrSuccess ){
-			ofLog(OF_LOG_VERBOSE, "Camera: %i camera closed", deviceID);
+			ofLog(OF_LOG_VERBOSE, "Camera: %lu camera closed", deviceID);
 			bInitialized = false;
 			return true;
 		} else {
-			ofLog(OF_LOG_ERROR, "Camera: %i failed to close", deviceID);
+			ofLog(OF_LOG_ERROR, "Camera: %lu failed to close", deviceID);
 			logError(error);
 			return false;
 		}
@@ -218,11 +218,11 @@ namespace ofxProsilica {
 		
 		tPvErr error = PvCaptureStart(cameraHandle);
 		if( error == ePvErrSuccess ){
-			ofLog(OF_LOG_VERBOSE, "Camera: %i set to capture mode", deviceID);
+			ofLog(OF_LOG_VERBOSE, "Camera: %lu set to capture mode", deviceID);
 			return true;
 		} else {
 			logError(error);
-			ofLog(OF_LOG_ERROR, "Camera: %i not set to capture mode", deviceID);
+			ofLog(OF_LOG_ERROR, "Camera: %lu not set to capture mode", deviceID);
 			return false;
 		}
 	}
@@ -230,10 +230,10 @@ namespace ofxProsilica {
 	bool Camera::stopCapture() {
 		tPvErr error = PvCaptureEnd(cameraHandle);
 		if( error == ePvErrSuccess ){
-			ofLog(OF_LOG_VERBOSE, "Camera: %i stopped capture mode", deviceID);
+			ofLog(OF_LOG_VERBOSE, "Camera: %lu stopped capture mode", deviceID);
 			return true;
 		} else {
-			ofLog(OF_LOG_ERROR, "Camera: %i stopped capture mode", deviceID);
+			ofLog(OF_LOG_ERROR, "Camera: %lu stopped capture mode", deviceID);
 			logError(error);
 			return false;
 		}
@@ -242,10 +242,10 @@ namespace ofxProsilica {
 	bool Camera::startAcquisition() {
 		tPvErr error = PvCommandRun(cameraHandle,"AcquisitionStart");
 		if( error == ePvErrSuccess ){
-			ofLog(OF_LOG_VERBOSE, "Camera: %i continuous acquisition started", deviceID);
+			ofLog(OF_LOG_VERBOSE, "Camera: %lu continuous acquisition started", deviceID);
 			return true;
 		} else {
-			ofLog(OF_LOG_ERROR, "Camera: %i can not start continuous acquisition", deviceID);
+			ofLog(OF_LOG_ERROR, "Camera: %lu can not start continuous acquisition", deviceID);
 			logError(error);
 			return false;
 		}
@@ -255,12 +255,12 @@ namespace ofxProsilica {
 		
 		tPvErr error = PvCommandRun(cameraHandle,"AcquisitionStop");
 		if( error == ePvErrSuccess ){
-			ofLog(OF_LOG_VERBOSE, "Camera: %i continuous acquisition stopped", deviceID);
+			ofLog(OF_LOG_VERBOSE, "Camera: %lu continuous acquisition stopped", deviceID);
 			return true;
 		} else {
 			// WHYWHYWHYWHYWHYWHY
 			PvCaptureEnd(cameraHandle) ;
-			ofLog(OF_LOG_ERROR, "Camera: %i can not stop continuous acquisition", deviceID);
+			ofLog(OF_LOG_ERROR, "Camera: %lu can not stop continuous acquisition", deviceID);
 			logError(error);
 			return false;
 		}
@@ -270,12 +270,12 @@ namespace ofxProsilica {
 		
 		tPvErr error = PvCommandRun(cameraHandle,"AcquisitionAbort");
 		if( error == ePvErrSuccess ){
-			ofLog(OF_LOG_VERBOSE, "Camera: %i continuous acquisition aborted", deviceID);
+			ofLog(OF_LOG_VERBOSE, "Camera: %lu continuous acquisition aborted", deviceID);
 			return true;
 		} else {
 			// WHYWHYWHYWHYWHYWHY
 			PvCaptureEnd(cameraHandle) ;
-			ofLog(OF_LOG_ERROR, "Camera: %i can not abort continuous acquisition", deviceID);
+			ofLog(OF_LOG_ERROR, "Camera: %lu can not abort continuous acquisition", deviceID);
 			logError(error);
 			return false;
 		}
@@ -327,7 +327,7 @@ namespace ofxProsilica {
 			vd.bAvailable = devList[i].PermittedAccess > 2;
 			devices.push_back(vd);
 			
-			ofLog(OF_LOG_VERBOSE, "%i: %s | model: %s | id: %i | available: %i", i, vd.deviceName.c_str(), vd.hardwareName.c_str(), vd.id, vd.bAvailable);
+			ofLog(OF_LOG_VERBOSE, "%i: %s | model: %s | id: %d | available: %d", i, vd.deviceName.c_str(), vd.hardwareName.c_str(), vd.id, vd.bAvailable);
 		}
 		
 		if (cameraCount == 0)
@@ -350,7 +350,7 @@ namespace ofxProsilica {
         
         if (error == ePvErrSuccess) {
             deviceID = pInfo.UniqueId;
-            ofLog(OF_LOG_NOTICE, "Camera: found camera %i on IP adress %s", deviceID, _IPAdress.c_str());
+            ofLog(OF_LOG_NOTICE, "Camera: found camera %lu on IP adress %s", deviceID, _IPAdress.c_str());
         }
         else {
             ofLog(OF_LOG_WARNING, "Camera: no camera found on IP adress %s", _IPAdress.c_str());
@@ -361,7 +361,7 @@ namespace ofxProsilica {
 	
 	void Camera::requestDeviceByID(int _deviceID) {
 		if (bInitialized)
-			ofLog(OF_LOG_ERROR, "Camera: %i: setDeviceID(): can't set ID while grabber is running", deviceID);
+			ofLog(OF_LOG_ERROR, "Camera: %lu: setDeviceID(): can't set ID while grabber is running", deviceID);
 		else {
 			requestedDeviceID = _deviceID;
 		}
@@ -393,14 +393,14 @@ namespace ofxProsilica {
 		ancillaryPixels.set(0);
 		
 		if( error == ePvErrSuccess ){
-			cameraFrame.ImageBuffer = pixels.getPixels();
+			cameraFrame.ImageBuffer = pixels.getData();
 			cameraFrame.ImageBufferSize = frameSize;
 			
 			// don't really get this one, but it prevents rare crash on startup
-			cameraFrame.AncillaryBuffer = ancillaryPixels.getPixels();
+			cameraFrame.AncillaryBuffer = ancillaryPixels.getData();
 			cameraFrame.AncillaryBufferSize = 0;
 		} else {
-			ofLog(OF_LOG_ERROR, "Camera: %i failed to allocate capture buffer", deviceID);
+			ofLog(OF_LOG_ERROR, "Camera: %lu failed to allocate capture buffer", deviceID);
 			return false;
 		}
 		
@@ -411,13 +411,13 @@ namespace ofxProsilica {
 		return pixels;
 	}
 	
-	unsigned char * Camera::getPixels(){
-		return pixels.getPixels();
+	unsigned char * Camera::getData(){
+		return pixels.getData();
 	}
     
 	bool Camera::setPixelFormat(ofPixelFormat _pixelFormat) {
 		if (bInitialized)
-			ofLog(OF_LOG_ERROR, "Camera: %i: setPixelFormat(): can't set pixel format while grabber is running", deviceID);
+			ofLog(OF_LOG_ERROR, "Camera: %lu: setPixelFormat(): can't set pixel format while grabber is running", deviceID);
 		else {
 			if (_pixelFormat == OF_PIXELS_MONO || _pixelFormat == OF_PIXELS_RGB) {
 				internalPixelFormat = _pixelFormat;
@@ -651,14 +651,14 @@ namespace ofxProsilica {
 	bool Camera::setNormalizedAttribute(string _name, float _value) {
 		
 		if (!ofInRange(_value, 0.0, 1.0)) {
-			ofLog(OF_LOG_NOTICE, "Camera: %i normalized attribute %s value %f out of range (0.0, 1.0), clamping...", deviceID, _name.c_str(), _value);
+			ofLog(OF_LOG_NOTICE, "Camera: %lu normalized attribute %s value %f out of range (0.0, 1.0), clamping...", deviceID, _name.c_str(), _value);
 			_value = ofClamp(_value, 0.0, 1.0);
 		}
 		
 		tPvAttributeInfo pInfo;
 		tPvErr error = PvAttrInfo(cameraHandle, _name.c_str(), &pInfo);
 		if (error != ePvErrSuccess) {
-			ofLog(OF_LOG_WARNING, "Camera: %i, Attribute %s Not Found ", deviceID, _name.c_str());
+			ofLog(OF_LOG_WARNING, "Camera: %lu, Attribute %s Not Found ", deviceID, _name.c_str());
 			return 0;
 		}
 		tPvDatatype pDatatype = pInfo.Datatype;
@@ -693,7 +693,7 @@ namespace ofxProsilica {
 		tPvAttributeInfo pInfo;
 		tPvErr error = PvAttrInfo(cameraHandle, _name.c_str(), &pInfo);
 		if (error != ePvErrSuccess) {
-			ofLog(OF_LOG_WARNING, "Camera: %i, Attribute %s Not Found ", deviceID, _name.c_str());
+			ofLog(OF_LOG_WARNING, "Camera: %lu, Attribute %s Not Found ", deviceID, _name.c_str());
 			return 0;
 		}
 		tPvDatatype pDatatype = pInfo.Datatype;
@@ -727,11 +727,11 @@ namespace ofxProsilica {
 		tPvErr error = PvAttrEnumSet(cameraHandle, _name.c_str(), _value.c_str());
 		
 		if (error == ePvErrSuccess) {
-			ofLog(OF_LOG_VERBOSE, "Camera: %i set %s to %s", deviceID, _name.c_str(), _value.c_str());
+			ofLog(OF_LOG_VERBOSE, "Camera: %lu set %s to %s", deviceID, _name.c_str(), _value.c_str());
 			return true;
 		}
 		
-		ofLog(OF_LOG_ERROR, "Camera: %i failed to set %s to %s", deviceID, _name.c_str(), _value.c_str());
+		ofLog(OF_LOG_ERROR, "Camera: %lu failed to set %s to %s", deviceID, _name.c_str(), _value.c_str());
 		logError(error);
 		return false;
 	}
@@ -742,7 +742,7 @@ namespace ofxProsilica {
 		tPvErr error = PvAttrEnumGet(cameraHandle, _name.c_str(), attribute, sizeof(attribute), NULL);
 		
 		if (error != ePvErrSuccess) {
-			ofLog(OF_LOG_ERROR, "Camera: %i failed to get enumeration attribute %s", deviceID, _name.c_str());
+			ofLog(OF_LOG_ERROR, "Camera: %lu failed to get enumeration attribute %s", deviceID, _name.c_str());
 			logError(error);
 			return "none";
 		}
@@ -756,19 +756,19 @@ namespace ofxProsilica {
 		PvAttrRangeUint32(cameraHandle, _name.c_str(), &min, &max);
 		
 		if (!ofInRange(_value, min, max)) {
-			ofLog(OF_LOG_NOTICE, "Camera: %i attribute %s value %i out of range (%i, %i), clamping...", deviceID, _name.c_str(), _value, min, max);
+			ofLog(OF_LOG_NOTICE, "Camera: %lu attribute %s value %i out of range (%lu, %lu), clamping...", deviceID, _name.c_str(), _value, min, max);
 			_value = ofClamp(_value, min, max);
 		}
 		
 		tPvErr error = PvAttrUint32Set(cameraHandle, _name.c_str(), _value);
 		
 		if (error == ePvErrSuccess) {
-			ofLog(OF_LOG_VERBOSE, "Camera: %i set attribute %s to %i in range %i to %i", deviceID, _name.c_str(), _value, min, max);
+			ofLog(OF_LOG_VERBOSE, "Camera: %lu set attribute %s to %i in range %lu to %lu", deviceID, _name.c_str(), _value, min, max);
 			return true;
 		}
 		
 		
-		ofLog(OF_LOG_ERROR, "Camera: %i failed to set attribute %s to %i", deviceID, _name.c_str(), _value);
+		ofLog(OF_LOG_ERROR, "Camera: %lu failed to set attribute %s to %i", deviceID, _name.c_str(), _value);
 		logError(error);
 		return false;
 	}
@@ -779,7 +779,7 @@ namespace ofxProsilica {
 		tPvErr error = PvAttrUint32Get(cameraHandle, _name.c_str(), &value);
 		
 		if (error != ePvErrSuccess) {
-			ofLog(OF_LOG_ERROR, "Camera: %i failed to get attribute %s", deviceID, _name.c_str());
+			ofLog(OF_LOG_ERROR, "Camera: %lu failed to get attribute %s", deviceID, _name.c_str());
 			logError(error);
 			return 0;
 		}
@@ -792,7 +792,7 @@ namespace ofxProsilica {
 		tPvErr error = PvAttrRangeUint32(cameraHandle, _name.c_str(), &t_min, &t_max);
 		
 		if (error != ePvErrSuccess) {
-			ofLog(OF_LOG_ERROR, "Camera: %i failed to get maximum for attribute %s", deviceID, _name.c_str());
+			ofLog(OF_LOG_ERROR, "Camera: %lu failed to get maximum for attribute %s", deviceID, _name.c_str());
 			logError(error);
 			return 1;
 		}
@@ -805,7 +805,7 @@ namespace ofxProsilica {
 		tPvErr error = PvAttrRangeUint32(cameraHandle, _name.c_str(), &t_min, &t_max);
 		
 		if (error != ePvErrSuccess) {
-			ofLog(OF_LOG_ERROR, "Camera: %i failed to get minimum for attribute %s", deviceID, _name.c_str());
+			ofLog(OF_LOG_ERROR, "Camera: %lu failed to get minimum for attribute %s", deviceID, _name.c_str());
 			logError(error);
 			return 0;
 		}
@@ -818,18 +818,18 @@ namespace ofxProsilica {
 		tPvFloat32 min, max;
 		PvAttrRangeFloat32(cameraHandle, _name.c_str(), &min, &max);
 		if (!ofInRange(_value, min, max)) {
-			ofLog(OF_LOG_NOTICE, "Camera: %i attribute %s value %f out of range (%f, %f), clamping...", deviceID, _name.c_str(), _value, min, max);
+			ofLog(OF_LOG_NOTICE, "Camera: %lu attribute %s value %f out of range (%f, %f), clamping...", deviceID, _name.c_str(), _value, min, max);
 			_value = ofClamp(_value, min, max);
 		}
 		
 		tPvErr error = PvAttrFloat32Set(cameraHandle, _name.c_str(), _value);
 		
 		if (error == ePvErrSuccess) {
-			ofLog(OF_LOG_VERBOSE, "Camera: %i set attribute %s to %f in range %f to %f", deviceID, _name.c_str(), _value, min, max);
+			ofLog(OF_LOG_VERBOSE, "Camera: %lu set attribute %s to %f in range %f to %f", deviceID, _name.c_str(), _value, min, max);
 			return true;
 		}
 		
-		ofLog(OF_LOG_ERROR, "Camera: %i failed to set attribute %s to %f", deviceID, _name.c_str(), _value);
+		ofLog(OF_LOG_ERROR, "Camera: %lu failed to set attribute %s to %f", deviceID, _name.c_str(), _value);
 		logError(error);
 		return false;
 	}
@@ -839,7 +839,7 @@ namespace ofxProsilica {
 	    tPvErr error = PvAttrFloat32Get(cameraHandle, _name.c_str(), &value);
 		
 		if (error != ePvErrSuccess) {
-			ofLog(OF_LOG_ERROR, "Camera: %i failed to get attribute %s", deviceID, _name.c_str());
+			ofLog(OF_LOG_ERROR, "Camera: %lu failed to get attribute %s", deviceID, _name.c_str());
 			logError(error);
 			return 0;
 		}
@@ -852,7 +852,7 @@ namespace ofxProsilica {
 		tPvErr error = PvAttrRangeFloat32(cameraHandle, _name.c_str(), &t_min, &t_max);
 		
 		if (error != ePvErrSuccess) {
-			ofLog(OF_LOG_ERROR, "Camera: %i failed to get maximum for attribute %s", deviceID, _name.c_str());
+			ofLog(OF_LOG_ERROR, "Camera: %lu failed to get maximum for attribute %s", deviceID, _name.c_str());
 			logError(error);
 			return 1;
 		}
@@ -866,7 +866,7 @@ namespace ofxProsilica {
 		tPvErr error = PvAttrRangeFloat32(cameraHandle, _name.c_str(), &t_min, &t_max);
 		
 		if (error != ePvErrSuccess) {
-			ofLog(OF_LOG_ERROR, "Camera: %i failed to get minimum for attribute %s", deviceID, _name.c_str());
+			ofLog(OF_LOG_ERROR, "Camera: %lu failed to get minimum for attribute %s", deviceID, _name.c_str());
 			logError(error);
 			return 0;
 		}
@@ -1039,10 +1039,10 @@ namespace ofxProsilica {
 		tPvErr error = PvCaptureAdjustPacketSize(cameraHandle, getIntAttributeMax("PacketSize"));
 		
 		if( error == ePvErrSuccess ){
-			ofLog(OF_LOG_VERBOSE, "Camera: %i packet size set to %i", deviceID, getIntAttribute("PacketSize"));
+			ofLog(OF_LOG_VERBOSE, "Camera: %lu packet size set to %i", deviceID, getIntAttribute("PacketSize"));
 			return true;
 		} else {
-			ofLog(OF_LOG_ERROR, "Camera: %i packet is not set", deviceID);
+			ofLog(OF_LOG_ERROR, "Camera: %lu packet is not set", deviceID);
 			logError(error);
 			return false;
 		}
@@ -1056,73 +1056,73 @@ namespace ofxProsilica {
 	void Camera::logError(tPvErr _msg) {
 		switch (_msg) {
 			case ePvErrCameraFault:
-				ofLog(OF_LOG_ERROR, "Camera: %i Unexpected camera fault", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu Unexpected camera fault", deviceID);
 				break;
 			case ePvErrInternalFault:
-				ofLog(OF_LOG_ERROR, "Camera: %i Unexpected fault in PvApi or driver", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu Unexpected fault in PvApi or driver", deviceID);
 				break;
 			case ePvErrBadHandle:
-				ofLog(OF_LOG_ERROR, "Camera: %i handle is invalid", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu handle is invalid", deviceID);
 				break;
 			case ePvErrBadParameter:
-				ofLog(OF_LOG_ERROR, "Camera: %i Bad parameter to API call", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu Bad parameter to API call", deviceID);
 				break;
 			case ePvErrBadSequence:
-				ofLog(OF_LOG_ERROR, "Camera: %i Sequence of API calls is incorrect", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu Sequence of API calls is incorrect", deviceID);
 				break;
 			case ePvErrNotFound:
-				ofLog(OF_LOG_ERROR, "Camera: %i camera or attribute not found", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu camera or attribute not found", deviceID);
 				break;
 			case ePvErrAccessDenied:
-				ofLog(OF_LOG_ERROR, "Camera: %i can not be opened in the specified mode", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu can not be opened in the specified mode", deviceID);
 				break;
 			case ePvErrUnplugged:
-				ofLog(OF_LOG_ERROR, "Camera: %i was unplugged", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu was unplugged", deviceID);
 				
 				close();
 				
 				break;
 			case ePvErrInvalidSetup:
-				ofLog(OF_LOG_ERROR, "Camera: %i Setup is invalid (an attribute is invalid)", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu Setup is invalid (an attribute is invalid)", deviceID);
 				break;
 			case ePvErrResources:
-				ofLog(OF_LOG_ERROR, "Camera: %i System/network resources or memory not available", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu System/network resources or memory not available", deviceID);
 				break;
 			case ePvErrBandwidth:
-				ofLog(OF_LOG_ERROR, "Camera: %i 1394??? bandwidth not available", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu 1394??? bandwidth not available", deviceID);
 				break;
 			case ePvErrQueueFull:
-				ofLog(OF_LOG_ERROR, "Camera: %i Too many frames on queue", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu Too many frames on queue", deviceID);
 				break;
 			case ePvErrBufferTooSmall:
-				ofLog(OF_LOG_ERROR, "Camera: %: Frame buffer is too small", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu: Frame buffer is too small", deviceID);
 				break;
 			case ePvErrCancelled:
-				ofLog(OF_LOG_ERROR, "Camera: %i: Frame cancelled by user", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu: Frame cancelled by user", deviceID);
 				break;
 			case ePvErrDataLost:
-				ofLog(OF_LOG_ERROR, "Camera: %i The data for the frame was lost", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu The data for the frame was lost", deviceID);
 				break;
 			case ePvErrDataMissing:
-				ofLog(OF_LOG_ERROR, "Camera: %i Some data in the frame is missing", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu Some data in the frame is missing", deviceID);
 				break;
 			case ePvErrTimeout:
-				ofLog(OF_LOG_ERROR, "Camera: %i Timeout during wait", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu Timeout during wait", deviceID);
 				break;
 			case ePvErrOutOfRange:
-				ofLog(OF_LOG_ERROR, "Camera: %i Attribute value is out of the expected range", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu Attribute value is out of the expected range", deviceID);
 				break;
 			case ePvErrWrongType:
-				ofLog(OF_LOG_ERROR, "Camera: %i Attribute is not this type (wrong access function)", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu Attribute is not this type (wrong access function)", deviceID);
 				break;
 			case ePvErrForbidden:
-				ofLog(OF_LOG_ERROR, "Camera: %i Attribute write forbidden at this time", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu Attribute write forbidden at this time", deviceID);
 				break;
 			case ePvErrUnavailable:
-				ofLog(OF_LOG_ERROR, "Camera: %i Attribute is not available at this time", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu Attribute is not available at this time", deviceID);
 				break;
 			case ePvErrFirewall:
-				ofLog(OF_LOG_ERROR, "Camera: %i A firewall is blocking the traffic (Windows only)", deviceID);
+				ofLog(OF_LOG_ERROR, "Camera: %lu A firewall is blocking the traffic (Windows only)", deviceID);
 				break;
 			default:
 				break;

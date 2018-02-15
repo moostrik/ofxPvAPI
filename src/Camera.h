@@ -42,7 +42,7 @@ namespace ofxProsilica {
 		void			resetAttributes();
 		
 		//-- PIXELS ----------------------------------------------------------
-		unsigned char*  getPixels();
+		unsigned char*  getData();
 		ofPixelsRef     getPixelsRef();
 		bool            setPixelFormat(ofPixelFormat _pixelFormat);
 		ofPixelFormat   getPixelFormat();
