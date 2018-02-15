@@ -22,3 +22,8 @@
 	note: IP settings are not included.
 *///--------------------------------------------------------------------
 #include "ParameterConnector.h"
+
+/*	--------------------------------------------------------------------
+ ofxProsilica::texPC adds a texture to the ParameterConnector
+ *///--------------------------------------------------------------------
+#include "TexPC.h"
