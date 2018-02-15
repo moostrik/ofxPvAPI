@@ -43,7 +43,7 @@ namespace ofxProsilica {
 		
 		//-- PIXELS ----------------------------------------------------------
 		unsigned char*  getData();
-		ofPixelsRef     getPixelsRef();
+		ofPixels&       getPixels();
 		bool            setPixelFormat(ofPixelFormat _pixelFormat);
 		ofPixelFormat   getPixelFormat();
 		
@@ -57,6 +57,8 @@ namespace ofxProsilica {
 		float	getFrameRate()						{ return getFloatAttribute("FrameRate"); }
 		float	getFrameRateMax()					{ return getFloatAttributeMax("FrameRate"); }
 		float	getFrameRateMin()					{ return getFloatAttributeMin("FrameRate"); }
+		
+		int		getFrameCount() 					{return frameCount; }
 		
         //-- REGION OF INTEREST ----------------------------------------------
 		void	setROIWidth(int w);
@@ -311,6 +313,7 @@ namespace ofxProsilica {
 		bool 			bInitialized;
 		bool 			bIsFrameNew;
 		bool            bWaitingForFrame;
+		int 			frameCount;
         
         //-- ACQUISITION -----------------------------------------------------
 		bool			initCamera(int cameraUid);

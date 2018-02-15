@@ -3,7 +3,6 @@
 #include "ofMain.h"
 #include "Camera.h"
 
-
 namespace ofxProsilica {
 	
 	class Connector : public Camera {

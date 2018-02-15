@@ -12,6 +12,7 @@ namespace ofxProsilica {
 	bInitialized(false),
 	bIsFrameNew(false),
 	bWaitingForFrame(false),
+	frameCount(0),
 	internalPixelFormat(OF_PIXELS_MONO),
 	deviceID(0),
 	requestedDeviceID(-1),
@@ -128,6 +129,7 @@ namespace ofxProsilica {
 		if (!allocatePixels()) return false;
 		
 		bInitialized = true;
+		frameCount = 0;
 		numCamerasInUse++;
 		ofLog(OF_LOG_NOTICE,"Camera: %lu up and running", deviceID);
 		return true;
@@ -145,6 +147,7 @@ namespace ofxProsilica {
 					bIsFrameNew = false;
 				} else if( error == ePvErrSuccess ){
 					bIsFrameNew = true;
+					frameCount++;
 					bWaitingForFrame = false;
 					queueFrame();
 				} else if (error == ePvErrUnplugged) {
@@ -407,7 +410,7 @@ namespace ofxProsilica {
 		return true;
 	}
     
-	ofPixelsRef Camera::getPixelsRef(){
+	ofPixels& Camera::getPixels(){
 		return pixels;
 	}
 	

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxProsilica.h"
+#include "Connector.h"
 
 namespace ofxProsilica {
 	
