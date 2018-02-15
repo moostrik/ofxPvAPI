@@ -15,7 +15,7 @@ previous versions tested on Windows 7
 
 1.	Add `ofxProsilica` to your addons folder
 2.	Download the [legacy SDK](https://www.alliedvision.com/fileadmin/content/software/software/PvAPI/PvAPI_1.28_OSX.tgz "PvAPI_1.28_OSX.tgz") from [Allied Vision](https://www.alliedvision.com/en/support/software-downloads.html "Software Downloads") and copy the following files from the SDK to the addon.
-*	 `/lib-pc/x86/4.2/libPvAPI.dylib` into `/ofxProsilica/libs/PvAPI/lib/osx/`
+*	 `/bin-pc/x86/4.2/libPvAPI.dylib` into `/ofxProsilica/libs/PvAPI/lib/osx/`
 *	 `/inc-pc/PvApi.h` into `/ofxProsilica/libs/PvAPI/include`
 3. 	modify `PvApi.h` to include
 ```

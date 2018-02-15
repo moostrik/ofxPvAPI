@@ -55,7 +55,7 @@ void ofApp::draw(){
                 textures[i].allocate(w, h, glFormat);
             }
 			
-            textures[i].loadData(cameras[i].getPixels(), w, h, glFormat);
+			textures[i].loadData(cameras[i].getData(), w, h, glFormat);
         }
         
     }
