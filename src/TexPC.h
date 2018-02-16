@@ -3,6 +3,9 @@
 #include "ofMain.h"
 #include "ParameterConnector.h"
 
+#define GLSL_120(shader)  "#version 120 \n" #shader
+#define GLSL_150(shader)  "#version 150 \n" #shader
+
 namespace ofxProsilica {
 	
 	class TexPC : public ParameterConnector {
@@ -11,10 +14,10 @@ namespace ofxProsilica {
 		TexPC() {}
 		virtual ~TexPC() {;}
 		
-		bool	setup();
+		bool	setup(ofTexture _tex = ofTexture());
 		void	update();
 		
-		ofTexture& getTexture() { return (hasFlip)? flipFbo.getTexture(): texture; }
+		ofTexture& getTexture() { return (useFbo)? flipFbo.getTexture() : texture; }
 		
 	private:		
 		ofParameterGroup	flipParameters;
@@ -22,11 +25,11 @@ namespace ofxProsilica {
 		ofParameter<bool>   flipV;
 		ofParameter<bool>   rotate90;
 		
-		ofFbo flipFbo;
-		
-		bool hasFlip;
-		
-	protected:
-		ofTexture texture;
+		ofTexture 	texture;
+		ofFbo 		flipFbo;
+		bool 		useFbo;
+		ofMesh		quad;
+		ofShader 	red2lumShader;
+		void 		createRed2LumShader();
 	};
 }

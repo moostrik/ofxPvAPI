@@ -11,7 +11,7 @@
 
 namespace ofxProsilica {
 	
-	bool TexPC::setup(){
+	bool TexPC::setup(ofTexture _tex){
 		ParameterConnector::setup();
 		
 		flipParameters.setName("flip");
@@ -20,22 +20,20 @@ namespace ofxProsilica {
 		flipParameters.add(rotate90.set("rotate 90", false));
 		
 		parameters.add(flipParameters);
+		if (ofIsGLProgrammableRenderer()) { createRed2LumShader(); }
+		quad.getVertices().resize(4);
+		quad.getTexCoords().resize(4);
+		quad.setMode(OF_PRIMITIVE_TRIANGLE_FAN);
 		
-		ofImage tp("tp.jpg");
+		if (_tex.isAllocated()) {
+			texture = _tex;
+		}
+		else {
+			texture.allocate(128,128, GL_R8);
+			// todo: set to white
+		}
 		
-		//	if (getPixelFormat() == OF_PIXELS_MONO) {
-		//		texture.allocate(tp.getWidth(), tp.getHeight(), GL_R8);
-		//		flipFbo.allocate(tp.getWidth(), tp.getHeight(), GL_R8);
-		//	}
-		//	else {
-		//		texture.allocate(tp.getWidth(), tp.getHeight(), GL_RGB);
-		//		flipFbo.allocate(tp.getWidth(), tp.getHeight(), GL_RGB);
-		//	}
-		
-		
-		//	texture.allocate(tp.getWidth(), tp.getHeight(), GL_RGB);
-		texture.loadData(tp.getPixels());
-		flipFbo.allocate(tp.getWidth(), tp.getHeight(), GL_RGB);
+		flipFbo.allocate(texture.getWidth(), texture.getHeight(), GL_RGB);
 		
 		flipFbo.begin();
 		ofClear(0);
@@ -61,23 +59,24 @@ namespace ofxProsilica {
 			
 			texture.loadData(getPixels());
 			
-			if (rotate90 || flipH || flipV) {
-				hasFlip = true;
+			if (rotate90 || flipH || flipV || (getPixelFormat() == OF_PIXELS_MONO && ofIsGLProgrammableRenderer())) {
+				useFbo = true;
 			}
 			else {
-				hasFlip = false;
+				useFbo = false;
 				return;
 			}
 			
+			int dstWidth = w;
+			int dstHeight = h;
 			
 			if (rotate90) {
-				int t = w;
-				w = h;
-				h = t;
+				dstWidth = h;
+				dstHeight = w;
 			}
 			
-			if (flipFbo.getWidth() != w || flipFbo.getHeight() != h) {
-					flipFbo.allocate(w, h, GL_RGB);
+			if (flipFbo.getWidth() != dstWidth || flipFbo.getHeight() != dstHeight) {
+				flipFbo.allocate(dstWidth, dstHeight, GL_RGB);
 			}
 			
 			vector<ofPoint> pts;
@@ -116,10 +115,10 @@ namespace ofxProsilica {
 			else {	// ROTATION
 				if (!flipH) {
 					if (!flipV) {  // NO FLIP
-						pts[0].set(w, 0);
-						pts[1].set(w, h);
-						pts[2].set(0, h);
-						pts[3].set(0, 0);
+						pts[0].set(0, h);
+						pts[1].set(0, 0);
+						pts[2].set(w, 0);
+						pts[3].set(w, h);
 					}
 					else {          // FLIP V
 						pts[0].set(0, 0);
@@ -136,19 +135,81 @@ namespace ofxProsilica {
 						pts[3].set(0, h);
 					}
 					else {          // FLIP H & V
-						pts[0].set(0, h);
-						pts[1].set(0, 0);
-						pts[2].set(w, 0);
-						pts[3].set(w, h);
+						pts[0].set(w, 0);
+						pts[1].set(w, h);
+						pts[2].set(0, h);
+						pts[3].set(0, 0);
 					}
 				}
 			}
 			
-			flipFbo.begin();
-			ofClear(0);
-			texture.draw(pts[0], pts[1], pts[2], pts[3]);
-			flipFbo.end();
+			
+			quad.setVertex(0, ofVec3f(0,0,0));
+			quad.setVertex(1, ofVec3f(dstWidth,0,0));
+			quad.setVertex(2, ofVec3f(dstWidth,dstHeight,0));
+			quad.setVertex(3, ofVec3f(0,dstHeight,0));
+			
+			quad.setTexCoord(0, pts[0]);
+			quad.setTexCoord(1, pts[1]);
+			quad.setTexCoord(2, pts[2]);
+			quad.setTexCoord(3, pts[3]);
+			
+			if (ofIsGLProgrammableRenderer() && getPixelFormat() == OF_PIXELS_MONO) {
+				flipFbo.begin();
+				ofClear(0);
+				red2lumShader.begin();
+				texture.bind();
+				quad.draw();
+				texture.unbind();
+				red2lumShader.end();
+				flipFbo.end();
+			}
+			else {
+				flipFbo.begin();
+				ofClear(0);
+				texture.bind();
+				quad.draw();
+				texture.unbind();
+				flipFbo.end();
+			}
 		}
+	}
+
+	//--------------------------------------------------------------
+	void TexPC::createRed2LumShader() {
+		string vertexShader, fragmentShader;
+		vertexShader = GLSL_150(
+								uniform mat4 textureMatrix;
+								uniform mat4 modelViewProjectionMatrix;
+								
+								in vec4  position;
+								in vec2  texcoord;
+								
+								out vec2 texCoordVarying;
+								
+								void main(){
+									texCoordVarying = (textureMatrix*vec4(texcoord.x,texcoord.y,0,1)).xy;
+									gl_Position = modelViewProjectionMatrix * position;
+								}
+								);
+		
+		fragmentShader = GLSL_150(
+								   uniform sampler2DRect tex0;
+								   
+								   in vec2 texCoordVarying;
+								   
+								   out vec4 fragColor;
+								   
+								   void main(){
+									   float red = texture(tex0, texCoordVarying).x;
+									   fragColor = vec4(red, red, red, 1.0);
+								   }
+								   );
+		
+		red2lumShader.setupShaderFromSource(GL_VERTEX_SHADER, vertexShader);
+		red2lumShader.setupShaderFromSource(GL_FRAGMENT_SHADER, fragmentShader);
+		red2lumShader.bindDefaults();
+		red2lumShader.linkProgram();
 	}
 }
 

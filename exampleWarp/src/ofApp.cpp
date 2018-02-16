@@ -7,7 +7,8 @@ void ofApp::setup(){
 	camera.listDevices();
 	ofSetLogLevel(OF_LOG_NOTICE);
 	
-	camera.setup();
+	ofImage tp("tp.jpg");
+	camera.setup(tp.getTexture());
 	
 	gui.setup("settings");
 	gui.add(fps.set("FPS", 0, 0, 100));

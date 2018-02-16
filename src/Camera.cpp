@@ -15,7 +15,7 @@ namespace ofxProsilica {
 	frameCount(0),
 	internalPixelFormat(OF_PIXELS_MONO),
 	deviceID(0),
-	requestedDeviceID(-1),
+	requestedDeviceID(0),
 	regionX(0.5),
 	regionY(0.5),
 	persistentIpAdress(""),
@@ -70,7 +70,7 @@ namespace ofxProsilica {
 			return false;
 		}
         
-		if (requestedDeviceID == -1) {
+		if (requestedDeviceID == 0) {
 			bool foundAvailableCamera = false;
             for (int i=0; i<deviceList.size(); i++) {
                 if (deviceList[i].bAvailable) {

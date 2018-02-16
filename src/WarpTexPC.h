@@ -3,9 +3,6 @@
 #include "ofMain.h"
 #include "TexPC.h"
 
-#define GLSL_120(shader)  "#version 120 \n" #shader
-#define GLSL_150(shader)  "#version 150 \n" #shader
-
 namespace ofxProsilica {
 	
 	class WarpTexPC : public TexPC {
@@ -14,7 +11,7 @@ namespace ofxProsilica {
 		WarpTexPC() {}
 		virtual ~WarpTexPC() {;}
 		
-		bool	setup();
+		bool	setup(ofTexture _tex = ofTexture());
 		void	update();
 		
 		ofTexture& getWarpedTexture() 	{ return warpFbo.getTexture(); }
@@ -33,9 +30,9 @@ namespace ofxProsilica {
 		ofPlanePrimitive	warpPlane;
 		ofPolyline			warpLine;
 		
-		void createShader();
-		void createShader2();
-		void createShader3();
+		void createWarpShader();
+		void createWS2();
+		void createWS3();
 		
 	};
 }
