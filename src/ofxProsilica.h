@@ -24,11 +24,13 @@
 #include "ParameterConnector.h"
 
 /*	--------------------------------------------------------------------
+ EXPERIMENTAL, PRONE TO CHANGE
  ofxProsilica::texPC adds a texture to the ParameterConnector
- *///--------------------------------------------------------------------
+*///--------------------------------------------------------------------
 #include "TexPC.h"
 
 /*	--------------------------------------------------------------------
+ EXPERIMENTAL, PRONE TO CHANGE
  ofxProsilica::texPC adds warp funcyionality to the TexPC
- *///--------------------------------------------------------------------
+*///--------------------------------------------------------------------
 #include "WarpTexPC.h"

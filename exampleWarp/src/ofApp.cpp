@@ -70,7 +70,7 @@ void ofApp::draw(){
 	w = wW * scale;
 	h = wH * scale;
 	
-	camera.getWarpedTexture().draw(x,y,w,h);
+	camera.getWarpTexture().draw(x,y,w,h);
 	
 	gui.draw();
 	

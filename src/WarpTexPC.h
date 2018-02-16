@@ -11,14 +11,20 @@ namespace ofxProsilica {
 		WarpTexPC() {}
 		virtual ~WarpTexPC() {;}
 		
+		bool	setup(int _width, int _height) { ofLogWarning("ofxProsilica") << "setup with dimensions not yet supported"; setup(); };
 		bool	setup(ofTexture _tex = ofTexture());
 		void	update();
+		void 	draw(int _x, int _y) { draw(0, 0, getWarpTexture().getWidth(), getWarpTexture().getHeight()); }
+		void 	draw(int _x, int _y, int _width, int _height) { getWarpTexture().draw(_x, _y, _width, _height); }
 		
-		ofTexture& getWarpedTexture() 	{ return warpFbo.getTexture(); }
+		ofTexture& getWarpTexture() 		{ return warpFbo.getTexture(); }
 		ofPolyline& getWarpLine() 		{ return warpLine; }
 		
 		int 	getWarpWidth()			{ return warpFbo.getWidth(); }
 		int 	getWarpHeight()			{ return warpFbo.getHeight(); }
+		
+		unsigned char*  getWarpData() 	{ return getWarpPixels().getData(); }
+		ofPixels&       getWarpPixels();
 		
 	private:		
 		ofParameterGroup	warpParameters;
@@ -34,6 +40,8 @@ namespace ofxProsilica {
 		void createWS2();
 		void createWS3();
 		
+		ofPixels	pixels;
+		bool		pixelsSet;
 	};
 }
 

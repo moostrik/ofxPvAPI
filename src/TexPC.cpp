@@ -26,19 +26,21 @@ namespace ofxProsilica {
 		quad.setMode(OF_PRIMITIVE_TRIANGLE_FAN);
 		
 		if (_tex.isAllocated()) {
-			texture = _tex;
+			internalTexture = _tex;
 		}
 		else {
-			texture.allocate(128,128, GL_R8);
+			internalTexture.allocate(128,128, GL_R8);
 			// todo: set to white
 		}
+		pixelsSet = false;
 		
-		flipFbo.allocate(texture.getWidth(), texture.getHeight(), GL_RGB);
+		flipFbo.allocate(internalTexture.getWidth(), internalTexture.getHeight(), GL_RGB);
 		
 		flipFbo.begin();
 		ofClear(0);
-		texture.draw(0, 0);
+		internalTexture.draw(0, 0);
 		flipFbo.end();
+		
 		
 		return true;
 	}
@@ -48,24 +50,18 @@ namespace ofxProsilica {
 		ParameterConnector::update();
 		
 		if (isFrameNew()){
-			int w = getWidth();
-			int h = getHeight();
+			int w = Camera::getWidth();
+			int h = Camera::getHeight();
 			int glFormat = ofGetGLInternalFormatFromPixelFormat(getPixelFormat());
 			
-			if (texture.getWidth() != w || texture.getHeight() != h || texture.getTextureData().glInternalFormat != glFormat) {
-				texture.clear();
-				texture.allocate(w, h, glFormat);
+			if (internalTexture.getWidth() != w || internalTexture.getHeight() != h || internalTexture.getTextureData().glInternalFormat != glFormat) {
+				internalTexture.clear();
+				internalTexture.allocate(w, h, glFormat);
 			}
 			
-			texture.loadData(getPixels());
+			internalTexture.loadData(ParameterConnector::getPixels());
+			pixelsSet = false;
 			
-			if (rotate90 || flipH || flipV || (getPixelFormat() == OF_PIXELS_MONO && ofIsGLProgrammableRenderer())) {
-				useFbo = true;
-			}
-			else {
-				useFbo = false;
-				return;
-			}
 			
 			int dstWidth = w;
 			int dstHeight = h;
@@ -158,18 +154,18 @@ namespace ofxProsilica {
 				flipFbo.begin();
 				ofClear(0);
 				red2lumShader.begin();
-				texture.bind();
+				internalTexture.bind();
 				quad.draw();
-				texture.unbind();
+				internalTexture.unbind();
 				red2lumShader.end();
 				flipFbo.end();
 			}
 			else {
 				flipFbo.begin();
 				ofClear(0);
-				texture.bind();
+				internalTexture.bind();
 				quad.draw();
-				texture.unbind();
+				internalTexture.unbind();
 				flipFbo.end();
 			}
 		}
@@ -211,5 +207,23 @@ namespace ofxProsilica {
 		red2lumShader.bindDefaults();
 		red2lumShader.linkProgram();
 	}
+
+	//--------------------------------------------------------------
+	ofPixels& TexPC::getPixels() {
+		if (pixelsSet) { return pixels; }
+		else {
+			ofTexture& tex = getTexture();
+		
+			ofPixels pixelsrgb;
+			tex.readToPixels(pixelsrgb);
+			
+			if (internalPixelFormat == OF_PIXELS_MONO) { pixels = pixelsrgb.getChannel(0); }
+			else { pixels = pixelsrgb; };
+			
+			pixelsSet = true;
+			return pixels;
+		}
+	}
+	
 }
 

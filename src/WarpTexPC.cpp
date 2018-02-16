@@ -24,7 +24,7 @@ namespace ofxProsilica {
 		for (int i=0; i<5; i++) { warpPoints[i].addListener(this, &::ofxProsilica::WarpTexPC::warpPointListener); }
 		parameters.add(warpParameters);
 		
-		warpFbo.allocate(getTexture().getWidth(), getTexture().getHeight(), GL_RGB);
+		warpFbo.allocate(TexPC::getWidth(), TexPC::getHeight(), GL_RGB);
 		
 		warpFbo.begin();
 		ofClear(0,0,255);
@@ -48,7 +48,10 @@ namespace ofxProsilica {
 	//--------------------------------------------------------------
 	void WarpTexPC::update() {
 		TexPC::update();
-//		if (isFrameNew()){
+		
+		if (isFrameNew()){
+			pixelsSet = false;
+		}
 		
 		ofVec2f p1 = warpParameters.get<ofVec2f>("p0");
 		ofVec2f p2 = warpParameters.get<ofVec2f>("p1");
@@ -58,20 +61,21 @@ namespace ofxProsilica {
 		vector<ofPoint> verts = {p1, p2, p4, p3, p1};
 		warpLine = ofPolyline(verts);
 		
-		float w = max(fabs(p2.x - p1.x), fabs(p4.x - p3.x)) * getTexture().getWidth();
-		float h = max(fabs(p3.y - p1.y), fabs(p4.y - p2.y)) * getTexture().getHeight();
+		float w = max(fabs(p2.x - p1.x), fabs(p4.x - p3.x)) * getWidth();
+		float h = max(fabs(p3.y - p1.y), fabs(p4.y - p2.y)) * getHeight();
 		
 		warpPlane.set(w, h, 16, 16);
 		
 		if(warpFbo.getWidth() != w || warpFbo.getHeight() != h) {
 			warpFbo.allocate(w, h, GL_RGB);
+			pixelsSet = false;
 		}
 		
 		warpFbo.begin();
 		ofClear(0);
 		invWarpShader.begin();
 		TexPC::getTexture().bind();
-		invWarpShader.setUniform2f("inputDimensions", getTexture().getWidth(), getTexture().getHeight());
+		invWarpShader.setUniform2f("inputDimensions", getWidth(), getHeight());
 		invWarpShader.setUniform2f("upper_left", p1.x, p1.y);
 		invWarpShader.setUniform2f("upper_right", p2.x, p2.y);
 		invWarpShader.setUniform2f("lower_left", p3.x, p3.y);
@@ -196,5 +200,22 @@ namespace ofxProsilica {
 		invWarpShader.setupShaderFromSource(GL_FRAGMENT_SHADER, fragmentShader);
 		invWarpShader.bindDefaults();
 		invWarpShader.linkProgram();
+	}
+
+	//--------------------------------------------------------------
+	ofPixels& WarpTexPC::getWarpPixels() {
+		if (pixelsSet) { return pixels; }
+		else {
+			ofTexture& tex = getWarpTexture();
+			
+			ofPixels pixelsrgb;
+			tex.readToPixels(pixelsrgb);
+			
+			if (internalPixelFormat == OF_PIXELS_MONO) { pixels = pixelsrgb.getChannel(0); }
+			else { pixels = pixelsrgb; };
+			
+			pixelsSet = true;
+			return pixels;
+		}
 	}
 }
