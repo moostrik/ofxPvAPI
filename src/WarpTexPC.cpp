@@ -31,7 +31,7 @@ namespace ofxProsilica {
 		getTexture().draw(0,0);
 		warpFbo.end();
 		
-		createShaders();
+		createWarpShader();
 		
 		ofVec2f p1 = warpParameters.get<ofVec2f>("p0");
 		ofVec2f p2 = warpParameters.get<ofVec2f>("p1");
