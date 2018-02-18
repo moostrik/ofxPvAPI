@@ -46,7 +46,7 @@ namespace ofxProsilica {
 	}
 	
 	//--------------------------------------------------------------
-	void WarpTexPC::update() {
+	void WarpTexPC::update(ofTexture _maskTexture) {
 		TexPC::update();
 		
 		if (isFrameNew()){
@@ -89,6 +89,14 @@ namespace ofxProsilica {
 		
 		TexPC::getTexture().unbind();
 		invWarpShader.end();
+		
+		if (_maskTexture.isAllocated()) {
+			ofPushStyle();
+			ofEnableBlendMode(OF_BLENDMODE_SUBTRACT);
+			_maskTexture.draw(0, 0, warpFbo.getWidth(), warpFbo.getHeight());
+			ofPopStyle();
+		}
+		
 		warpFbo.end();
 //		}
 	}
@@ -208,7 +216,7 @@ namespace ofxProsilica {
 		else {
 			ofTexture& tex = getWarpTexture();
 			
-			ofPixels pixelsrgb;
+//			ofPixels pixelsrgb;
 			tex.readToPixels(pixelsrgb);
 			
 			if (internalPixelFormat == OF_PIXELS_MONO) { pixels = pixelsrgb.getChannel(0); }
