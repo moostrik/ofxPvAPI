@@ -594,23 +594,23 @@ namespace ofxProsilica {
 	
 	void Camera::setROIWidth(int _value) {
 		if (getIntAttribute("Width") != _value) {
-//			lock();
+			lock();
 			T_bNeedsResize = true;
 			setIntAttribute("Width", _value);
 			if(getROIX() > getROIXMax()) { setROIX(getROIXMax()); }
 			regionX = (float)getROIX() / getROIXMax();
-//			unlock();
+			unlock();
 		}
 	}
 	
 	void Camera::setROIHeight(int _value) {
 		if (getIntAttribute("Height") != _value) {
-//			lock();
+			lock();
 			T_bNeedsResize = true;
 			setIntAttribute("Height", _value);
 			if(getROIY() > getROIYMax()) { setROIY(getROIYMax()); }
 			regionY = (float)getROIY() / getROIYMax();
-//			unlock();
+			unlock();
 		}
 	}
 
