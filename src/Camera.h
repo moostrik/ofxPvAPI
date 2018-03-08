@@ -28,7 +28,8 @@ namespace ofxProsilica {
 		bool			isInitialized();
 		bool 			isFrameNew(bool _reset = true);
 		void			close();
-		void threadedFunction();
+		
+		void 			threadedFunction();
 		
 		//-- DEVICE ----------------------------------------------------------
 		vector<ofVideoDevice> listDevices();
@@ -44,13 +45,16 @@ namespace ofxProsilica {
 		
 		//-- PIXELS ----------------------------------------------------------
 //		unsigned char*	getData();
-		ofPixels		getPixels();
+		ofPixels&		getPixels();
+//		void			getPixels(ofPixels& _pixels);
 		bool			setPixelFormat(ofPixelFormat _pixelFormat);
 		ofPixelFormat	getPixelFormat();
 		
         //-- WIDTH & HEIGHT --------------------------------------------------
-		float	getWidth()							{ return getIntAttribute("Width"); }
-		float	getHeight()							{ return getIntAttribute("Height"); }
+//		float	getWidth()							{ lock(); int w = (T_pixelsOut.isAllocated())? T_pixelsOut.getWidth() : 0; unlock(); return w; } 	// width of the pixels, not the ROI
+//		float	getHeight()							{ lock(); int h = (T_pixelsOut.isAllocated())? T_pixelsOut.getHeight() : 0; unlock(); return h;  }	// height of the pixels, not the ROI
+		float	getWidth()							{ return (T_pixelsOut.isAllocated())? T_pixelsOut.getWidth() : 0; } 	// width of the pixels, not the ROI
+		float	getHeight()							{ return (T_pixelsOut.isAllocated())? T_pixelsOut.getHeight() : 0; }	// height of the pixels, not the ROI
 		
         //-- FRAMERATE -------------------------------------------------------
 		void	setDesiredFrameRate(int  _framerate){ setFrameRate(_framerate);}

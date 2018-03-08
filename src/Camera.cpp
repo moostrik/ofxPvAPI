@@ -147,35 +147,32 @@ namespace ofxProsilica {
 				lock();
 				if (T_bNeedsResize) {
 					T_bNeedsResize = false;
-					bResize = false;
-				}
-				unlock();
-				
-				if (bResize) {
 					clearQueue();
 					allocatePixels();
 				}
+				unlock();
 				
 				if( !bWaitingForFrame ) {
 					bWaitingForFrame = queueFrame();
-				} else {
-					tPvErr error = PvCaptureWaitForFrameDone(cameraHandle, &cameraFrame, PVINFINITE); // in MiliSeconds
-					 if(error == ePvErrSuccess){
-						lock();
+				}
+				
+				tPvErr error = PvCaptureWaitForFrameDone(cameraHandle, &cameraFrame, PVINFINITE); // in MiliSeconds
+				if(error == ePvErrSuccess ){
+					lock();
+					if (!T_bNeedsResize) {
 						T_pixelsOut = framePixels;
 						T_bIsFrameNew = true;
-						unlock();
-						
-//						cout << "newframe" << endl;
 						frameCount++;
-						bWaitingForFrame = queueFrame();
-					} else if (error == ePvErrUnplugged) {
-						ofLogWarning("Camera " + ofToString(deviceID) + " connection lost");
-						close();
-					} else {
-						logError(error);
-						close();
 					}
+					unlock();
+					
+					bWaitingForFrame = false;
+				} else if (error == ePvErrUnplugged) {
+					ofLogWarning("Camera " + ofToString(deviceID) + " connection lost");
+					close();
+				} else {
+					logError(error);
+					close();
 				}
 			}
 			sleep(5);
@@ -194,7 +191,7 @@ namespace ofxProsilica {
 		lock();
 		bool B = T_bIsFrameNew;
 		if (_reset) {
-//			T_bIsFrameNew = false;
+			T_bIsFrameNew = false;
 		}
 		unlock();
 		return B;
@@ -442,10 +439,15 @@ namespace ofxProsilica {
 		return true;
 	}
     
-	ofPixels Camera::getPixels(){
-//		lock();
+	ofPixels& Camera::getPixels(){
 		return T_pixelsOut;
 	}
+	
+//	void Camera::getPixels(ofPixels& _pixels){
+//		lock();
+//		_pixels = T_pixelsOut;
+//		unlock();
+//	}
 	
 //	unsigned char * Camera::getData(){
 //		return pixels.getData();
@@ -592,23 +594,23 @@ namespace ofxProsilica {
 	
 	void Camera::setROIWidth(int _value) {
 		if (getIntAttribute("Width") != _value) {
-			lock();
+//			lock();
 			T_bNeedsResize = true;
 			setIntAttribute("Width", _value);
 			if(getROIX() > getROIXMax()) { setROIX(getROIXMax()); }
 			regionX = (float)getROIX() / getROIXMax();
-			unlock();
+//			unlock();
 		}
 	}
 	
 	void Camera::setROIHeight(int _value) {
 		if (getIntAttribute("Height") != _value) {
-			lock();
+//			lock();
 			T_bNeedsResize = true;
 			setIntAttribute("Height", _value);
 			if(getROIY() > getROIYMax()) { setROIY(getROIYMax()); }
 			regionY = (float)getROIY() / getROIYMax();
-			unlock();
+//			unlock();
 		}
 	}
 
