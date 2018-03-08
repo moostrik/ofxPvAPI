@@ -43,8 +43,8 @@ namespace ofxProsilica {
 		void			resetAttributes();
 		
 		//-- PIXELS ----------------------------------------------------------
-		unsigned char*  getData();
-		ofPixels&       getPixels();
+//		unsigned char*  getData();
+		ofPixels	    getPixels();
 		bool            setPixelFormat(ofPixelFormat _pixelFormat);
 		ofPixelFormat   getPixelFormat();
 		
@@ -309,11 +309,15 @@ namespace ofxProsilica {
 		static bool     bPvApiInitiated;
 		static int		numCamerasInUse;
 		tPvHandle       cameraHandle;
-		tPvFrame        cameraFrame;
+		
+		
+		bool			allocateFrames();
+		tPvFrame*       iFrames;
+		
 		
 		bool 			bInitialized;
 		bool 			bIsFrameNew;
-		bool            bWaitingForFrame;
+//		bool            bWaitingForFrame;
 		int 			frameCount;
 		
 		void			threadedFunction();
@@ -337,8 +341,7 @@ namespace ofxProsilica {
         //-- PIXELS ----------------------------------------------------------
 		ofPixelFormat	internalPixelFormat;
 		ofPixels		pixels;
-		ofPixels		ancillaryPixels;
-		bool			allocatePixels();
+//		ofPixels		ancillaryPixels;
 		vector<ofPixels*>	pixelsVector;
 		
         //-- REGION OF INTEREST-----------------------------------------------
