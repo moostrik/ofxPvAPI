@@ -16,18 +16,19 @@
 
 namespace ofxProsilica {
 	
-	class Camera {
+	class Camera : public ofThread  {
 		public :
 		
 		Camera();
 		virtual ~Camera();
-		
 		
 		bool			setup();
 		void			update();
 		bool			isInitialized();
 		bool 			isFrameNew();
 		void			close();
+		
+		void			OnFrameDone(tPvFrame* Frame); // for internal use only
 		
 		//-- DEVICE ----------------------------------------------------------
 		vector<ofVideoDevice> listDevices();
@@ -314,6 +315,8 @@ namespace ofxProsilica {
 		bool 			bIsFrameNew;
 		bool            bWaitingForFrame;
 		int 			frameCount;
+		
+		void			threadedFunction();
         
         //-- ACQUISITION -----------------------------------------------------
 		bool			initCamera(int cameraUid);
@@ -336,6 +339,7 @@ namespace ofxProsilica {
 		ofPixels		pixels;
 		ofPixels		ancillaryPixels;
 		bool			allocatePixels();
+		vector<ofPixels*>	pixelsVector;
 		
         //-- REGION OF INTEREST-----------------------------------------------
 		float			regionX;

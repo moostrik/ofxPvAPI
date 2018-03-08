@@ -36,7 +36,7 @@ namespace ofxProsilica {
 			} else {
 				if (nextConnectAttemptTime < ofGetElapsedTimef()) {
 					connectCounter++;
-					connectInterval += connectInterval;
+//					connectInterval += connectInterv+al;
 					if (connectInterval > 64) connectInterval = 64;
 					nextConnectAttemptTime = ofGetElapsedTimef() + connectInterval;
 					

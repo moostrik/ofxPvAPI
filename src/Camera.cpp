@@ -1,7 +1,11 @@
 #include "Camera.h"
 
 namespace ofxProsilica {
-	
+	void FrameDoneCB(tPvFrame* pFrame){
+		Camera* cam = (Camera*)pFrame->Context[0];
+		if(cam) {cam->OnFrameDone(pFrame); }
+	}
+
 	bool Camera::bPvApiInitiated = false;
     int Camera::numCamerasInUse = 0;
 	
@@ -21,7 +25,6 @@ namespace ofxProsilica {
 	persistentIpAdress(""),
     persistentIpGateway(""),
     persistentIpSubnetMask("0.0.0.0") {
-		
 		if (!bPvApiInitiated) PvApiInitialize() ;
 	}
 	
@@ -132,32 +135,68 @@ namespace ofxProsilica {
 		frameCount = 0;
 		numCamerasInUse++;
 		ofLog(OF_LOG_NOTICE,"Camera: %lu up and running", deviceID);
+		
+		startThread(true);
+//		queueFrame();
 		return true;
+	}
+	
+	void Camera::threadedFunction(){
+		while(isThreadRunning()) {
+			
+		}
 	}
 	
 	void Camera::update(){
 		bIsFrameNew = false;
+		
+		
 		if (bInitialized) {
 			if( !bWaitingForFrame ) {
 				queueFrame();
 			}
 			else {
-				tPvErr error = PvCaptureWaitForFrameDone(cameraHandle, &cameraFrame, 1); // in MiliSeconds
-				if( error == ePvErrTimeout ) {
-					bIsFrameNew = false;
-				} else if( error == ePvErrSuccess ){
-					bIsFrameNew = true;
-					frameCount++;
-					bWaitingForFrame = false;
-					queueFrame();
-				} else if (error == ePvErrUnplugged) {
-					
-					ofLogWarning("Camera " + ofToString(deviceID) + " connection lost");
-					close();
-				} else {
-					logError(error);
-					close();
+				ofPixels* newPixels = NULL;
+				lock();
+				if (frameArray.size() > 0) {
+					newPixels = frameArray[frameArray.size()-1];
 				}
+				if (frameArray.size() > 1) {
+					ofLogWarning("Camera") << deviceID << " dropped " << frameArray.size() - 1 << " frames";
+					ofPixels* tPixels;
+					for (int i=0; i < frameArray.size() - 1; i++) {
+						tPixels = frameArray[i];
+						delete tPixels;
+					}
+				}
+				frameArray.clear();
+				unlock();
+				
+				if (newPixels != NULL) {
+//					cout << (newPixels->getData()[0] == '\0') << endl;
+//					pixels.setFromPixels(newPixels->getData(), newPixels->getWidth(), newPixels->getWidth(), newPixels->getNumChannels());
+//					bIsFrameNew = true;
+//					frameCount++;
+					
+					delete newPixels;
+				}
+					
+//				tPvErr error = PvCaptureWaitForFrameDone(cameraHandle, &cameraFrame, 1); // in MiliSeconds
+//				if( error == ePvErrTimeout ) {
+//					bIsFrameNew = false;
+//				} else if( error == ePvErrSuccess ){
+//					bIsFrameNew = true;
+//					frameCount++;
+//					bWaitingForFrame = false;
+//					queueFrame();
+//				} else if (error == ePvErrUnplugged) {
+//
+//					ofLogWarning("Camera " + ofToString(deviceID) + " connection lost");
+//					close();
+//				} else {
+//					logError(error);
+//					close();
+//				}
 			}
 		}
 	}
@@ -285,7 +324,20 @@ namespace ofxProsilica {
 	}
 	
 	void Camera::queueFrame(){
-		if( PvCaptureQueueFrame( cameraHandle, &cameraFrame, NULL) != ePvErrSuccess ){
+		tPvUint32       bytesPerFrame; // 	unsigned long
+		
+		PvAttrUint32Get(cameraHandle, "TotalBytesPerFrame", &bytesPerFrame);
+		if(cameraFrame.ImageBufferSize != bytesPerFrame) {
+			delete (char*)cameraFrame.ImageBuffer;
+			
+			cameraFrame.ImageBuffer = new unsigned char[bytesPerFrame];
+			cameraFrame.ImageBufferSize = bytesPerFrame;
+			cameraFrame.Context[0]   = this;
+			int x = cameraFrame.Width * cameraFrame.Height;
+			cout << cameraFrame.Width << " " << cameraFrame.Height <<  " " << bytesPerFrame << " " << x << endl;
+		}
+		
+		if( PvCaptureQueueFrame( cameraHandle, &cameraFrame, FrameDoneCB) != ePvErrSuccess ){
 			bWaitingForFrame = false;
 			ofLog(OF_LOG_NOTICE, "Camera " + ofToString(deviceID) + " failed to queue frame buffer -> no worries just try again");
 		} else {
@@ -293,13 +345,42 @@ namespace ofxProsilica {
 		}
 	}
 	
+	void Camera::OnFrameDone(tPvFrame* pFrame) {
+		// if frame hasn't been cancelled, requeue frame
+		if(pFrame->Status == ePvErrSuccess) {
+			// make frames
+			ofPixels* newPixels = new ofPixels;
+			newPixels->setFromPixels((unsigned char*)pFrame->ImageBuffer, pFrame->Width, pFrame->Height,  internalPixelFormat);
+			
+//			delete newPixels;
+			lock();
+			frameArray.push_back(newPixels);
+			// put pixels in pixelarray;
+			unlock();
+		}
+		else {
+			logError(pFrame->Status);
+		}
+		
+		
+		if(pFrame->Status != ePvErrCancelled) {
+			queueFrame();
+		}
+		
+//		cout << "YESS" << endl;
+	}
+
+	
 	bool Camera::clearQueue() {
+		bWaitingForFrame = false;
 		tPvErr error = PvCaptureQueueClear(cameraHandle);
 		if (error != ePvErrSuccess ){
 			logError(error);
 			return false;
 		}
-		else false;
+		else {
+			return true;
+		}
 	}
 	
     
@@ -380,32 +461,33 @@ namespace ofxProsilica {
 	
 	bool Camera::allocatePixels() {
 		
-		clearQueue();
-		
-		pixels.clear();
-		
-		unsigned long frameSize = 0;
-		tPvErr error = PvAttrUint32Get( cameraHandle, "TotalBytesPerFrame", &frameSize );
-		
-		int width = getIntAttribute("Width");
-		int height = getIntAttribute("Height");
-		
-		pixels.allocate(width, height, internalPixelFormat);
-		
-		ancillaryPixels.allocate(1, 1, 1);
-		ancillaryPixels.set(0);
-		
-		if( error == ePvErrSuccess ){
-			cameraFrame.ImageBuffer = pixels.getData();
-			cameraFrame.ImageBufferSize = frameSize;
-			
-			// don't really get this one, but it prevents rare crash on startup
-			cameraFrame.AncillaryBuffer = ancillaryPixels.getData();
-			cameraFrame.AncillaryBufferSize = 0;
-		} else {
-			ofLog(OF_LOG_ERROR, "Camera: %lu failed to allocate capture buffer", deviceID);
-			return false;
-		}
+//		clearQueue();
+//
+//		pixels.clear();
+//
+//		unsigned long frameSize = 0;
+//		tPvErr error = PvAttrUint32Get( cameraHandle, "TotalBytesPerFrame", &frameSize );
+//
+//		int width = getIntAttribute("Width");
+//		int height = getIntAttribute("Height");
+//
+//		pixels.allocate(width, height, internalPixelFormat);
+//
+//		ancillaryPixels.allocate(1, 1, 1);
+//		ancillaryPixels.set(0);
+//
+//		if( error == ePvErrSuccess ){
+//			cameraFrame.ImageBuffer = pixels.getData();
+//			cameraFrame.ImageBufferSize = frameSize;
+//			cameraFrame.Context[0]      = this;
+//
+//			// don't really get this one, but it prevents rare crash on startup
+//			cameraFrame.AncillaryBuffer = ancillaryPixels.getData();
+//			cameraFrame.AncillaryBufferSize = 0;
+//		} else {
+//			ofLog(OF_LOG_ERROR, "Camera: %lu failed to allocate capture buffer", deviceID);
+//			return false;
+//		}
 		
 		return true;
 	}
