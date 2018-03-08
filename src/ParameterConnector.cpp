@@ -153,8 +153,8 @@ namespace ofxProsilica {
         
         if (bInitialized) {
 			if (!bLoadFromInterface) {
-				if (isFrameNew())
-					setAllParametersFromCam();
+				if (isFrameNew(false))
+					setAllParametersFromCam(); // this can be better
 			} else {
 				bLoadFromInterface = false;
 				setAllParametersFromInterface();

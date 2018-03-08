@@ -1,22 +1,18 @@
 #include "Camera.h"
 
 namespace ofxProsilica {
-	void FrameDoneCB(tPvFrame* pFrame){
-		Camera* cam = (Camera*)pFrame->Context[0];
-		if(cam) {cam->OnFrameDone(pFrame); }
-	}
-
+	
 	bool Camera::bPvApiInitiated = false;
     int Camera::numCamerasInUse = 0;
-	const int kMaxFrames     = 1;
 	
     
 	//--------------------------------------------------------------------
     
 	Camera::Camera() :
 	bInitialized(false),
-	bIsFrameNew(false),
-//	bWaitingForFrame(false),
+	T_bIsFrameNew(false),
+	T_bNeedsResize(false),
+	bWaitingForFrame(false),
 	frameCount(0),
 	internalPixelFormat(OF_PIXELS_MONO),
 	deviceID(0),
@@ -26,16 +22,12 @@ namespace ofxProsilica {
 	persistentIpAdress(""),
     persistentIpGateway(""),
     persistentIpSubnetMask("0.0.0.0") {
+		
 		if (!bPvApiInitiated) PvApiInitialize() ;
-		iFrames = new tPvFrame[kMaxFrames];
-		if(iFrames) { memset(iFrames,0,sizeof(tPvFrame) * kMaxFrames); }
 	}
 	
 	Camera::~Camera(){
 		close();
-		for(int i=0;i<kMaxFrames;i++) { delete [] (char *)iFrames[i].ImageBuffer; }
-		delete [] iFrames;
-		
 		if (numCamerasInUse == 0 && bPvApiInitiated)
 			PvApiUnInitialize();
 	}
@@ -134,10 +126,7 @@ namespace ofxProsilica {
 		if (internalPixelFormat == OF_PIXELS_RGB) pf = "Rgb24";
 		if (!setEnumAttribute("PixelFormat", pf)) return false;
 		
-		if (!allocateFrames()) return false;
-		
-		queueFrame();
-		
+		if (!allocatePixels()) return false;
 		if (!startAcquisition()) return false;
 		
 		bInitialized = true;
@@ -151,97 +140,77 @@ namespace ofxProsilica {
 	
 	void Camera::threadedFunction(){
 		while(isThreadRunning()) {
-			
-			
-			if (lock()) {
-				tPvFrame* pFrame = &iFrames[0];
-				PvCaptureWaitForFrameDone(cameraHandle, pFrame, PVINFINITE);
-				pixels.setFromPixels((unsigned char*)pFrame->ImageBuffer, pFrame->Width, pFrame->Height,  internalPixelFormat);
+//			bIsFrameNew = false;
+			if (bInitialized) {
 				
-				
-//				if (pixelsVector.size() > 0) {
-//					ofPixels* pix = pixelsVector[pixelsVector.size()-1];
-//					pixels.setFromPixels(pix->getData(), pix->getWidth(), pix->getHeight(), pix->getNumChannels());
-//					delete pix;
-//					bIsFrameNew = true;
-//					frameCount++;
-//				}
-//				if (pixelsVector.size() > 1) {
-//					ofLogWarning("Camera") << deviceID << " dropped " << pixelsVector.size() - 1 << " frames";
-//					ofPixels* tPixels;
-//					for (int i=0; i < pixelsVector.size() - 1; i++) {
-//						tPixels = pixelsVector[i];
-//						delete tPixels;
-//					}
-//				}
-//				pixelsVector.clear();
+				bool bResize = false;
+				lock();
+				if (T_bNeedsResize) {
+					T_bNeedsResize = false;
+					bResize = false;
+				}
 				unlock();
+				
+				if (bResize) {
+					clearQueue();
+					allocatePixels();
+				}
+				
+				if( !bWaitingForFrame ) {
+					bWaitingForFrame = queueFrame();
+				} else {
+					tPvErr error = PvCaptureWaitForFrameDone(cameraHandle, &cameraFrame, PVINFINITE); // in MiliSeconds
+					 if(error == ePvErrSuccess){
+						lock();
+						T_pixelsOut = framePixels;
+						T_bIsFrameNew = true;
+						unlock();
+						
+//						cout << "newframe" << endl;
+						frameCount++;
+						bWaitingForFrame = queueFrame();
+					} else if (error == ePvErrUnplugged) {
+						ofLogWarning("Camera " + ofToString(deviceID) + " connection lost");
+						close();
+					} else {
+						logError(error);
+						close();
+					}
+				}
 			}
-			else {cout << "could not lock" << endl; }
-			
-			//
-			sleep(10);
+			sleep(5);
 		}
 	}
 	
-	void Camera::OnFrameDone(tPvFrame* pFrame) {
-		// if frame hasn't been cancelled, requeue frame
-		if(pFrame->Status == ePvErrSuccess) {
-			// make frames
-			ofPixels* newPixels = new ofPixels;
-			newPixels->setFromPixels((unsigned char*)pFrame->ImageBuffer, pFrame->Width, pFrame->Height,  internalPixelFormat);
-			
-			//			delete newPixels;
-			lock();
-			
-			pixelsVector.push_back(newPixels);
-			// put pixels in pixelarray;
-			
-			unlock();
-		}
-		else {
-			ofLogError("OnFrameDone") << "frame not done";
-			logError(pFrame->Status);
-		}
+	void Camera::update() {
 		
-		
-		if(pFrame->Status != ePvErrCancelled) {
-			lock();
-			PvCaptureQueueFrame( cameraHandle, pFrame, FrameDoneCB);
-			unlock();
-//						queueFrame();
-		}
-		
-		//		cout << "YESS" << endl;
 	}
 	
-	void Camera::update(){
-	}
-    
 	bool Camera::isInitialized() {
          return bInitialized;
     }
     
-	bool Camera::isFrameNew(){
-		bool isNew = false;
-		if (lock()) {
-			isNew = bIsFrameNew;
-//			bIsFrameNew = false;
-			unlock();
+	bool Camera::isFrameNew(bool _reset){
+		lock();
+		bool B = T_bIsFrameNew;
+		if (_reset) {
+//			T_bIsFrameNew = false;
 		}
-		return isNew;
+		unlock();
+		return B;
 	}
 	
 	void Camera::close(){
 		
 		if( bInitialized ) {
+			waitForThread();
 			// stop the streaming
 			clearQueue();
 			//stopAcquisition();
 			stopCapture();
 			closeCamera();
 			
-			pixels.clear();
+			framePixels.clear();
 			
 			bInitialized = false;
 			numCamerasInUse--;
@@ -346,33 +315,23 @@ namespace ofxProsilica {
 		}
 	}
 	
-	void Camera::queueFrame(){
-		tPvErr error = ePvErrSuccess;
-		lock();
-		for(int i=0;i<kMaxFrames && !error;i++) {
-			error = PvCaptureQueueFrame(cameraHandle,&iFrames[i],FrameDoneCB);
-			error = PvCaptureQueueFrame(cameraHandle,&iFrames[i],NULL);
-		}
-		unlock();
-		
-		if( error != ePvErrSuccess  ){
-			ofLog(OF_LOG_NOTICE, "Camera " + ofToString(deviceID) + " failed to queue frames");
+	bool Camera::queueFrame(){
+		tPvErr error = PvCaptureQueueFrame( cameraHandle, &cameraFrame, NULL);
+		if (error != ePvErrSuccess ){
+			ofLog(OF_LOG_NOTICE, "Camera " + ofToString(deviceID) + " failed to queue frame buffer -> no worries just try again");
 			logError(error);
+			return false;
 		}
+		return true;
 	}
 	
 	bool Camera::clearQueue() {
-//		bWaitingForFrame = false;
-		lock();
 		tPvErr error = PvCaptureQueueClear(cameraHandle);
-		unlock();
 		if (error != ePvErrSuccess ){
 			logError(error);
 			return false;
 		}
-		else {
-			return true;
-		}
+		return true;
 	}
 	
     
@@ -451,71 +410,47 @@ namespace ofxProsilica {
 	//--------------------------------------------------------------------
 	//-- PIXELS ----------------------------------------------------------
 	
-	bool Camera::allocateFrames() {
+	bool Camera::allocatePixels() {
+		
 //		clearQueue();
-		tPvUint32       bytesPerFrame; // 	unsigned long
-		PvAttrUint32Get(cameraHandle, "TotalBytesPerFrame", &bytesPerFrame);
 		
-		tPvErr lErr;
+		framePixels.clear();
 		
-		for(int i=0;i<kMaxFrames && !lErr;i++)
-		{
-			if(iFrames[i].ImageBufferSize != bytesPerFrame)
-			{
-				// delete the image buffer in case we have stopped then restarted
-				delete (char*)iFrames[i].ImageBuffer;
-				// then allocate the new one
-				iFrames[i].ImageBuffer = new char[bytesPerFrame];
-				if(!iFrames[i].ImageBuffer)
-					lErr = ePvErrResources;
-				else
-				{
-					iFrames[i].ImageBufferSize = bytesPerFrame;
-					iFrames[i].Context[0]      = this;
-				}
-			}
+		unsigned long frameSize = 0;
+		tPvErr error = PvAttrUint32Get( cameraHandle, "TotalBytesPerFrame", &frameSize );
+		
+		int width = getIntAttribute("Width");
+		int height = getIntAttribute("Height");
+		
+		framePixels.allocate(width, height, internalPixelFormat);
+		
+		ancillaryPixels.allocate(1, 1, 1);
+		ancillaryPixels.set(0);
+		
+		if( error == ePvErrSuccess ){
+			cameraFrame.ImageBuffer = framePixels.getData();
+			cameraFrame.ImageBufferSize = frameSize;
+			
+			// don't really get this one, but it prevents rare crash on startup
+			cameraFrame.AncillaryBuffer = ancillaryPixels.getData();
+			cameraFrame.AncillaryBufferSize = 0;
+		} else {
+			ofLog(OF_LOG_ERROR, "Camera: %lu failed to allocate capture buffer", deviceID);
+			return false;
 		}
-//		queueFrame();
-//		clearQueue();
-//
-//		pixels.clear();
-//
-//		unsigned long frameSize = 0;
-//		tPvErr error = PvAttrUint32Get( cameraHandle, "TotalBytesPerFrame", &frameSize );
-//
-//		int width = getIntAttribute("Width");
-//		int height = getIntAttribute("Height");
-//
-//		pixels.allocate(width, height, internalPixelFormat);
-//
-//		ancillaryPixels.allocate(1, 1, 1);
-//		ancillaryPixels.set(0);
-//
-//		if( error == ePvErrSuccess ){
-//			cameraFrame.ImageBuffer = pixels.getData();
-//			cameraFrame.ImageBufferSize = frameSize;
-//			cameraFrame.Context[0]      = this;
-//
-//			// don't really get this one, but it prevents rare crash on startup
-//			cameraFrame.AncillaryBuffer = ancillaryPixels.getData();
-//			cameraFrame.AncillaryBufferSize = 0;
-//		} else {
-//			ofLog(OF_LOG_ERROR, "Camera: %lu failed to allocate capture buffer", deviceID);
-//			return false;
-//		}
 		
 		return true;
 	}
     
 	ofPixels Camera::getPixels(){
-		ofPixels pix = pixels;
-		return pix;
+//		lock();
+		return T_pixelsOut;
 	}
 	
 //	unsigned char * Camera::getData(){
 //		return pixels.getData();
 //	}
-    
+	
 	bool Camera::setPixelFormat(ofPixelFormat _pixelFormat) {
 		if (bInitialized)
 			ofLog(OF_LOG_ERROR, "Camera: %lu: setPixelFormat(): can't set pixel format while grabber is running", deviceID);
@@ -657,31 +592,23 @@ namespace ofxProsilica {
 	
 	void Camera::setROIWidth(int _value) {
 		if (getIntAttribute("Width") != _value) {
-			clearQueue();
-			
+			lock();
+			T_bNeedsResize = true;
 			setIntAttribute("Width", _value);
-			if(getROIX() > getROIXMax())
-				setROIX(getROIXMax());
-			
-			allocateFrames();
-			queueFrame();
-			
+			if(getROIX() > getROIXMax()) { setROIX(getROIXMax()); }
 			regionX = (float)getROIX() / getROIXMax();
+			unlock();
 		}
 	}
 	
 	void Camera::setROIHeight(int _value) {
 		if (getIntAttribute("Height") != _value) {
-			clearQueue();
-			
+			lock();
+			T_bNeedsResize = true;
 			setIntAttribute("Height", _value);
-			if(getROIY() > getROIYMax())
-				setROIY(getROIYMax());
-			
-			allocateFrames();
-			queueFrame();
-			
+			if(getROIY() > getROIYMax()) { setROIY(getROIYMax()); }
 			regionY = (float)getROIY() / getROIYMax();
+			unlock();
 		}
 	}
 
@@ -1231,7 +1158,6 @@ namespace ofxProsilica {
 				ofLog(OF_LOG_ERROR, "Camera: %lu A firewall is blocking the traffic (Windows only)", deviceID);
 				break;
 			default:
-				ofLog(OF_LOG_ERROR, "Camera: %lu unknown error ", deviceID) << _msg;
 				break;
 		}
 	}

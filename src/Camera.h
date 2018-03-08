@@ -16,19 +16,19 @@
 
 namespace ofxProsilica {
 	
-	class Camera : public ofThread  {
+	class Camera :public ofThread {
 		public :
 		
 		Camera();
 		virtual ~Camera();
 		
+		
 		bool			setup();
 		void			update();
 		bool			isInitialized();
-		bool 			isFrameNew();
+		bool 			isFrameNew(bool _reset = true);
 		void			close();
-		
-		void			OnFrameDone(tPvFrame* Frame); // for internal use only
+		void threadedFunction();
 		
 		//-- DEVICE ----------------------------------------------------------
 		vector<ofVideoDevice> listDevices();
@@ -43,10 +43,10 @@ namespace ofxProsilica {
 		void			resetAttributes();
 		
 		//-- PIXELS ----------------------------------------------------------
-//		unsigned char*  getData();
-		ofPixels	    getPixels();
-		bool            setPixelFormat(ofPixelFormat _pixelFormat);
-		ofPixelFormat   getPixelFormat();
+//		unsigned char*	getData();
+		ofPixels		getPixels();
+		bool			setPixelFormat(ofPixelFormat _pixelFormat);
+		ofPixelFormat	getPixelFormat();
 		
         //-- WIDTH & HEIGHT --------------------------------------------------
 		float	getWidth()							{ return getIntAttribute("Width"); }
@@ -309,18 +309,12 @@ namespace ofxProsilica {
 		static bool     bPvApiInitiated;
 		static int		numCamerasInUse;
 		tPvHandle       cameraHandle;
-		
-		
-		bool			allocateFrames();
-		tPvFrame*       iFrames;
-		
+		tPvFrame        cameraFrame;
 		
 		bool 			bInitialized;
-		bool 			bIsFrameNew;
-//		bool            bWaitingForFrame;
+		bool 			T_bIsFrameNew;
+		bool            bWaitingForFrame;
 		int 			frameCount;
-		
-		void			threadedFunction();
         
         //-- ACQUISITION -----------------------------------------------------
 		bool			initCamera(int cameraUid);
@@ -331,7 +325,7 @@ namespace ofxProsilica {
 		bool			startAcquisition();
 		bool			stopAcquisition();
 		bool			abortAcquisition();
-		void			queueFrame();
+		bool			queueFrame();
 		bool			clearQueue();
         
         //-- DEVICES ---------------------------------------------------------
@@ -340,9 +334,11 @@ namespace ofxProsilica {
         
         //-- PIXELS ----------------------------------------------------------
 		ofPixelFormat	internalPixelFormat;
-		ofPixels		pixels;
-//		ofPixels		ancillaryPixels;
-		vector<ofPixels*>	pixelsVector;
+		ofPixels		framePixels;
+		ofPixels		T_pixelsOut;
+		ofPixels		ancillaryPixels;
+		bool			allocatePixels();
+		bool 			T_bNeedsResize;
 		
         //-- REGION OF INTEREST-----------------------------------------------
 		float			regionX;
