@@ -10,27 +10,26 @@
 
 /*	--------------------------------------------------------------------
 	ofxProsilica::Connector deals with the (long) time it can take for 
-	the	camera to be found and available if it was just use by an
-	(other) application.
-	Also tries to reconnect to the camera when connection is lost.
+	the	camera to be found and available if it was just used by an
+	application.
+	Also reconnects to the camera when connection is lost.
 *///--------------------------------------------------------------------
 #include "Connector.h"
 
 /*	--------------------------------------------------------------------
-	ofxProsilica::ParameterConnector adds ofParameters and an 
+	ofxProsilica::PConnector adds ofParameters and an
 	ofParameterGroup to the Cam and Connector, for easy use with ofxGui.
 	note: IP settings are not included.
 *///--------------------------------------------------------------------
 #include "ParameterConnector.h"
 
 /*	--------------------------------------------------------------------
- EXPERIMENTAL, PRONE TO CHANGE
- ofxProsilica::texPC adds a texture to the ParameterConnector
+ 	ofxProsilica::TPConnector adds a texture to the PConnector
+ 	also it adds the flip and rotate functionality
 *///--------------------------------------------------------------------
 #include "TexPC.h"
 
 /*	--------------------------------------------------------------------
- EXPERIMENTAL, PRONE TO CHANGE
- ofxProsilica::texPC adds warp funcyionality to the TexPC
+	 ofxProsilica::WTPConnector adds warp functionality to the TPC
 *///--------------------------------------------------------------------
 #include "WarpTexPC.h"

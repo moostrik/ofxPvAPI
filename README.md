@@ -11,6 +11,18 @@ The PvApi.h must be slightly modified (see below)
 Tested with the Prosilica GC750 (monochrome) and the Mako G-125C (color) on OSX 10.13
 previous versions tested on Windows 7
 
+# TODO #
+
+- [V] fix tearing
+- [V] make threaded
+- [  ] figure out how to include libPvAPI.dylib in app
+- [  ] refactor camFPS
+- [  ] fix slowdown of setAllParametersFromCam in parameterConnector
+- [  ] add flip and rotate without texture
+- [  ] better naming of classes
+- [  ] test windows
+- [  ] make linux
+
 # FOR MAC #
 
 1.	Add `ofxProsilica` to your addons folder
@@ -65,10 +77,3 @@ NOT TESTED FOR OF 0.9 / Win 10, but procedure should be similar
 *	The cameras don't work great on wifi, but on low resolutions they might work.
 *	Sometimes it helps to turn of the Wifi
 
-
-# TODO #
-
-- [  ] fix tearing
-- [  ] make threaded
-- [  ] test windows
-[  ] make linux
