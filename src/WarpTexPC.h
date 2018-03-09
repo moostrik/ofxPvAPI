@@ -12,8 +12,8 @@ namespace ofxProsilica {
 		virtual ~WarpTexPC() {;}
 		
 		bool	setup();
-		void	update(ofTexture _maskTexture = ofTexture());
-		void 	draw(int _x, int _y) { draw(0, 0, getWidth(), getHeight()); }
+		void	update();
+		void 	draw(int _x, int _y) { draw(0, 0, this->getWidth(), this->getHeight()); }
 		void 	draw(int _x, int _y, int _width, int _height) { getTexture().draw(_x, _y, _width, _height); }
 		
 		float 	getWidth()			{ return warpFbo.getWidth(); }
@@ -26,12 +26,13 @@ namespace ofxProsilica {
 	protected:
 		ofParameterGroup	warpParameters;
 		ofParameter<ofVec2f>*   warpPoints;
-		void warpPointListener(ofVec2f& _value) { _value = ofVec2f(int(_value.x * 100.0) / 100.0, int(_value.y * 100.0) / 100.0); }
+		void warpPointListener(ofVec2f& _value) { warpUpdated = true; _value = ofVec2f(int(_value.x * 100.0) / 100.0, int(_value.y * 100.0) / 100.0); }
 		
 		ofFbo 				warpFbo;
 		ofShader			invWarpShader;
 		ofPlanePrimitive	warpPlane;
 		ofPolyline			warpLine;
+		bool 				warpUpdated;
 		
 		void createWarpShader();
 		void createWS2();

@@ -43,8 +43,8 @@ namespace ofxProsilica {
 		ParameterConnector::update();
 		
 		if (isFrameNew(false)){
-			int w = Camera::getWidth();
-			int h = Camera::getHeight();
+			int w = ParameterConnector::getWidth();
+			int h = ParameterConnector::getHeight();
 			int glFormat = ofGetGLInternalFormatFromPixelFormat(getPixelFormat());
 			if (internalTexture.getWidth() != w || internalTexture.getHeight() != h || internalTexture.getTextureData().glInternalFormat != glFormat) {
 				internalTexture.clear();
@@ -52,7 +52,6 @@ namespace ofxProsilica {
 			}
 			
 			internalTexture.loadData(ParameterConnector::getPixels());
-			pixelsSet = false;
 			
 			int dstWidth = w;
 			int dstHeight = h;
@@ -161,6 +160,8 @@ namespace ofxProsilica {
 				internalTexture.unbind();
 				flipFbo.end();
 			}
+			
+			pixelsSet = false;
 		}
 	}
 	

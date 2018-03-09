@@ -28,6 +28,7 @@ namespace ofxProsilica {
 
 		vector<ofPoint> verts = {p0, p1, p3, p2, p0};
 		warpLine = ofPolyline(verts);
+		warpUpdated = false;
 		
 		warpParameters.setName("warp");
 		warpPoints = new ofParameter<ofVec2f>[5];
@@ -44,11 +45,11 @@ namespace ofxProsilica {
 	}
 	
 	//--------------------------------------------------------------
-	void WarpTexPC::update(ofTexture _maskTexture) {
+	void WarpTexPC::update() {
 		TexPC::update();
 		
-		if (isFrameNew(false)){
-			pixelsSet = false;
+		if (isFrameNew(false) || warpUpdated){
+			warpUpdated = false;
 			
 			ofVec2f p0 = warpParameters.get<ofVec2f>("p0");
 			ofVec2f p1 = warpParameters.get<ofVec2f>("p1");
@@ -65,14 +66,13 @@ namespace ofxProsilica {
 			
 			if(warpFbo.getWidth() != w || warpFbo.getHeight() != h) {
 				warpFbo.allocate(w, h, GL_RGB);
-				pixelsSet = false;
 			}
 			
 			warpFbo.begin();
 			ofClear(0);
 			invWarpShader.begin();
 			TexPC::getTexture().bind();
-			invWarpShader.setUniform2f("inputDimensions", getWidth(), getHeight());
+			invWarpShader.setUniform2f("inputDimensions", this->getWidth(), this->getHeight());
 			invWarpShader.setUniform2f("upper_left", p0.x, p0.y);
 			invWarpShader.setUniform2f("upper_right", p1.x, p1.y);
 			invWarpShader.setUniform2f("lower_left", p2.x, p2.y);
@@ -86,16 +86,9 @@ namespace ofxProsilica {
 			
 			TexPC::getTexture().unbind();
 			invWarpShader.end();
-			
-			
-			if (_maskTexture.isAllocated()) {
-				ofPushStyle();
-				ofEnableBlendMode(OF_BLENDMODE_SUBTRACT);
-				_maskTexture.draw(0, 0, warpFbo.getWidth(), warpFbo.getHeight());
-				ofPopStyle();
-			}
-			
 			warpFbo.end();
+			
+			pixelsSet = false;
 		}
 	}
 	

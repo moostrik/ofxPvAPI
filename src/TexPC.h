@@ -16,7 +16,7 @@ namespace ofxProsilica {
 		
 		bool	setup();
 		void	update();
-		void 	draw(int _x, int _y) { draw(0, 0, getWidth(), getHeight()); }
+		void 	draw(int _x, int _y) { draw(0, 0, this->getWidth(), this->getHeight()); }
 		void 	draw(int _x, int _y, int _width, int _height) { getTexture().draw(_x, _y, _width, _height); }
 		
 		float	getWidth()			{ return flipFbo.getWidth(); }
