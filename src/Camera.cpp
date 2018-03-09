@@ -156,8 +156,10 @@ namespace ofxProsilica {
 					bWaitingForFrame = queueFrame();
 				}
 				
-				tPvErr error = PvCaptureWaitForFrameDone(cameraHandle, &cameraFrame, PVINFINITE); // in MiliSeconds
-				if(error == ePvErrSuccess ){
+				tPvErr error = PvCaptureWaitForFrameDone(cameraHandle, &cameraFrame, 4); // in MiliSeconds
+				if (error == ePvErrTimeout) {
+					
+				} else if(error == ePvErrSuccess ){
 					lock();
 					if (!T_bNeedsResize) {
 						T_pixelsOut = framePixels;
@@ -175,7 +177,7 @@ namespace ofxProsilica {
 					close();
 				}
 			}
-			sleep(5);
+			sleep(4);
 		}
 	}
 	

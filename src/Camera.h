@@ -313,12 +313,7 @@ namespace ofxProsilica {
 		static bool     bPvApiInitiated;
 		static int		numCamerasInUse;
 		tPvHandle       cameraHandle;
-		tPvFrame        cameraFrame;
-		
 		bool 			bInitialized;
-		bool 			T_bIsFrameNew;
-		bool            bWaitingForFrame;
-		int 			frameCount;
         
         //-- ACQUISITION -----------------------------------------------------
 		bool			initCamera(int cameraUid);
@@ -336,13 +331,18 @@ namespace ofxProsilica {
 		unsigned long 	deviceID;
 		unsigned long 	requestedDeviceID;
         
-        //-- PIXELS ----------------------------------------------------------
+        //-- PIXELS & FRAME---------------------------------------------------
 		ofPixelFormat	internalPixelFormat;
 		ofPixels		framePixels;
 		ofPixels		T_pixelsOut;
 		ofPixels		ancillaryPixels;
 		bool			allocatePixels();
 		bool 			T_bNeedsResize;
+		
+		tPvFrame        cameraFrame;
+		bool 			T_bIsFrameNew;
+		bool            bWaitingForFrame;
+		int 			frameCount;
 		
         //-- REGION OF INTEREST-----------------------------------------------
 		float			regionX;
