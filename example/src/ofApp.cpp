@@ -27,6 +27,7 @@ void ofApp::setup(){
 	gui.add(fps.set("FPS", 0, 0, 100));
 	gui.add(fullScreen.set("fullscreen (F)", false));
 	fullScreen.addListener(this, &ofApp::fullScreenLisner);
+	gui.add(drawPixels.set("draw pixels (D)", false));
 	gui.add(camera.parameters);
 	gui.loadFromFile("settings.xml");
 	
@@ -48,28 +49,24 @@ void ofApp::setup(){
 void ofApp::update(){
 	camera.update();
 	// reshape window to fit camera image
-	ofSetWindowShape(20 + gui.getWidth() + max(640.0, camera.getWidth() + 10.0), 20 + max(gui.getHeight(), camera.getHeight()));
+	ofSetWindowShape(30 + gui.getWidth() + max(640.f, camera.getWidth()), 20 + max(gui.getHeight(), camera.getHeight()));
 	fps.set(ofGetFrameRate() + 0.5);
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
 	ofClear(128);
-	if (camera.isFrameNew(true)){
+	
+	if (drawPixels.get()) {
 		ofPixels& pix = camera.getPixels();
-		int w = camera.getWidth();
-		int h = camera.getHeight();
-		int glFormat = ofGetGLInternalFormatFromPixelFormat(camera.getPixelFormat());
-//
-		if (tex.getWidth() != w || tex.getHeight() != h || tex.getTextureData().glInternalFormat != glFormat) {
-			tex.clear();
-			tex.allocate(w, h, glFormat);
-		}
-
-		tex.loadData(pix.getData(), w, h, glFormat);
+		ofImage image;
+		image.setFromPixels(pix);
+		image.draw(gui.getWidth() + gui.getPosition().x + 10, gui.getPosition().y);
 	}
-	if (tex.isAllocated()) {
-		tex.draw(gui.getWidth() + gui.getPosition().x + 10, gui.getPosition().y);
+	else {
+		if (camera.getTexture().isAllocated()) {
+			camera.getTexture().draw(gui.getWidth() + gui.getPosition().x + 10, gui.getPosition().y);
+		}
 	}
 	gui.draw();
 	
@@ -88,6 +85,10 @@ void ofApp::keyPressed(int key){
 		case 'f':
 		case 'F':
 			fullScreen.set(1-fullScreen.get());
+			break;
+		case 'd':
+		case 'D':
+			drawPixels.set(1-drawPixels.get());
 			break;
 			
 		default:

@@ -11,22 +11,17 @@ namespace ofxProsilica {
 		WarpTexPC() {}
 		virtual ~WarpTexPC() {;}
 		
-		bool	setup(int _width, int _height) { ofLogWarning("ofxProsilica") << "setup with dimensions not yet supported"; setup(); };
-		bool	setup(ofTexture _tex = ofTexture());
+		bool	setup();
 		void	update(ofTexture _maskTexture = ofTexture());
-		void 	draw(int _x, int _y) { draw(0, 0, getWarpTexture().getWidth(), getWarpTexture().getHeight()); }
-		void 	draw(int _x, int _y, int _width, int _height) { getWarpTexture().draw(_x, _y, _width, _height); }
+		void 	draw(int _x, int _y) { draw(0, 0, getWidth(), getHeight()); }
+		void 	draw(int _x, int _y, int _width, int _height) { getTexture().draw(_x, _y, _width, _height); }
 		
-		ofTexture& getWarpTexture() 		{ return warpFbo.getTexture(); }
-		ofPolyline& getWarpLine() 		{ return warpLine; }
+		float 	getWidth()			{ return warpFbo.getWidth(); }
+		float 	getHeight()			{ return warpFbo.getHeight(); }
 		
-		int 	getWarpWidth()			{ return warpFbo.getWidth(); }
-		int 	getWarpHeight()			{ return warpFbo.getHeight(); }
-		
-		unsigned char*  getWarpData() 	{ return getWarpPixels().getData(); }
-		ofPixels&       getWarpPixels();
-		
-		ofPixels&       getWarpPixelsRGB() { getWarpPixels(); return pixelsrgb; }
+		ofTexture& 	getTexture() 	{ return warpFbo.getTexture(); }
+		ofPixels&	getPixels();
+		ofPolyline& getWarpLine() 	{ return warpLine; }
 		
 	protected:
 		ofParameterGroup	warpParameters;
@@ -42,7 +37,6 @@ namespace ofxProsilica {
 		void createWS2();
 		void createWS3();
 		
-		ofPixels 	pixelsrgb;
 		ofPixels	pixels;
 		bool		pixelsSet;
 		

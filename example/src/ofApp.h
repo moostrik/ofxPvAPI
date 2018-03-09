@@ -4,6 +4,7 @@
 #include "ofxProsilica.h"
 #include "ofxGui.h"
 
+
 class ofApp : public ofBaseApp{
 
 public:
@@ -12,11 +13,12 @@ public:
     void draw();
     void exit();
 	
-	ofxProsilica::ParameterConnector	camera;
+	ofxProsilica::WarpTexPC	camera;
 		
 	ofxPanel gui;
 	ofParameter<int> fps;
 	ofParameter<bool> fullScreen;
+	ofParameter<bool> drawPixels;
 	void fullScreenLisner(bool &_value) { ofSetFullscreen(_value); }
 	
 	ofTexture tex;

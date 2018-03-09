@@ -14,18 +14,16 @@ namespace ofxProsilica {
 		TexPC() {}
 		virtual ~TexPC() {;}
 		
-		bool	setup(int _width, int _height) { ofLogWarning("ofxProsilica") << "setup with dimensions not yet supported"; setup(); };
-		bool	setup(ofTexture _tex = ofTexture());
+		bool	setup();
 		void	update();
-		void 	draw(int _x, int _y) { draw(0, 0, getTexture().getWidth(), getTexture().getHeight()); }
+		void 	draw(int _x, int _y) { draw(0, 0, getWidth(), getHeight()); }
 		void 	draw(int _x, int _y, int _width, int _height) { getTexture().draw(_x, _y, _width, _height); }
-		
-		ofTexture& getTexture() 	{ return flipFbo.getTexture(); }
-		unsigned char*  getData() 	{ return getPixels().getData(); }
-		ofPixels&       getPixels();
 		
 		float	getWidth()			{ return flipFbo.getWidth(); }
 		float	getHeight()			{ return flipFbo.getHeight(); }
+		
+		ofTexture& 	getTexture()	{ return flipFbo.getTexture(); }
+		ofPixels&   getPixels();
 		
 	private:		
 		ofParameterGroup	flipParameters;
@@ -40,6 +38,7 @@ namespace ofxProsilica {
 		void 		createRed2LumShader();
 		
 		ofPixels	pixels;
+		ofPixels	pixelsRGB;
 		bool		pixelsSet;
 	};
 }

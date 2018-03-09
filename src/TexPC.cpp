@@ -11,8 +11,22 @@
 
 namespace ofxProsilica {
 	
-	bool TexPC::setup(ofTexture _tex){
+	bool TexPC::setup(){
 		ParameterConnector::setup();
+		
+		internalTexture.allocate(640, 480, GL_R8);
+		// bug in OF won't allow for ofFbo's to be re-allocated with different internal format so default to RGB
+		flipFbo.allocate(640, 480, GL_RGB);
+		flipFbo.begin();
+		ofClear(0);
+		flipFbo.end();
+		
+		if (ofIsGLProgrammableRenderer()) { createRed2LumShader(); }
+		quad.getVertices().resize(4);
+		quad.getTexCoords().resize(4);
+		quad.setMode(OF_PRIMITIVE_TRIANGLE_FAN);
+		
+		pixelsSet = false;
 		
 		flipParameters.setName("flip");
 		flipParameters.add(flipH.set("flip H", false));
@@ -20,27 +34,6 @@ namespace ofxProsilica {
 		flipParameters.add(rotate90.set("rotate 90", false));
 		
 		parameters.add(flipParameters);
-		if (ofIsGLProgrammableRenderer()) { createRed2LumShader(); }
-		quad.getVertices().resize(4);
-		quad.getTexCoords().resize(4);
-		quad.setMode(OF_PRIMITIVE_TRIANGLE_FAN);
-		
-		if (_tex.isAllocated()) {
-			internalTexture = _tex;
-		}
-		else {
-			internalTexture.allocate(128,128, GL_R8);
-			// todo: set to white
-		}
-		pixelsSet = false;
-		
-		flipFbo.allocate(internalTexture.getWidth(), internalTexture.getHeight(), GL_RGB);
-		
-		flipFbo.begin();
-		ofClear(0);
-		internalTexture.draw(0, 0);
-		flipFbo.end();
-		
 		
 		return true;
 	}
@@ -49,11 +42,10 @@ namespace ofxProsilica {
 	void TexPC::update() {
 		ParameterConnector::update();
 		
-		if (isFrameNew()){
+		if (isFrameNew(false)){
 			int w = Camera::getWidth();
 			int h = Camera::getHeight();
 			int glFormat = ofGetGLInternalFormatFromPixelFormat(getPixelFormat());
-			
 			if (internalTexture.getWidth() != w || internalTexture.getHeight() != h || internalTexture.getTextureData().glInternalFormat != glFormat) {
 				internalTexture.clear();
 				internalTexture.allocate(w, h, glFormat);
@@ -61,7 +53,6 @@ namespace ofxProsilica {
 			
 			internalTexture.loadData(ParameterConnector::getPixels());
 			pixelsSet = false;
-			
 			
 			int dstWidth = w;
 			int dstHeight = h;
@@ -71,8 +62,10 @@ namespace ofxProsilica {
 				dstHeight = w;
 			}
 			
-			if (flipFbo.getWidth() != dstWidth || flipFbo.getHeight() != dstHeight) {
-				flipFbo.allocate(dstWidth, dstHeight, GL_RGB);
+			// bug in OF won't allow for ofFbo's to be re-allocated with different internal format
+			glFormat = GL_RGB;
+			if (flipFbo.getWidth() != dstWidth || flipFbo.getHeight() != dstHeight || flipFbo.getTexture().getTextureData().glInternalFormat != glFormat) {
+				flipFbo.allocate(dstWidth, dstHeight, glFormat);
 			}
 			
 			vector<ofPoint> pts;
@@ -170,6 +163,32 @@ namespace ofxProsilica {
 			}
 		}
 	}
+	
+	//--------------------------------------------------------------
+	ofPixels& TexPC::getPixels() {
+		if (!pixelsSet) {
+			ofTextureData& texData = this->getTexture().getTextureData();
+			
+			int numChannels = 1;
+			int readFormat = GL_RED;
+			if (getPixelFormat() != OF_PIXELS_MONO) {
+				numChannels = 3;
+				readFormat = GL_RGB;
+			}
+			
+			if (pixels.getWidth() != texData.width || pixels.getHeight() != texData.height || pixels.getNumChannels() != numChannels) {
+				pixels.allocate(texData.width, texData.height, numChannels);
+			}
+			
+			ofSetPixelStoreiAlignment(GL_PACK_ALIGNMENT, texData.width, 1, numChannels);
+			glBindTexture(texData.textureTarget, texData.textureID);
+			glGetTexImage(texData.textureTarget, 0, readFormat, GL_UNSIGNED_BYTE, pixels.getData());
+			glBindTexture(texData.textureTarget, 0);
+			
+			pixelsSet = true;
+		}
+		return pixels;
+	}
 
 	//--------------------------------------------------------------
 	void TexPC::createRed2LumShader() {
@@ -206,23 +225,6 @@ namespace ofxProsilica {
 		red2lumShader.setupShaderFromSource(GL_FRAGMENT_SHADER, fragmentShader);
 		red2lumShader.bindDefaults();
 		red2lumShader.linkProgram();
-	}
-
-	//--------------------------------------------------------------
-	ofPixels& TexPC::getPixels() {
-		if (pixelsSet) { return pixels; }
-		else {
-			ofTexture& tex = getTexture();
-		
-			ofPixels pixelsrgb;
-			tex.readToPixels(pixelsrgb);
-			
-			if (internalPixelFormat == OF_PIXELS_MONO) { pixels = pixelsrgb.getChannel(0); }
-			else { pixels = pixelsrgb; };
-			
-			pixelsSet = true;
-			return pixels;
-		}
 	}
 	
 }

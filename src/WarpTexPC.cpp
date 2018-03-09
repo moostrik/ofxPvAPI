@@ -11,36 +11,34 @@
 
 namespace ofxProsilica {
 	
-	bool WarpTexPC::setup(ofTexture _tex){
-		TexPC::setup(_tex);
-		
-		warpParameters.setName("warp");
-		warpPoints = new ofParameter<ofVec2f>[5];
-		warpParameters.add(warpPoints[0].set("p0", ofVec2f(0,0), ofVec2f(0,0), ofVec2f(1,1)));
-		warpParameters.add(warpPoints[1].set("p1", ofVec2f(1,0), ofVec2f(0,0), ofVec2f(1,1)));
-		warpParameters.add(warpPoints[2].set("p2", ofVec2f(0,1), ofVec2f(0,0), ofVec2f(1,1)));
-		warpParameters.add(warpPoints[3].set("p3", ofVec2f(1,1), ofVec2f(0,0), ofVec2f(1,1)));
-//		warpParameters.add(warpPoints[4].set("power H V", ofVec2f(1,1), ofVec2f(.5,.5), ofVec2f(2,2)));
-		for (int i=0; i<5; i++) { warpPoints[i].addListener(this, &::ofxProsilica::WarpTexPC::warpPointListener); }
-		parameters.add(warpParameters);
+	bool WarpTexPC::setup(){
+		TexPC::setup();
 		
 		warpFbo.allocate(TexPC::getWidth(), TexPC::getHeight(), GL_RGB);
-		
 		warpFbo.begin();
-		ofClear(0,0,255);
-		getTexture().draw(0,0);
+		ofClear(0);
 		warpFbo.end();
 		
 		createWarpShader();
 		
-		ofVec2f p1 = warpParameters.get<ofVec2f>("p0");
-		ofVec2f p2 = warpParameters.get<ofVec2f>("p1");
-		ofVec2f p3 = warpParameters.get<ofVec2f>("p2");
-		ofVec2f p4 = warpParameters.get<ofVec2f>("p3");
-		
-		vector<ofPoint> verts = {p1, p2, p4, p3, p1};
+		ofVec2f p0 = ofVec2f(0,0);
+		ofVec2f p1 = ofVec2f(1,0);
+		ofVec2f p2 = ofVec2f(0,1);
+		ofVec2f p3 = ofVec2f(1,1);
+
+		vector<ofPoint> verts = {p0, p1, p3, p2, p0};
 		warpLine = ofPolyline(verts);
 		
+		warpParameters.setName("warp");
+		warpPoints = new ofParameter<ofVec2f>[5];
+		warpParameters.add(warpPoints[0].set("p0", p0, ofVec2f(0,0), ofVec2f(1,1)));
+		warpParameters.add(warpPoints[1].set("p1", p1, ofVec2f(0,0), ofVec2f(1,1)));
+		warpParameters.add(warpPoints[2].set("p2", p2, ofVec2f(0,0), ofVec2f(1,1)));
+		warpParameters.add(warpPoints[3].set("p3", p3, ofVec2f(0,0), ofVec2f(1,1)));
+//		warpParameters.add(warpPoints[4].set("power H V", ofVec2f(1,1), ofVec2f(.5,.5), ofVec2f(2,2)));
+		for (int i=0; i<5; i++) { warpPoints[i].addListener(this, &::ofxProsilica::WarpTexPC::warpPointListener); }
+		
+		parameters.add(warpParameters);
 		
 		return true;
 	}
@@ -49,56 +47,82 @@ namespace ofxProsilica {
 	void WarpTexPC::update(ofTexture _maskTexture) {
 		TexPC::update();
 		
-		if (isFrameNew()){
+		if (isFrameNew(false)){
 			pixelsSet = false;
+			
+			ofVec2f p0 = warpParameters.get<ofVec2f>("p0");
+			ofVec2f p1 = warpParameters.get<ofVec2f>("p1");
+			ofVec2f p2 = warpParameters.get<ofVec2f>("p2");
+			ofVec2f p3 = warpParameters.get<ofVec2f>("p3");
+			
+			vector<ofPoint> verts = {p0, p1, p3, p2, p0};
+			warpLine = ofPolyline(verts);
+			
+			float w = max(fabs(p1.x - p0.x), fabs(p3.x - p2.x)) * TexPC::getWidth();
+			float h = max(fabs(p2.y - p0.y), fabs(p3.y - p1.y)) * TexPC::getHeight();
+			
+			warpPlane.set(w, h, 16, 16);
+			
+			if(warpFbo.getWidth() != w || warpFbo.getHeight() != h) {
+				warpFbo.allocate(w, h, GL_RGB);
+				pixelsSet = false;
+			}
+			
+			warpFbo.begin();
+			ofClear(0);
+			invWarpShader.begin();
+			TexPC::getTexture().bind();
+			invWarpShader.setUniform2f("inputDimensions", getWidth(), getHeight());
+			invWarpShader.setUniform2f("upper_left", p0.x, p0.y);
+			invWarpShader.setUniform2f("upper_right", p1.x, p1.y);
+			invWarpShader.setUniform2f("lower_left", p2.x, p2.y);
+			invWarpShader.setUniform2f("lower_right", p3.x, p3.y);
+			invWarpShader.setUniform2f("powr", 1, 1);
+			
+			ofPushMatrix();
+			ofTranslate(w/2, h/2);
+			warpPlane.draw();
+			ofPopMatrix();
+			
+			TexPC::getTexture().unbind();
+			invWarpShader.end();
+			
+			
+			if (_maskTexture.isAllocated()) {
+				ofPushStyle();
+				ofEnableBlendMode(OF_BLENDMODE_SUBTRACT);
+				_maskTexture.draw(0, 0, warpFbo.getWidth(), warpFbo.getHeight());
+				ofPopStyle();
+			}
+			
+			warpFbo.end();
 		}
-		
-		ofVec2f p1 = warpParameters.get<ofVec2f>("p0");
-		ofVec2f p2 = warpParameters.get<ofVec2f>("p1");
-		ofVec2f p3 = warpParameters.get<ofVec2f>("p2");
-		ofVec2f p4 = warpParameters.get<ofVec2f>("p3");
-		
-		vector<ofPoint> verts = {p1, p2, p4, p3, p1};
-		warpLine = ofPolyline(verts);
-		
-		float w = max(fabs(p2.x - p1.x), fabs(p4.x - p3.x)) * getWidth();
-		float h = max(fabs(p3.y - p1.y), fabs(p4.y - p2.y)) * getHeight();
-		
-		warpPlane.set(w, h, 16, 16);
-		
-		if(warpFbo.getWidth() != w || warpFbo.getHeight() != h) {
-			warpFbo.allocate(w, h, GL_RGB);
-			pixelsSet = false;
+	}
+	
+	//--------------------------------------------------------------
+	ofPixels& WarpTexPC::getPixels() {
+		if (!pixelsSet) {
+			ofTextureData& texData = this->getTexture().getTextureData();
+			
+			int numChannels = 1;
+			int readFormat = GL_RED;
+			if (getPixelFormat() != OF_PIXELS_MONO) {
+				numChannels = 3;
+				readFormat = GL_RGB;
+			}
+			
+			if (pixels.getWidth() != texData.width || pixels.getHeight() != texData.height || pixels.getNumChannels() != numChannels) {
+				pixels.allocate(texData.width, texData.height, numChannels);
+			}
+			
+			ofSetPixelStoreiAlignment(GL_PACK_ALIGNMENT, texData.width, 1, numChannels);
+			glBindTexture(texData.textureTarget, texData.textureID);
+			glGetTexImage(texData.textureTarget, 0, readFormat, GL_UNSIGNED_BYTE, pixels.getData());
+			glBindTexture(texData.textureTarget, 0);
+			
+			pixelsSet = true;
 		}
-		
-		warpFbo.begin();
-		ofClear(0);
-		invWarpShader.begin();
-		TexPC::getTexture().bind();
-		invWarpShader.setUniform2f("inputDimensions", getWidth(), getHeight());
-		invWarpShader.setUniform2f("upper_left", p1.x, p1.y);
-		invWarpShader.setUniform2f("upper_right", p2.x, p2.y);
-		invWarpShader.setUniform2f("lower_left", p3.x, p3.y);
-		invWarpShader.setUniform2f("lower_right", p4.x, p4.y);
-		invWarpShader.setUniform2f("powr", 1, 1);
-		
-		ofPushMatrix();
-		ofTranslate(w/2, h/2);
-		warpPlane.draw();
-		ofPopMatrix();
-		
-		TexPC::getTexture().unbind();
-		invWarpShader.end();
-		
-		if (_maskTexture.isAllocated()) {
-			ofPushStyle();
-			ofEnableBlendMode(OF_BLENDMODE_SUBTRACT);
-			_maskTexture.draw(0, 0, warpFbo.getWidth(), warpFbo.getHeight());
-			ofPopStyle();
-		}
-		
-		warpFbo.end();
-//		}
+		return pixels;
 	}
 	
 	//--------------------------------------------------------------
@@ -209,21 +233,5 @@ namespace ofxProsilica {
 		invWarpShader.bindDefaults();
 		invWarpShader.linkProgram();
 	}
-
-	//--------------------------------------------------------------
-	ofPixels& WarpTexPC::getWarpPixels() {
-		if (pixelsSet) { return pixels; }
-		else {
-			ofTexture& tex = getWarpTexture();
-			
-//			ofPixels pixelsrgb;
-			tex.readToPixels(pixelsrgb);
-			
-			if (internalPixelFormat == OF_PIXELS_MONO) { pixels = pixelsrgb.getChannel(0); }
-			else { pixels = pixelsrgb; };
-			
-			pixelsSet = true;
-			return pixels;
-		}
-	}
+	
 }
