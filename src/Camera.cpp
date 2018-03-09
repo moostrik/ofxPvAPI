@@ -10,10 +10,11 @@ namespace ofxProsilica {
     
 	Camera::Camera() :
 	bInitialized(false),
-	T_bIsFrameNew(false),
+	bIsFrameNew(false),
 	T_bNeedsResize(false),
 	bWaitingForFrame(false),
-	frameCount(0),
+	T_frameCount(0),
+	T_framesDropped(0),
 	internalPixelFormat(OF_PIXELS_MONO),
 	deviceID(0),
 	requestedDeviceID(0),
@@ -130,7 +131,7 @@ namespace ofxProsilica {
 		if (!startAcquisition()) return false;
 		
 		bInitialized = true;
-		frameCount = 0;
+		T_frameCount = 0;
 		numCamerasInUse++;
 		ofLog(OF_LOG_NOTICE,"Camera: %lu up and running", deviceID);
 		
@@ -161,13 +162,17 @@ namespace ofxProsilica {
 				} else if(error == ePvErrSuccess ){
 					lock();
 					if (!T_bNeedsResize) {
-						T_pixelsOut = framePixels;
-						T_bIsFrameNew = true;
-						frameCount++;
+						T_frameCount++;
+						T_frameDeque.push_back(framePixels);
+						while (T_frameDeque.size() > 2) {
+							T_frameDeque.pop_front();
+							T_framesDropped++;
+						}
+						T_frameTimes.push_back(ofGetElapsedTimef());
 					}
 					unlock();
 					
-					bWaitingForFrame = false;
+					bWaitingForFrame = queueFrame();
 				} else if (error == ePvErrUnplugged) {
 					ofLogWarning("Camera " + ofToString(deviceID) + " connection lost");
 					close();
@@ -181,21 +186,33 @@ namespace ofxProsilica {
 	}
 	
 	void Camera::update() {
+		bIsFrameNew = false;
+		if (T_frameDeque.size() > 0) {
+			frameOut = T_frameDeque[0];
+			bIsFrameNew = true;
+			T_frameDeque.pop_front();
+		}
 		
+		if (T_framesDropped > 0) {
+			if (T_framesDropped == 1) { ofLogNotice("Camera") << "dropped a frame"; }
+			else { ofLogNotice("Camera") << "dropped " << T_framesDropped << " frames"; }
+			T_framesDropped = 0;
+		}
+		
+		for (int i=T_frameTimes.size()-1; i>=0; i--) {
+			if (T_frameTimes[i] < ofGetElapsedTimef() - 1.0) {
+				T_frameTimes.erase(T_frameTimes.begin() + i);
+			}
+		}
+		camFps = T_frameTimes.size();
 	}
 	
 	bool Camera::isInitialized() {
          return bInitialized;
     }
     
-	bool Camera::isFrameNew(bool _reset){
-		lock();
-		bool B = T_bIsFrameNew;
-		if (_reset) {
-			T_bIsFrameNew = false;
-		}
-		unlock();
-		return B;
+	bool Camera::isFrameNew(){
+		return bIsFrameNew;
 	}
 	
 	void Camera::close(){
@@ -203,7 +220,7 @@ namespace ofxProsilica {
 		if( bInitialized ) {
 			waitForThread();
 			// stop the streaming
-			stopAcquisition();
+//			stopAcquisition();
 			clearQueue();
 			stopCapture();
 			closeCamera();  // not neccesary when waited  for thread
@@ -441,7 +458,7 @@ namespace ofxProsilica {
 	}
 	
 	ofPixels& Camera::getPixels(){
-		return T_pixelsOut;
+		return frameOut;
 	}
 	
 	bool Camera::setPixelFormat(ofPixelFormat _pixelFormat) {

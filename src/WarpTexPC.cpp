@@ -48,7 +48,7 @@ namespace ofxProsilica {
 	void WarpTexPC::update() {
 		TexPC::update();
 		
-		if (isFrameNew(false) || warpUpdated){
+		if (TexPC::isFrameNew() || warpUpdated){
 			warpUpdated = false;
 			
 			ofVec2f p0 = warpParameters.get<ofVec2f>("p0");

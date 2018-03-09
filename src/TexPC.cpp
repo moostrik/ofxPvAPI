@@ -42,7 +42,7 @@ namespace ofxProsilica {
 	void TexPC::update() {
 		ParameterConnector::update();
 		
-		if (isFrameNew(false)){
+		if (ParameterConnector::isFrameNew()){
 			int w = ParameterConnector::getWidth();
 			int h = ParameterConnector::getHeight();
 			int glFormat = ofGetGLInternalFormatFromPixelFormat(getPixelFormat());

@@ -17,6 +17,8 @@ public:
 		
 	ofxPanel gui;
 	ofParameter<int> fps;
+	ofParameter<int> camFps;
+	ofParameter<int> camFpsInternal;
 	ofParameter<bool> fullScreen;
 	ofParameter<bool> drawPixels;
 	void fullScreenLisner(bool &_value) { ofSetFullscreen(_value); }
@@ -25,4 +27,5 @@ public:
 	
 	void keyPressed(int key);
 	
+	vector<float> frameTimes;
 };

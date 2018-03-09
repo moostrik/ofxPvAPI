@@ -2,6 +2,8 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+//	ofSetFrameRate(60);
+//	ofSetVerticalSync(false);
 	
 	ofSetLogLevel(OF_LOG_VERBOSE);
 	camera.listDevices();
@@ -25,6 +27,8 @@ void ofApp::setup(){
 	
 	gui.setup("settings");
 	gui.add(fps.set("FPS", 0, 0, 100));
+	gui.add(camFps.set("Cam FPS", 0, 0, 100));
+	gui.add(camFpsInternal.set("Cam FPS I", 0, 0, 100));
 	gui.add(fullScreen.set("fullscreen (F)", false));
 	fullScreen.addListener(this, &ofApp::fullScreenLisner);
 	gui.add(drawPixels.set("draw pixels (D)", false));
@@ -51,6 +55,19 @@ void ofApp::update(){
 	// reshape window to fit camera image
 	ofSetWindowShape(30 + gui.getWidth() + max(640.f, camera.getWidth()), 20 + max(gui.getHeight(), camera.getHeight()));
 	fps.set(ofGetFrameRate() + 0.5);
+	
+	if (camera.isInitialized()  && camera.isFrameNew()) {
+		frameTimes.push_back(ofGetElapsedTimef());
+	}
+	
+	for (int i=frameTimes.size()-1; i>=0; i--) {
+		if (frameTimes[i] < ofGetElapsedTimef() - 1.0) {
+			frameTimes.erase(frameTimes.begin() + i);
+		}
+	}
+	camFps.set(frameTimes.size());
+	camFpsInternal.set(camera.getCamFps());
+	
 }
 
 //--------------------------------------------------------------

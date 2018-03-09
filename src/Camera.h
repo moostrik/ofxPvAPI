@@ -19,6 +19,10 @@ namespace ofxProsilica {
 	class Camera :public ofThread {
 		public :
 		
+		vector<float> T_frameTimes;
+		int camFps;
+		int getCamFps() { return camFps; }
+		
 		Camera();
 		virtual ~Camera();
 		
@@ -26,7 +30,7 @@ namespace ofxProsilica {
 		bool			setup();
 		void			update();
 		bool			isInitialized();
-		bool 			isFrameNew(bool _reset = true);
+		bool 			isFrameNew();
 		void			close();
 		
 		void 			threadedFunction();
@@ -51,8 +55,8 @@ namespace ofxProsilica {
         //-- WIDTH & HEIGHT --------------------------------------------------
 //		float	getWidth()							{ lock(); int w = (T_pixelsOut.isAllocated())? T_pixelsOut.getWidth() : 0; unlock(); return w; } 	// width of the pixels, not the ROI
 //		float	getHeight()							{ lock(); int h = (T_pixelsOut.isAllocated())? T_pixelsOut.getHeight() : 0; unlock(); return h;  }	// height of the pixels, not the ROI
-		float	getWidth()							{ return (T_pixelsOut.isAllocated())? T_pixelsOut.getWidth() : 0; } 	// width of the pixels, not the ROI
-		float	getHeight()							{ return (T_pixelsOut.isAllocated())? T_pixelsOut.getHeight() : 0; }	// height of the pixels, not the ROI
+		float	getWidth()							{ return (frameOut.isAllocated())? frameOut.getWidth() : 0; } 	// width of the pixels, not the ROI
+		float	getHeight()							{ return (frameOut.isAllocated())? frameOut.getHeight() : 0; }	// height of the pixels, not the ROI
 		
         //-- FRAMERATE -------------------------------------------------------
 		void	setDesiredFrameRate(int  _framerate){ setFrameRate(_framerate);}
@@ -61,7 +65,7 @@ namespace ofxProsilica {
 		float	getFrameRateMax()					{ return getFloatAttributeMax("FrameRate"); }
 		float	getFrameRateMin()					{ return getFloatAttributeMin("FrameRate"); }
 		
-		int		getFrameCount() 					{return frameCount; }
+		int		getFrameCount() 					{return T_frameCount; }
 		
         //-- REGION OF INTEREST ----------------------------------------------
 		void	setROIWidth(int w);
@@ -260,15 +264,17 @@ namespace ofxProsilica {
         //-- PIXELS & FRAME---------------------------------------------------
 		ofPixelFormat	internalPixelFormat;
 		ofPixels		framePixels;
-		ofPixels		T_pixelsOut;
+		deque<ofPixels>	T_frameDeque;
+		ofPixels		frameOut;
 		ofPixels		ancillaryPixels;
 		bool			allocatePixels();
 		bool 			T_bNeedsResize;
+		int 			T_framesDropped;
 		
 		tPvFrame        cameraFrame;
-		bool 			T_bIsFrameNew;
+		bool 			bIsFrameNew;
 		bool            bWaitingForFrame;
-		int 			frameCount;
+		int 			T_frameCount;
 		
         //-- REGION OF INTEREST-----------------------------------------------
 		float			regionX;

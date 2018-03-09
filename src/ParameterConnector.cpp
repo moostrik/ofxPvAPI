@@ -153,8 +153,10 @@ namespace ofxProsilica {
         
         if (bInitialized) {
 			if (!bLoadFromInterface) {
-				if (isFrameNew(false))
-					setAllParametersFromCam(); // this can be better
+				if (Connector::isFrameNew()) {
+//					blockParameters = false;
+					setAllParametersFromCam(); // this reduces bandwidth, serious drop in framerate  (~10fps) on higher resolutions
+				}
 			} else {
 				bLoadFromInterface = false;
 				setAllParametersFromInterface();
