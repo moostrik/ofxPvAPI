@@ -148,7 +148,7 @@ namespace ofxProsilica {
 				if (T_bNeedsResize) {
 					T_bNeedsResize = false;
 					clearQueue();
-					allocatePixels(); // needs to be in the lock?
+					allocatePixels(); // needs to be in lock to prevent crash on queueFrame
 				}
 				unlock();
 				
