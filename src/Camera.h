@@ -221,87 +221,15 @@ namespace ofxProsilica {
 		int 	getAutoWhiteBalanceRateMax()	{ return getIntAttributeMax("WhitebalAutoRate"); }
 
         //-- IP SETTINGS -----------------------------------------------------
-        void            setPersistentIp(bool enable);
-        void            setPersistentIpAdress(string _IpAdress);
-        void            setPersistentIpSubnetMask(string _IpSubnet);
-        void            setPersistentIpGateway(string _IpGateway);
-        string          getIpAdress();
-        string          getIpSubnet();
-        string          getIpGateway();
-        bool            getIpPersistent();
-        void            listIpSettings();
-		
-		
-		//-- NORMALIZED ATTRIBUTES -------------------------------------------
-		//-- (turned out quite impractical) ----------------------------------
-/*
-		//-- REGION OF INTEREST ----------------------------------------------
-		void	setNormalizedROIWidth(float w);
-		void	setNormalizedROIHeight(float h);
-		void	setNormalizedROIX(float x);
-		void	setNormalizedROIY(float y);
-		
-		float	getNormalizedROIWidth();
-		float	getNormalizedROIHeight();
-		float	getNormalizedROIX();
-		float	getNormalizedROIY();
-		
-		//-- EXPOSURE --------------------------------------------------------
-		void	setNormalizedExposure(float _value)				{ setNormalizedAttribute("ExposureValue", _value); }
-		void	setNormalizedAutoExposureAdjustTol(float _value){ setNormalizedAttribute("ExposureAutoAdjustTol", _value); }
-		void	setNormalizedAutoExposureMin(float _value)		{ setNormalizedAttribute("ExposureAutoMin", _value); }
-		void	setNormalizedAutoExposureMax(float _value)		{ setNormalizedAttribute("ExposureAutoMax", _value); }
-		void	setNormalizedAutoExposureOutliers(float _value)	{ setNormalizedAttribute("ExposureAutoOutliers", _value); }
-		void	setNormalizedAutoExposureRate(float _value)		{ setNormalizedAttribute("ExposureAutoRate", _value); }
-		void	setNormalizedAutoExposureTarget(float _value)	{ setNormalizedAttribute("ExposureAutoTarget", _value); }
-		 
-		float	getNormalizedExposure()							{ return getNormalizedAttribute("ExposureValue"); }
-		float	getNormalizedAutoExposureAdjustTol()			{ return getNormalizedAttribute("ExposureAutoAdjustTol"); }
-		float	getNormalizedAutoExposureMin()					{ return getNormalizedAttribute("ExposureAutoMin"); }
-		float	getNormalizedAutoExposureMax()					{ return getNormalizedAttribute("ExposureAutoMax"); }
-		float	getNormalizedAutoExposureOutliers()				{ return getNormalizedAttribute("ExposureAutoOutliers"); }
-		float	getNormalizedAutoExposureRate()					{ return getNormalizedAttribute("ExposureAutoRate"); }
-		float	getNormalizedAutoExposureTarget()				{ return getNormalizedAttribute("ExposureAutoTarget"); }
-		 
-		float	getNormalizedAutoExposureMaxForCurrentFrameRate() { return (float)getAutoExposureMaxForCurrentFrameRate() / getAutoExposureMax(); }
-		
-		//-- GAIN ------------------------------------------------------------
-		void	setNormalizedGain(float _value)					{ setNormalizedAttribute("GainValue", _value); }
-		void	setNormalizedAutoGainAdjustTol(float _value)	{ setNormalizedAttribute("GainAutoAdjustTol", _value); }
-		void	setNormalizedAutoGainMin(float _value)			{ setNormalizedAttribute("GainAutoMin", _value); }
-		void	setNormalizedAutoGainMax(float _value)			{ setNormalizedAttribute("GainAutoMax", _value); }
-		void	setNormalizedAutoGainOutliers(float _value)		{ setNormalizedAttribute("GainAutoOutliers", _value); }
-		void   	setNormalizedAutoGainRate(float _value)			{ setNormalizedAttribute("GainAutoRate", _value); }
-		void	setNormalizedAutoGainTarget(float _value)		{ setNormalizedAttribute("GainAutoTarget", _value); }
-		
-		float	getNormalizedGain()								{ return getNormalizedAttribute("GainValue"); }
-		float	getNormalizedAutoGainAdjustTol()				{ return getNormalizedAttribute("GainAutoAdjustTol"); }
-		float	getNormalizedAutoGainMin()						{ return getNormalizedAttribute("GainAutoMin"); }
-		float	getNormalizedAutoGainMax()						{ return getNormalizedAttribute("GainAutoMax"); }
-		float	getNormalizedAutoGainOutliers()					{ return getNormalizedAttribute("GainAutoOutliers"); }
-		float	getNormalizedAutoGainRate()						{ return getNormalizedAttribute("GainAutoRate"); }
-		float	getNormalizedAutoGainTarget()					{ return getNormalizedAttribute("GainAutoTarget"); }
-		
-		//-- GAMMA HUE STURATION ---------------------------------------------
-		void 	setNormalizedGamma(float _value)				{ setNormalizedAttribute("Gamma", _value); }
-		void 	setNormalizedHue(float _value)					{ setNormalizedAttribute("Hue", _value); }
-		void 	setNormalizedSaturation(float _value)			{ setNormalizedAttribute("Saturation", _value); }
-		
-		float 	getNormalizedGamma()							{ return getNormalizedAttribute("Gamma"); }
-		float 	getNormalizedHue()								{ return getNormalizedAttribute("Hue"); }
-		float 	getNormalizedSaturation()						{ return getNormalizedAttribute("Saturation"); }
-		
-		//-- WHITE BALANCE ---------------------------------------------------
-		void	setNormalizedWhiteBalanceBlue(float _value)		{ setNormalizedAttribute("WhitebalValueBlue", _value); }
-		void	setNormalizedWhiteBalanceRed(float _value)		{ setNormalizedAttribute("WhitebalValueRed", _value); }
-		void	setNormalizedAutoWhiteBalanceAdjustTol(float _value) { setNormalizedAttribute("WhitebalAutoAdjustTol", _value); }
-		void	setNormalizedAutoWhiteBalanceRate(float _value)	{ setNormalizedAttribute("WhitebalAutoRate", _value); }
-		 
-		float	getNormalizedWhiteBalanceBlue()					{ return getNormalizedAttribute("WhitebalValueBlue"); }
-		float	getNormalizedWhiteBalanceRed()					{ return getNormalizedAttribute("WhitebalValueRed"); }
-		float	getNormalizedAutoWhiteBalanceAdjustTol()		{ return getNormalizedAttribute("WhitebalAutoAdjustTol"); }
-		float	getNormalizedAutoWhiteBalanceRate()				{ return getNormalizedAttribute("WhitebalAutoRate"); }
-*/		
+        void	setPersistentIp(bool enable);
+        void	setPersistentIpAdress(string _IpAdress);
+        void	setPersistentIpSubnetMask(string _IpSubnet);
+        void	setPersistentIpGateway(string _IpGateway);
+        string	getIpAdress();
+        string	getIpSubnet();
+        string	getIpGateway();
+        bool	getIpPersistent();
+        void	listIpSettings();
 		
 		//--------------------------------------------------------------------
 		//-- PROTECTED -------------------------------------------------------

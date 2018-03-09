@@ -140,15 +140,14 @@ namespace ofxProsilica {
 	
 	void Camera::threadedFunction(){
 		while(isThreadRunning()) {
-//			bIsFrameNew = false;
+			
 			if (bInitialized) {
 				
-				bool bResize = false;
 				lock();
 				if (T_bNeedsResize) {
 					T_bNeedsResize = false;
 					clearQueue();
-					allocatePixels();
+					allocatePixels(); // needs to be in the lock?
 				}
 				unlock();
 				
@@ -204,10 +203,10 @@ namespace ofxProsilica {
 		if( bInitialized ) {
 			waitForThread();
 			// stop the streaming
+			stopAcquisition();
 			clearQueue();
-			//stopAcquisition();
 			stopCapture();
-			closeCamera();
+			closeCamera();  // not neccesary when waited  for thread
 			
 			framePixels.clear();
 			
@@ -440,20 +439,10 @@ namespace ofxProsilica {
 		
 		return true;
 	}
-    
+	
 	ofPixels& Camera::getPixels(){
 		return T_pixelsOut;
 	}
-	
-//	void Camera::getPixels(ofPixels& _pixels){
-//		lock();
-//		_pixels = T_pixelsOut;
-//		unlock();
-//	}
-	
-//	unsigned char * Camera::getData(){
-//		return pixels.getData();
-//	}
 	
 	bool Camera::setPixelFormat(ofPixelFormat _pixelFormat) {
 		if (bInitialized)
@@ -636,51 +625,6 @@ namespace ofxProsilica {
 		regionY = (float)getROIY() / getROIYMax();
 	}
 	
-	/*	
-	 void Camera::setNormalizedROIWidth(float w){
-		setNormalizedAttribute ("Width", w);
-		float rx = regionX * (1 - w);
-		setNormalizedAttribute ("RegionX", rx);
-		allocatePixels();
-	 }
-	 
-	 float Camera::getNormalizedROIWidth(){
-		return getNormalizedAttribute("Width");
-	 }
-	 
-	 void Camera::setNormalizedROIHeight(float h){
-		setNormalizedAttribute ("Height", h);
-		float ry = regionY * (1 - h);
-		setNormalizedAttribute ("RegionY", ry);
-		allocatePixels();
-	 }
-	 
-	 float Camera::getNormalizedROIHeight(){
-		return getNormalizedAttribute("Height");
-	 }
-	 
-	 void Camera::setNormalizedROIX(float x){
-		regionX = x;
-		float w = getNormalizedAttribute("Width");
-		float rx = regionX * (1 - w);
-		setNormalizedAttribute ("RegionX", rx);
-	 }
-	 
-	 float Camera::getNormalizedROIX(){
-		return regionX;
-	 }
-	 
-	 void Camera::setNormalizedROIY(float y){
-		regionY  = y;
-		float h = getNormalizedAttribute("Height");
-		float ry = regionY * (1 - h);
-		setNormalizedAttribute ("RegionY", ry);
-	 }
-	 
-	 float Camera::getNormalizedROIY(){
-		return regionY;
-	 }
-	 */
 	
 	//--------------------------------------------------------------------
 	//-- ATTRIBUTES (PROTECTED) ------------------------------------------
