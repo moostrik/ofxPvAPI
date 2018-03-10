@@ -186,32 +186,6 @@ namespace ofxPvAPI {
 		return initCamera(requestedDeviceID);
 	}
 	
-	bool Camera::initCamera(int _cameraUid){
-		
-		deviceID = _cameraUid;
-		
-		if (!openCamera()) return false;
-		if (!setPacketSizeToMax()) return false;
-		if (!startCapture()) return false;
-		if (!setEnumAttribute("FrameStartTriggerMode","FixedRate")) return false;
-		if (!setEnumAttribute( "AcquisitionMode", "Continuous")) return false;
-		
-		string pf = "Mono8";
-		if (internalPixelFormat == OF_PIXELS_RGB) pf = "Rgb24";
-		if (!setEnumAttribute("PixelFormat", pf)) return false;
-		
-		if (!allocatePixels()) return false;
-		if (!startAcquisition()) return false;
-		
-		bInitialized = true;
-		T_frameCount = 0;
-		numCamerasInUse++;
-		ofLog(OF_LOG_NOTICE,"Camera: %lu up and running", deviceID);
-		
-		startThread(true);
-		return true;
-	}
-	
 	void Camera::threadedFunction(){
 		while(isThreadRunning()) {
 			
@@ -280,14 +254,6 @@ namespace ofxPvAPI {
 		camFps = T_frameTimes.size();
 	}
 	
-	bool Camera::isInitialized() {
-		return bInitialized;
-	}
-	
-	bool Camera::isFrameNew(){
-		return bIsFrameNew;
-	}
-	
 	void Camera::close(){
 		
 		if( bInitialized ) {
@@ -310,6 +276,28 @@ namespace ofxPvAPI {
 	
 		//--------------------------------------------------------------------
 		//-- ACQUISITION -----------------------------------------------------
+	
+	bool Camera::initCamera(int _cameraUid){
+		
+		deviceID = _cameraUid;
+		
+		if (!openCamera()) return false;
+		if (!setPacketSizeToMax()) return false;
+		if (!startCapture()) return false;
+		if (!allocatePixels()) return false;
+		if (!setEnumAttribute("FrameStartTriggerMode","FixedRate")) return false;
+		if (!setEnumAttribute( "AcquisitionMode", "Continuous")) return false;
+		if (!setEnumAttribute("PixelFormat", getPvPixelFormat(internalPixelFormat))) return false;
+		if (!startAcquisition()) return false;
+		
+		bInitialized = true;
+		T_frameCount = 0;
+		numCamerasInUse++;
+		ofLog(OF_LOG_NOTICE,"Camera: %lu up and running", deviceID);
+		
+		startThread(true);
+		return true;
+	}
 	
 	bool Camera::openCamera() {
 		tPvErr error = PvCameraOpen( deviceID, ePvAccessMaster, &cameraHandle );
@@ -406,7 +394,7 @@ namespace ofxPvAPI {
 	bool Camera::queueFrame(){
 		tPvErr error = PvCaptureQueueFrame( cameraHandle, &cameraFrame, NULL);
 		if (error != ePvErrSuccess ){
-			ofLog(OF_LOG_NOTICE, "Camera " + ofToString(deviceID) + " failed to queue frame buffer -> no worries just try again");
+			ofLog(OF_LOG_NOTICE, "Camera " + ofToString(deviceID) + " failed to queue frame buffer");
 			logError(error);
 			return false;
 		}
@@ -464,6 +452,7 @@ namespace ofxPvAPI {
 		else {
 			if (_pixelFormat == OF_PIXELS_MONO || _pixelFormat == OF_PIXELS_RGB) {
 				internalPixelFormat = _pixelFormat;
+//				T_bNeedsResize = true // should be possible (with lock) right?
 				return true;
 			}
 			else {
@@ -474,10 +463,18 @@ namespace ofxPvAPI {
 		return false;
 	}
 	
-	ofPixelFormat Camera::getPixelFormat() {
-		return internalPixelFormat;
+	ofPixelFormat Camera::getOfPixelFormat(string _format) {
+		if (_format == "Mono8") { return OF_PIXELS_MONO; }
+		else if (_format == "Rgb24") { return OF_PIXELS_RGB; }
+		else { ofLogWarning("Camera") << "pixel format not recognized, defaulting to OF_PIXELS_MONO"; }
 	}
 	
+	string Camera::getPvPixelFormat(ofPixelFormat _format) {
+		if (_format == OF_PIXELS_MONO) { return "Mono8"; }
+		else if (_format == OF_PIXELS_RGB) { return "Rgb24"; }
+		else { ofLogWarning("Camera") << "pixel format not recognized, defaulting to Mono8"; }
+		
+	}
 	
 		//--------------------------------------------------------------------
 		//-- ATTRIBUTES (ROI) ----------------------------------------------

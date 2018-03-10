@@ -57,7 +57,7 @@ namespace ofxPvAPI {
 		
 			//-- ACQUISITION -----------------------------------------------------
 		public:
-		bool			isInitialized();
+		bool			isInitialized() { return bInitialized; }
 		
 		protected:
 		tPvHandle		cameraHandle;
@@ -76,17 +76,20 @@ namespace ofxPvAPI {
 		
 			//-- PIXELS & FRAME ---------------------------------------------------
 		public:
-		bool 			isFrameNew();
+		bool 			isFrameNew(){ return bIsFrameNew; }
 		
 		ofPixels&		getPixels()	{ return frameOut; }
 		float			getWidth()	{ return (frameOut.isAllocated())? frameOut.getWidth() : 0; } 	// pixels, not ROI
 		float			getHeight()	{ return (frameOut.isAllocated())? frameOut.getHeight() : 0; }	// pixels, not ROI
 		
 		bool			setPixelFormat(ofPixelFormat _pixelFormat);
-		ofPixelFormat	getPixelFormat();
+		ofPixelFormat	getPixelFormat() { return internalPixelFormat; }
 		
 		protected:
 		ofPixelFormat	internalPixelFormat;
+		ofPixelFormat	getOfPixelFormat(string _format);
+		string			getPvPixelFormat(ofPixelFormat _format);
+		
 		ofPixels		framePixels;
 		deque<ofPixels>	T_frameDeque;
 		ofPixels		frameOut;
