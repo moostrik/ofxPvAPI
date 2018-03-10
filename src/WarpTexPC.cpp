@@ -9,7 +9,7 @@
 #include "WarpTexPC.h"
 
 
-namespace ofxProsilica {
+namespace ofxPvAPI {
 	
 	bool WarpTexPC::setup(){
 		TexPC::setup();
@@ -37,7 +37,7 @@ namespace ofxProsilica {
 		warpParameters.add(warpPoints[2].set("p2", p2, ofVec2f(0,0), ofVec2f(1,1)));
 		warpParameters.add(warpPoints[3].set("p3", p3, ofVec2f(0,0), ofVec2f(1,1)));
 //		warpParameters.add(warpPoints[4].set("power H V", ofVec2f(1,1), ofVec2f(.5,.5), ofVec2f(2,2)));
-		for (int i=0; i<5; i++) { warpPoints[i].addListener(this, &::ofxProsilica::WarpTexPC::warpPointListener); }
+		for (int i=0; i<5; i++) { warpPoints[i].addListener(this, &WarpTexPC::warpPointListener); }
 		
 		parameters.add(warpParameters);
 		

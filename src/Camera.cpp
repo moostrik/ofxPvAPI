@@ -1,6 +1,6 @@
 #include "Camera.h"
 
-namespace ofxProsilica {
+namespace ofxPvAPI {
 	
 	bool Camera::bPvApiInitiated = false;
     int Camera::numCamerasInUse = 0;

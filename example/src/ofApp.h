@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxProsilica.h"
+#include "ofxPvAPI.h"
 #include "ofxGui.h"
 
 
@@ -13,7 +13,7 @@ public:
     void draw();
     void exit();
 	
-	ofxProsilica::WarpTexPC	camera;
+	ofxPvAPI::WarpTexPC	camera;
 		
 	ofxPanel gui;
 	ofParameter<int> fps;

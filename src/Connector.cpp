@@ -1,7 +1,7 @@
 #include "Connector.h"
 
 
-namespace ofxProsilica {
+namespace ofxPvAPI {
 	
 	bool Connector::setup() {
 		return initConnector();

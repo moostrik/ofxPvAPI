@@ -3,7 +3,7 @@
 #include "ofMain.h"
 #include "Camera.h"
 
-namespace ofxProsilica {
+namespace ofxPvAPI {
 	
 	class Connector : public Camera {
 	public:

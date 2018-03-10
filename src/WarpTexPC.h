@@ -3,7 +3,7 @@
 #include "ofMain.h"
 #include "TexPC.h"
 
-namespace ofxProsilica {
+namespace ofxPvAPI {
 	
 	class WarpTexPC : public TexPC {
 	public:

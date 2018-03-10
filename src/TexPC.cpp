@@ -9,7 +9,7 @@
 #include "TexPC.h"
 
 
-namespace ofxProsilica {
+namespace ofxPvAPI {
 	
 	bool TexPC::setup(){
 		ParameterConnector::setup();

@@ -3,7 +3,7 @@
 #include "ofMain.h"
 #include "Connector.h"
 
-namespace ofxProsilica {
+namespace ofxPvAPI {
 	
 	class ParameterConnector : public Connector {
 	public:

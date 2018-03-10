@@ -14,7 +14,7 @@
 #endif
 
 
-namespace ofxProsilica {
+namespace ofxPvAPI {
 	
 	class Camera :public ofThread {
 		public :

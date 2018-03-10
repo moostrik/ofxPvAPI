@@ -1,7 +1,7 @@
 #include "ParameterConnector.h"
 
 
-namespace ofxProsilica {
+namespace ofxPvAPI {
 	
 	//--------------------------------------------------------------
 	bool ParameterConnector::setup() {

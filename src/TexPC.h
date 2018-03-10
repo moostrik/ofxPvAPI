@@ -6,7 +6,7 @@
 #define GLSL_120(shader)  "#version 120 \n" #shader
 #define GLSL_150(shader)  "#version 150 \n" #shader
 
-namespace ofxProsilica {
+namespace ofxPvAPI {
 	
 	class TexPC : public ParameterConnector {
 	public:
