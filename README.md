@@ -4,18 +4,18 @@
 
 openframeworks > 0.9 addon for use with Allied Vision Prosilica cameras.
 
-Based on a previously private repository for openframeworks < 8.4.
-The static libPvAPI.a will not compile with OF 0.9. Switched to the dynamic library and things worked out, although libPvAPI.dylib now needs to be copied into the directory of the application.
-The PvApi.h must be slightly modified (see below)
+Based on a previously private repository for openframeworks <= 8.4.
+The static libPvAPI.a will not compile with OF 0.9.x. Fortunately the  libPvAPI.dylib does work when properly added to the target.
+The PvApi.h must be slightly modified
 
-Tested with the Prosilica GC750 (monochrome) and the Mako G-125C (color) on OSX 10.13
-previous versions tested on Windows 7
+Tested with the Prosilica GC750 (monochrome) and the on OSX 10.13
+previous versions tested with Mako G-125C (color) and on Windows 7
 
 # TODO #
 
 - [V] fix tearing
 - [V] make threaded
-- [  ] figure out how to include libPvAPI.dylib in app
+- [V] figure out how to include libPvAPI.dylib in app
 - [  ] refactor camFPS
 - [  ] fix slowdown of setAllParametersFromCam in parameterConnector
 - [  ] add flip and rotate without texture
@@ -27,22 +27,27 @@ previous versions tested on Windows 7
 
 1.	Add `ofxProsilica` to your addons folder
 2.	Download the [legacy SDK](https://www.alliedvision.com/fileadmin/content/software/software/PvAPI/PvAPI_1.28_OSX.tgz "PvAPI_1.28_OSX.tgz") from [Allied Vision](https://www.alliedvision.com/en/support/software-downloads.html "Software Downloads") and copy the following files from the SDK to the addon.
-*	 `/bin-pc/x86/4.2/libPvAPI.dylib` into `/ofxProsilica/libs/PvAPI/lib/osx/`
+*	 `/bin-pc/x64/4.2/libPvAPI.dylib` (or  `/bin-pc/x86/4.2/libPvAPI.dylib` for 32 bit) into `/ofxProsilica/libs/PvAPI/lib/osx/`
 *	 `/inc-pc/PvApi.h` into `/ofxProsilica/libs/PvAPI/include`
 3. 	modify `PvApi.h` to include
 ```
     #ifdef TARGET_OSX
     #define _OSX
-    #define _x86
+    #define _x64
     #endif
 ```
 *	before `#ifndef PVAPI_H_INCLUDE` (line 79) will do fine
+*	as far as I could determen `#define _x86`  does the same as  `#define _x64`
 4. 	Create examples using the projectGenerator
+5.	include libPvAPI in the examples (or your app) by adding the following lines to Project -> Build Phases -> Run Script
+```
+    # Copy libPvAPI and change install directory for fmod to run
+    rsync -aved ../../../addons/ofxProsilica/libs/PvAPI/lib/osx/libPvAPI.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/";
+    install_name_tool -change libPvAPI.dylib @executable_path/../Frameworks/libPvAPI.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/$PRODUCT_NAME";
+```
 *	When adding the addon manually in Xcode make sure to add the .dylib to Project -> Build Settings -> Other Linker Flags `../../../addons/ofxProsilica/libs/PvAPI/lib/osx/libPvAPI.dylib`
-5. 	Copy `libPvAPI.dylib` into the examples bin folders
 6. 	Turn off the Firewall
 7. 	~~Set MTU to Jumbo / 9000 (System Preferences -> Network -> Ethernet -> Advanced -> Hardware -> Configure Manually -> MTU)~~
-
 
 
 # FOR WINDOWS #
