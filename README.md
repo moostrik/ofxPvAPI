@@ -16,12 +16,12 @@ previous versions tested with Mako G-125C (color) and on Windows 7
 - [x] fix tearing
 - [x] make threaded
 - [x] figure out how to include libPvAPI.dylib in app
-- [  ] refactor camFPS
-- [  ] fix slowdown of setAllParametersFromCam in parameterConnector
-- [  ] add flip and rotate without texture
-- [  ] better naming of classes
-- [  ] test windows
-- [  ] make linux
+- [ ] refactor camFPS
+- [ ] fix slowdown of setAllParametersFromCam in parameterConnector
+- [ ] add flip and rotate without texture
+- [ ] better naming of classes
+- [ ] test windows
+- [] make linux
 
 # FOR MAC #
 
