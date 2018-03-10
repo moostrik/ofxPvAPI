@@ -17,111 +17,177 @@
 namespace ofxPvAPI {
 	
 	class Camera :public ofThread {
-		public :
 		
+			//-- TEMP ------------------------------------------------------------------
+		public :
 		vector<float> T_frameTimes;
 		int camFps;
 		int getCamFps() { return camFps; }
+			//-- TEMP ------------------------------------------------------------------
 		
+		public :
 		Camera();
 		virtual ~Camera();
 		
+			//-- API -------------------------------------------------------------
+		protected:
+		void			PvApiInitialize();
+		void			PvApiUnInitialize();
+		static bool		bPvApiInitiated;
+		static int		numCamerasInUse;
 		
-		bool			setup();
-		void			update();
-		bool			isInitialized();
-		bool 			isFrameNew();
-		void			close();
-		
-		void 			threadedFunction();
-		
-		//-- DEVICE ----------------------------------------------------------
+			//-- DEVICE ----------------------------------------------------------
+		public:
 		vector<ofVideoDevice> listDevices();
 		void			setDeviceID(int _deviceID) { requestDeviceByID(_deviceID); }
 		void			requestDeviceByID(int _deviceID);
 		int 			getDeviceID();
-		int             getDeviceIDFromIpAdress(string _IpAdress);
+		int				getDeviceIDFromIpAdress(string _IpAdress);
 		
-		//-- ATTRIBUTES GENERAL-----------------------------------------------
-		void            videoSettings() { listAttributes();}
-		void			listAttributes();
-		void			resetAttributes();
+		protected:
+		unsigned long	deviceID;
+		unsigned long	requestedDeviceID;
 		
-		//-- PIXELS ----------------------------------------------------------
-		ofPixels&		getPixels();
+			//-- OF -----------------------------------------------------
+		public:
+		bool			setup();
+		void			update();
+		void			close();
+		void 			threadedFunction();
+		
+			//-- ACQUISITION -----------------------------------------------------
+		public:
+		bool			isInitialized();
+		
+		protected:
+		tPvHandle		cameraHandle;
+		bool 			bInitialized;
+		
+		bool			initCamera(int cameraUid);
+		bool			openCamera();
+		bool			closeCamera();
+		bool			startCapture();
+		bool			stopCapture();
+		bool			startAcquisition();
+		bool			stopAcquisition();
+		bool			abortAcquisition();
+		bool			queueFrame();
+		bool			clearQueue();
+		
+			//-- PIXELS & FRAME ---------------------------------------------------
+		public:
+		bool 			isFrameNew();
+		
+		ofPixels&		getPixels()	{ return frameOut; }
+		float			getWidth()	{ return (frameOut.isAllocated())? frameOut.getWidth() : 0; } 	// pixels, not ROI
+		float			getHeight()	{ return (frameOut.isAllocated())? frameOut.getHeight() : 0; }	// pixels, not ROI
+		
 		bool			setPixelFormat(ofPixelFormat _pixelFormat);
 		ofPixelFormat	getPixelFormat();
 		
-        //-- WIDTH & HEIGHT --------------------------------------------------
-//		float	getWidth()							{ lock(); int w = (T_pixelsOut.isAllocated())? T_pixelsOut.getWidth() : 0; unlock(); return w; } 	// width of the pixels, not the ROI
-//		float	getHeight()							{ lock(); int h = (T_pixelsOut.isAllocated())? T_pixelsOut.getHeight() : 0; unlock(); return h;  }	// height of the pixels, not the ROI
-		float	getWidth()							{ return (frameOut.isAllocated())? frameOut.getWidth() : 0; } 	// width of the pixels, not the ROI
-		float	getHeight()							{ return (frameOut.isAllocated())? frameOut.getHeight() : 0; }	// height of the pixels, not the ROI
+		protected:
+		ofPixelFormat	internalPixelFormat;
+		ofPixels		framePixels;
+		deque<ofPixels>	T_frameDeque;
+		ofPixels		frameOut;
+		ofPixels		ancillaryPixels;
+		bool			allocatePixels();
+		bool 			T_bNeedsResize;
+		int 			T_framesDropped;
 		
-        //-- FRAMERATE -------------------------------------------------------
-		void	setDesiredFrameRate(int  _framerate){ setFrameRate(_framerate);}
-		void	setFrameRate(float rate)			{ setFloatAttribute("FrameRate", rate); }
-		float	getFrameRate()						{ return getFloatAttribute("FrameRate"); }
-		float	getFrameRateMax()					{ return getFloatAttributeMax("FrameRate"); }
-		float	getFrameRateMin()					{ return getFloatAttributeMin("FrameRate"); }
+		tPvFrame		cameraFrame;
+		bool			bIsFrameNew;
+		bool			bWaitingForFrame;
+		int				T_frameCount;
 		
-		int		getFrameCount() 					{return T_frameCount; }
+			//-- ATTRIBUTES GENERAL-----------------------------------------------
+		public:
+		void	videoSettings() { listAttributes();}
+		void	listAttributes();
+		void	resetAttributes();
 		
-        //-- REGION OF INTEREST ----------------------------------------------
+		protected:
+		bool	setNormalizedAttribute(string _name, float _value);
+		float	getNormalizedAttribute(string _name);
+		
+		bool	setIntAttribute(string _name, int _value);
+		int		getIntAttribute(string _name);
+		int		getIntAttributeMax(string _name);
+		int		getIntAttributeMin(string _name);
+		
+		bool	setFloatAttribute(string _name, float _value);
+		float	getFloatAttribute(string _name);
+		float	getFloatAttributeMax(string _name);
+		float	getFloatAttributeMin(string _name);
+		
+		bool	setEnumAttribute(string _name, string _value);
+		string	getEnumAttribute(string _name);
+		
+			//-- FRAMERATE -------------------------------------------------------
+		public:
+		void	setFrameRate(float rate){ setFloatAttribute("FrameRate", rate); }
+		float	getFrameRate()			{ return getFloatAttribute("FrameRate"); }
+		float	getFrameRateMax()		{ return getFloatAttributeMax("FrameRate"); }
+		float	getFrameRateMin()		{ return getFloatAttributeMin("FrameRate"); }
+		
+		int		getFrameCount() 		{return T_frameCount; }
+		
+			//-- REGION OF INTEREST ----------------------------------------------
+		public:
 		void	setROIWidth(int w);
-		void 	setROIHeight(int h);
-		void    setROIX(int x);
-		void    setROIY(int y);
+		void	setROIHeight(int h);
+		void	setROIX(int x);
+		void	setROIY(int y);
 		
-		int 	getROIWidth()						{ return getIntAttribute("Width"); }
-		int 	getROIHeight()						{ return getIntAttribute("Height"); }
-		int		getROIX()							{ return getIntAttribute("RegionX"); }
-		int		getROIY()							{ return getIntAttribute("RegionY"); }
+		int 	getROIWidth()		{ return getIntAttribute("Width"); }
+		int 	getROIHeight()		{ return getIntAttribute("Height"); }
+		int		getROIX()			{ return getIntAttribute("RegionX"); }
+		int		getROIY()			{ return getIntAttribute("RegionY"); }
 		
-		int 	getROIWidthMin()					{ return getIntAttributeMin("Width"); }
-		int 	getROIWidthMax()					{ return getIntAttributeMax("Width"); }
-		int 	getROIHeightMin()					{ return getIntAttributeMin("Height"); }
-		int 	getROIHeightMax()					{ return getIntAttributeMax("Height"); }
-		int		getROIXMin()						{ return getIntAttributeMin("RegionX"); }
-		int		getROIXMax()						{ return getIntAttributeMax("RegionX"); }
-		int		getROIYMin()						{ return getIntAttributeMin("RegionY"); }
-		int		getROIYMax()						{ return getIntAttributeMax("RegionY"); }
+		int 	getROIWidthMin()	{ return getIntAttributeMin("Width"); }
+		int 	getROIWidthMax()	{ return getIntAttributeMax("Width"); }
+		int 	getROIHeightMin()	{ return getIntAttributeMin("Height"); }
+		int 	getROIHeightMax()	{ return getIntAttributeMax("Height"); }
+		int		getROIXMin()		{ return getIntAttributeMin("RegionX"); }
+		int		getROIXMax()		{ return getIntAttributeMax("RegionX"); }
+		int		getROIYMin()		{ return getIntAttributeMin("RegionY"); }
+		int		getROIYMax()		{ return getIntAttributeMax("RegionY"); }
 		
-	protected:
+		protected:
 			//		float			regionX;
 			//		float			regionY;
 		
-        //-- EXPOSURE --------------------------------------------------------
-	public:
+			//-- EXPOSURE --------------------------------------------------------
+		public:
 		void	setAutoExposure(bool state)			{ setEnumAttribute("ExposureMode", (state == true)? "Auto": "Manual"); }
 		void	setAutoExposureOnce(bool state)		{ setEnumAttribute("ExposureMode", (state == true)? "AutoOnce": "Manual"); }
 		bool	getAutoExposure()					{ return (getEnumAttribute("ExposureMode") == "Auto")? true: false; }
 		bool	getAutoExposureOnce()				{ return (getEnumAttribute("ExposureMode") == "AutoOnce")? true: false; }
 		
-		void    setAutoExposureRangeFromFrameRate()	{ setAutoExposureMaximum(getAutoExposureMaxForCurrentFrameRate()); setAutoExposureMinimum(getAutoExposureMinimumMin());}
+		void	setAutoExposureRangeFromFrameRate()	{ setAutoExposureMaximum(getAutoExposureMaxForCurrentFrameRate()); setAutoExposureMinimum(getAutoExposureMinimumMin());}
 		
 		void	setExposure(int _value)				{ setIntAttribute("ExposureValue", _value); }
 		
-		// Range: [1 - 100] Default: 50 Units: percent
-		// The general lightness or darkness of the auto exposure feature; specifically, the target mean histogram level of the image, 0 being black, 100 being white.
+			// Range: [1 - 100] Default: 50 Units: percent
+			// The general lightness or darkness of the auto exposure feature; specifically, the target mean histogram level of the image, 0 being black, 100 being white.
 		void 	setAutoExposureTarget(int _value)	{ setIntAttribute("ExposureAutoTarget", _value); }
 		
-		// Range: [1 - 100] Default: 100 Units: percent
-		// The rate at which the auto exposure function changes the exposure setting.
+			// Range: [1 - 100] Default: 100 Units: percent
+			// The rate at which the auto exposure function changes the exposure setting.
 		void 	setAutoExposureRate(int _value)		{ setIntAttribute("ExposureAutoRate", _value); }
-	
-		// Range: [0 – 50] Default: 5 Units: percent
-		// Tolerance in variation from ExposureAutoTarget in which the auto exposure algorithm will not respond.
-		// Can be used to limit exposure setting changes to only larger variations in scene lighting.
+		
+			// Range: [0 – 50] Default: 5 Units: percent
+			// Tolerance in variation from ExposureAutoTarget in which the auto exposure algorithm will not respond.
+			// Can be used to limit exposure setting changes to only larger variations in scene lighting.
 		void	setAutoExposureAdjustTol(int _value) { setIntAttribute("ExposureAutoAdjustTol", _value); }
 		
-		// Range: [0 - 1000] Default: 0 Units: 0.01% i.e. 1000 = 10%
-		// The total pixels from top of the distribution that are ignored by the auto exposure algorithm.
+			// Range: [0 - 1000] Default: 0 Units: 0.01% i.e. 1000 = 10%
+			// The total pixels from top of the distribution that are ignored by the auto exposure algorithm.
 		void 	setAutoExposureOutliers(int _value)	{ setIntAttribute("ExposureAutoOutliers", _value); }
 		
-		// Range: [Camera dependent - 1000000] Default: 500000 Units: μs
-		// The upper bound to the exposure setting in Autoexposure mode. This is useful in situations where frame rate is important.
-		// This value would normally be set to something less than 1x10^6/ (desired frame rate).
+			// Range: [Camera dependent - 1000000] Default: 500000 Units: μs
+			// The upper bound to the exposure setting in Autoexposure mode. This is useful in situations where frame rate is important.
+			// This value would normally be set to something less than 1x10^6/ (desired frame rate).
 		void	setAutoExposureMinimum(int _value)	{ setIntAttribute("ExposureAutoMin", _value); }
 		void 	setAutoExposureMaximum(int _value)	{ setIntAttribute("ExposureAutoMax", _value); }
 		
@@ -151,7 +217,7 @@ namespace ofxPvAPI {
 		
 		int 	getAutoExposureMaxForCurrentFrameRate() { return 1000000 / getFrameRate(); }
 		
-        //-- GAIN ------------------------------------------------------------
+			//-- GAIN ------------------------------------------------------------
 		void 	setAutoGain(bool state)			{ setEnumAttribute("GainMode", (state == true)? "Auto": "Manual"); }
 		void 	setAutoGainOnce(bool state)		{ setEnumAttribute("GainMode", (state == true)? "AutoOnce": "Manual"); }
 		bool 	getAutoGain()					{ return (getEnumAttribute("GainMode") == "Auto")? true: false; }
@@ -188,7 +254,7 @@ namespace ofxPvAPI {
 		int 	getAutoGainTargetMin()			{ return getIntAttributeMin("GainAutoTarget"); }
 		int 	getAutoGainTargetMax()			{ return getIntAttributeMax("GainAutoTarget"); }
 		
-		//-- GAMMA HUE STURATION ---------------------------------------------
+			//-- GAMMA HUE STURATION ---------------------------------------------
 		void 	setGamma(float _value)			{ setFloatAttribute("Gamma", _value); }
 		void 	setHue(float _value)			{ setFloatAttribute("Hue", _value); }
 		void 	setSaturation(float _value)		{ setFloatAttribute("Saturation", _value); }
@@ -204,7 +270,7 @@ namespace ofxPvAPI {
 		int 	getSaturationMin()				{ return getFloatAttributeMin("Saturation"); }
 		int 	getSaturationMax()				{ return getFloatAttributeMax("Saturation"); }
 		
-		//-- WHITE BALANCE ---------------------------------------------------
+			//-- WHITE BALANCE ---------------------------------------------------
 		void 	setAutoWhiteBalance(bool state)	{ setEnumAttribute("WhitebalMode", (state == true)? "Auto": "Manual"); }
 		void 	setAutoWhiteBalanceOnce(bool state)	{ setEnumAttribute("WhitebalMode", (state == true)? "AutoOnce": "Manual"); }
 		bool 	getAutoWhiteBalance()			{ return (getEnumAttribute("WhitebalMode") == "Auto")? true: false; }
@@ -228,86 +294,30 @@ namespace ofxPvAPI {
 		int 	getAutoWhiteBalanceAdjustTolMax(){return getIntAttributeMax("WhitebalAutoAdjustTol"); }
 		int 	getAutoWhiteBalanceRateMin()	{ return getIntAttributeMin("WhitebalAutoRate"); }
 		int 	getAutoWhiteBalanceRateMax()	{ return getIntAttributeMax("WhitebalAutoRate"); }
-
-        //-- IP SETTINGS -----------------------------------------------------
-        void	setPersistentIp(bool enable);
-        void	setPersistentIpAdress(string _IpAdress);
-        void	setPersistentIpSubnetMask(string _IpSubnet);
-        void	setPersistentIpGateway(string _IpGateway);
-        string	getIpAdress();
-        string	getIpSubnet();
-        string	getIpGateway();
-        bool	getIpPersistent();
-        void	listIpSettings();
 		
-		//--------------------------------------------------------------------
-		//-- PROTECTED -------------------------------------------------------
-	protected:
-		void			PvApiInitialize();
-		void			PvApiUnInitialize();
-		static bool     bPvApiInitiated;
-		static int		numCamerasInUse;
-		tPvHandle       cameraHandle;
-		bool 			bInitialized;
-        
-        //-- ACQUISITION -----------------------------------------------------
-		bool			initCamera(int cameraUid);
-		bool			openCamera();
-		bool			closeCamera();
-		bool			startCapture();
-		bool			stopCapture();
-		bool			startAcquisition();
-		bool			stopAcquisition();
-		bool			abortAcquisition();
-		bool			queueFrame();
-		bool			clearQueue();
-        
-        //-- DEVICES ---------------------------------------------------------
-		unsigned long 	deviceID;
-		unsigned long 	requestedDeviceID;
-        
-        //-- PIXELS & FRAME---------------------------------------------------
-		ofPixelFormat	internalPixelFormat;
-		ofPixels		framePixels;
-		deque<ofPixels>	T_frameDeque;
-		ofPixels		frameOut;
-		ofPixels		ancillaryPixels;
-		bool			allocatePixels();
-		bool 			T_bNeedsResize;
-		int 			T_framesDropped;
+			//-- IP SETTINGS -----------------------------------------------------
+		public:
+		void	setPersistentIp(bool enable);
+		void	setPersistentIpAdress(string _IpAdress);
+		void	setPersistentIpSubnetMask(string _IpSubnet);
+		void	setPersistentIpGateway(string _IpGateway);
+		string	getIpAdress();
+		string	getIpSubnet();
+		string	getIpGateway();
+		bool	getIpPersistent();
+		void	listIpSettings();
 		
-		tPvFrame        cameraFrame;
-		bool 			bIsFrameNew;
-		bool            bWaitingForFrame;
-		int 			T_frameCount;
-		
-        //-- ATTRIBUTES-------------------------------------------------------
-		bool			setNormalizedAttribute(string _name, float _value);
-		float			getNormalizedAttribute(string _name);
-		
-		bool			setIntAttribute(string _name, int _value);
-		int				getIntAttribute(string _name);
-		int				getIntAttributeMax(string _name);
-		int				getIntAttributeMin(string _name);
-		
-		bool			setFloatAttribute(string _name, float _value);
-		float			getFloatAttribute(string _name);
-		float			getFloatAttributeMax(string _name);
-		float			getFloatAttributeMin(string _name);
-		
-		bool			setEnumAttribute(string _name, string _value);
-		string			getEnumAttribute(string _name);
-		
-        //-- IP SETTINGS -----------------------------------------------------
-        string          persistentIpAdress;
-        string          persistentIpSubnetMask;
-        string          persistentIpGateway;
-        unsigned long   IPStringToLong(string _IpAdress);
-        string          IPLongToString(unsigned long  _IpAdress);
-        
+		protected:
+		string			persistentIpAdress;
+		string			persistentIpSubnetMask;
+		string			persistentIpGateway;
+		unsigned long	IPStringToLong(string _IpAdress);
+		string			IPLongToString(unsigned long  _IpAdress);
 		bool			setPacketSizeToMax();
 		
+			//-- ERROR LOGGING ---------------------------------------------------
 		void			logError(tPvErr _msg);
 		
 	};
 }
+
