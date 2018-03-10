@@ -308,7 +308,7 @@ namespace ofxPvAPI {
 			return true;
 		} else {
 			// WHYWHYWHYWHYWHYWHY
-			PvCaptureEnd(cameraHandle) ;
+//			PvCaptureEnd(cameraHandle) ;
 			ofLog(OF_LOG_ERROR, "Camera: %lu can not stop continuous acquisition", deviceID);
 			logError(error);
 			return false;
@@ -323,7 +323,7 @@ namespace ofxPvAPI {
 			return true;
 		} else {
 			// WHYWHYWHYWHYWHYWHY
-			PvCaptureEnd(cameraHandle) ;
+//			PvCaptureEnd(cameraHandle) ;
 			ofLog(OF_LOG_ERROR, "Camera: %lu can not abort continuous acquisition", deviceID);
 			logError(error);
 			return false;
