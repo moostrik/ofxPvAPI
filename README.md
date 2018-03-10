@@ -2,7 +2,7 @@
 
 # README #
 
-openframeworks > 0.9 addon for use with Allied Vision Prosilica cameras.
+openframeworks 0.9.x addon for use with Allied Vision Prosilica cameras.
 
 Based on a previously private repository for openframeworks <= 8.4.
 The static libPvAPI.a will not compile with OF 0.9.x. Fortunately the  libPvAPI.dylib does work when properly added to the target.
@@ -13,9 +13,9 @@ previous versions tested with Mako G-125C (color) and on Windows 7
 
 # TODO #
 
-- [V] fix tearing
-- [V] make threaded
-- [V] figure out how to include libPvAPI.dylib in app
+- [x] fix tearing
+- [x] make threaded
+- [x] figure out how to include libPvAPI.dylib in app
 - [  ] refactor camFPS
 - [  ] fix slowdown of setAllParametersFromCam in parameterConnector
 - [  ] add flip and rotate without texture
@@ -39,13 +39,13 @@ previous versions tested with Mako G-125C (color) and on Windows 7
 *	before `#ifndef PVAPI_H_INCLUDE` (line 79) will do fine
 *	as far as I could determen `#define _x86`  does the same as  `#define _x64`
 4. 	Create examples using the projectGenerator
-5.	include libPvAPI in the examples (or your app) by adding the following lines to Project -> Build Phases -> Run Script
+5.	include libPvAPI.dylib in the examples (or your app) by adding the following lines to Project -> Build Phases -> Run Script
 ```
     # Copy libPvAPI and change install directory for fmod to run
     rsync -aved ../../../addons/ofxProsilica/libs/PvAPI/lib/osx/libPvAPI.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/";
     install_name_tool -change libPvAPI.dylib @executable_path/../Frameworks/libPvAPI.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/$PRODUCT_NAME";
 ```
-*	When adding the addon manually in Xcode make sure to add the .dylib to Project -> Build Settings -> Other Linker Flags `../../../addons/ofxProsilica/libs/PvAPI/lib/osx/libPvAPI.dylib`
+*	When adding the addon manually in Xcode make sure to add the libPvAPI.dylib to Project -> Build Settings -> Other Linker Flags `../../../addons/ofxProsilica/libs/PvAPI/lib/osx/libPvAPI.dylib`
 6. 	Turn off the Firewall
 7. 	~~Set MTU to Jumbo / 9000 (System Preferences -> Network -> Ethernet -> Advanced -> Hardware -> Configure Manually -> MTU)~~
 
