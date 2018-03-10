@@ -87,7 +87,12 @@ namespace ofxPvAPI {
 		int		getROIYMin()						{ return getIntAttributeMin("RegionY"); }
 		int		getROIYMax()						{ return getIntAttributeMax("RegionY"); }
 		
+	protected:
+			//		float			regionX;
+			//		float			regionY;
+		
         //-- EXPOSURE --------------------------------------------------------
+	public:
 		void	setAutoExposure(bool state)			{ setEnumAttribute("ExposureMode", (state == true)? "Auto": "Manual"); }
 		void	setAutoExposureOnce(bool state)		{ setEnumAttribute("ExposureMode", (state == true)? "AutoOnce": "Manual"); }
 		bool	getAutoExposure()					{ return (getEnumAttribute("ExposureMode") == "Auto")? true: false; }
@@ -275,10 +280,6 @@ namespace ofxPvAPI {
 		bool 			bIsFrameNew;
 		bool            bWaitingForFrame;
 		int 			T_frameCount;
-		
-        //-- REGION OF INTEREST-----------------------------------------------
-		float			regionX;
-		float			regionY;
 		
         //-- ATTRIBUTES-------------------------------------------------------
 		bool			setNormalizedAttribute(string _name, float _value);

@@ -18,8 +18,8 @@ namespace ofxPvAPI {
 	internalPixelFormat(OF_PIXELS_MONO),
 	deviceID(0),
 	requestedDeviceID(0),
-	regionX(0.5),
-	regionY(0.5),
+//	regionX(0.5),
+//	regionY(0.5),
 	persistentIpAdress(""),
     persistentIpGateway(""),
     persistentIpSubnetMask("0.0.0.0") {
@@ -606,7 +606,7 @@ namespace ofxPvAPI {
 			T_bNeedsResize = true;
 			setIntAttribute("Width", _value);
 			if(getROIX() > getROIXMax()) { setROIX(getROIXMax()); }
-			regionX = (float)getROIX() / getROIXMax();
+//			regionX = (float)getROIX() / getROIXMax();
 			unlock();
 		}
 	}
@@ -617,7 +617,7 @@ namespace ofxPvAPI {
 			T_bNeedsResize = true;
 			setIntAttribute("Height", _value);
 			if(getROIY() > getROIYMax()) { setROIY(getROIYMax()); }
-			regionY = (float)getROIY() / getROIYMax();
+//			regionY = (float)getROIY() / getROIYMax();
 			unlock();
 		}
 	}
@@ -629,7 +629,7 @@ namespace ofxPvAPI {
 		}
 		setIntAttribute("RegionX", _value);
 		
-		regionX = (float)getROIX() / getROIXMax();
+//		regionX = (float)getROIX() / getROIXMax();
 	}
 
 	void Camera::setROIY(int _value) {
@@ -639,7 +639,7 @@ namespace ofxPvAPI {
 		}
 		setIntAttribute("RegionY", _value);
 		
-		regionY = (float)getROIY() / getROIYMax();
+//		regionY = (float)getROIY() / getROIYMax();
 	}
 	
 	
