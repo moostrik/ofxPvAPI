@@ -95,10 +95,10 @@ namespace ofxPvAPI {
 		
 		void	frameRateListner(float& _value)			{ if(!blockParameters) setFrameRate(float(int(_value))); }
 		
-		void	ROIWidthListner(int& _value)			{ if(!blockParameters) setROIWidth(_value); }
-		void	ROIHeightListner(int& _value)			{ if(!blockParameters) setROIHeight(_value); }
-		void	ROIXListner(int& _value)				{ if(!blockParameters) setROIX(_value); }
-		void	ROIYListner(int& _value)				{ if(!blockParameters) setROIY(_value); }
+		void	ROIWidthListner(int& _value)			{ if(!blockParameters) setROIWidth(_value); if (bInitialized) {ROIX.setMax(MAX(getROIXMax(),1)); setParameterInItsOwnRange(ROIX);} }
+		void	ROIHeightListner(int& _value)			{ if(!blockParameters) setROIHeight(_value); if (bInitialized) {ROIY.setMax(MAX(getROIYMax(),1)); setParameterInItsOwnRange(ROIY);} }
+		void	ROIXListner(int& _value)				{ if(!blockParameters) setROIX(_value); if (bInitialized) {ROIWidth.setMax(MAX(getROIWidthMax(),1)); setParameterInItsOwnRange(ROIWidth);} }
+		void	ROIYListner(int& _value)				{ if(!blockParameters) setROIY(_value); if (bInitialized) {ROIHeight.setMax(MAX(getROIHeightMax(),1)); setParameterInItsOwnRange(ROIHeight);} }
 		
 		void	exposureListner(int& _value)			{ if(!blockParameters) setExposure(_value); }
 		void	autoExposureOnceListner(bool& _value)	{ if(!blockParameters) setAutoExposureOnce(_value); }
@@ -139,6 +139,7 @@ namespace ofxPvAPI {
 		void	ipPersistentListner(bool& _value)		{ if(!blockParameters) setPersistentIp(_value); }
 		
 		bool	initInterface();
+		void	updateParametersFromCam();
 		void	setAllParametersFromCam();
 		void	setAllParametersFromInterface();
 		

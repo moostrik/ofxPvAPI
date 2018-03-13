@@ -153,9 +153,10 @@ namespace ofxPvAPI {
         
         if (bInitialized) {
 			if (!bLoadFromInterface) {
-				if (Connector::isFrameNew()) {
+				if (Connector::isFrameNew()) { // why
+					updateParametersFromCam();
 //					blockParameters = false;
-					setAllParametersFromCam(); // this reduces bandwidth, serious drop in framerate  (~10fps) on higher resolutions
+//					setAllParametersFromCam(); // this reduces bandwidth, serious drop in framerate  (~10fps) on higher resolutions
 				}
 			} else {
 				bLoadFromInterface = false;
@@ -171,6 +172,33 @@ namespace ofxPvAPI {
 			autoConnectCounter.set(getAutoConnectCounter());
 			autoConnectInterval.set(getAutoConnectInterval());
 		}
+	}
+	
+	//--------------------------------------------------------------
+	
+	void ParameterConnector::updateParametersFromCam() {
+		blockParameters = true;
+		if (autoExposure.get()) {
+			exposure.set(getExposure());
+		}
+		if (autoGain.get()) {
+			gain.set(getGain());
+		}
+		if (autoWhiteBalance.get()) {
+			whiteBalanceRed.set(getWhiteBalanceRed());
+			whiteBalanceBlue.set(getWhiteBalanceBlue());
+		}
+		
+		frameRate.setMin(ceil(getFrameRateMin()));
+		frameRate.setMax(floor(getFrameRateMax()));
+		setParameterInItsOwnRange(frameRate);
+		
+		exposure.setMax(getAutoExposureMaxForCurrentFrameRate());				//  <<
+		setParameterInItsOwnRange(exposure);
+		
+		blockParameters = false;
+		
+//		setParametersRange();
 	}
 	
 	//--------------------------------------------------------------
@@ -367,8 +395,9 @@ namespace ofxPvAPI {
 	
 	//--------------------------------------------------------------
 	void ParameterConnector::setParameterInItsOwnRange(ofParameter<int> &_parameter) {
-		if (_parameter.get() < _parameter.getMin()) _parameter.set(_parameter.getMin());
-		if (_parameter.get() > _parameter.getMax()) _parameter.set(_parameter.getMax());
+		if (_parameter.get() < _parameter.getMin()) { _parameter.set(_parameter.getMin()); }
+		else if (_parameter.get() > _parameter.getMax()) {_parameter.set(_parameter.getMax()); }
+		else { _parameter.set(_parameter.get()); } // dirty way to update
 	}
 	
 	//--------------------------------------------------------------
