@@ -1,3 +1,32 @@
+
+// init:
+//
+// non blocking
+//
+// FrameStartTriggerMode","Software"
+// AcquisitionMode", "Continuous"
+// AcquisitionStart
+//
+// update: // use ofxLibdc model to copy pixels?
+// set isFrameNew to false
+// see if current frame has arrived pvFrameNew? (lock)
+// if so:
+// set pvFrameNew to false? (lock)
+// queue other frame
+// trigger next frame with FrameStartTriggerSoftware (this should be thread safe)
+// copy current frame to pixelsOut (this should be thread safe)
+// swap other & current frame;
+// set isFrameNew to true
+
+// in callback:
+// set pvFrameNew to true (lock)
+// reQueue
+
+// in thread
+// do resize sjit
+
+
+
 #include "Camera.h"
 
 namespace ofxPvAPI {
@@ -285,8 +314,10 @@ namespace ofxPvAPI {
 		if (!setPacketSizeToMax()) return false;
 		if (!startCapture()) return false;
 		if (!allocatePixels()) return false;
+//		if (!setEnumAttribute("FrameStartTriggerMode","Software")) return false;
+//		if (!setEnumAttribute("AcquisitionMode", "SingleFrame")) return false;
 		if (!setEnumAttribute("FrameStartTriggerMode","FixedRate")) return false;
-		if (!setEnumAttribute( "AcquisitionMode", "Continuous")) return false;
+		if (!setEnumAttribute("AcquisitionMode", "Continuous")) return false;
 		if (!setEnumAttribute("PixelFormat", getPvPixelFormat(internalPixelFormat))) return false;
 		if (!startAcquisition()) return false;
 		
