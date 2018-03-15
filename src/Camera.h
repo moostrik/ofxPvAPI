@@ -77,7 +77,7 @@ namespace ofxPvAPI {
 		protected:
 		static int		numPvFrames;
 		tPvFrame*		pvFrames;
-		deque<tPvFrame*>	updatedFrames;
+		deque<tPvFrame*>	capuredFrameQueue;
 		
 		bool			allocateFrames();
 		bool			deallocateFrames();

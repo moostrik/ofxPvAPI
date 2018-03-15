@@ -222,19 +222,16 @@ namespace ofxPvAPI {
 				if (T_bChangeTriggerMode) {
 					T_bChangeTriggerMode = false;
 					clearQueue();
-					stopAcquisition();		// without these pvFrame width and height don't register correctly
-					stopCapture();			// without these pvFrame width and height don't register correctly
+					stopAcquisition();
 					
 					if (fixedRate) {
-						setEnumAttribute("FrameStartTriggerMode","FixedRate");
+						if (!setEnumAttribute("FrameStartTriggerMode","FixedRate")) return false;
 					}
 					else {
-						setEnumAttribute("FrameStartTriggerMode","Software");
+						if (!setEnumAttribute("FrameStartTriggerMode","Software")) return false;
 					}
 					
-					
-					startCapture();			// without these pvFrame width and height don't register correctly
-					startAcquisition();		// without these pvFrame width and height don't register correctly
+					startAcquisition();
 					
 					queueFrames();
 					triggerFrame();
@@ -249,12 +246,13 @@ namespace ofxPvAPI {
 		bIsFrameNew = false;
 		
 		if (bInitialized) {
-			size_t fqOffset = 0;
-			if (fixedRate) fqOffset = 1;
-			if ( updatedFrames.size() > 0) {
-				if (!fixedRate) { triggerFrame(); }
-				int f = min(updatedFrames.size(), fqOffset);
-				tPvFrame& frame = *updatedFrames[f];
+			if ( capuredFrameQueue.size() > 0) {
+				if (!fixedRate) {
+					triggerFrame();
+				}
+				size_t frameoffset = (fixedRate)? 1 : 0;
+				frameoffset = min(capuredFrameQueue.size(), frameoffset);
+				tPvFrame& frame = *capuredFrameQueue[frameoffset];
 				
 				//				cout << i << " " << frame.Width << " " << frame.Height << " " << frame.ImageBufferSize << endl;
 				//				cout << i << " " << frame.Width << " " << getIntAttribute("Width") << endl;
@@ -262,7 +260,7 @@ namespace ofxPvAPI {
 				float time = ofGetElapsedTimef();
 				float frameTime = time; // init with something
 				
-				if (frame.Status == ePvErrSuccess) {
+				if (frame.Status == ePvErrSuccess) { // the state can be changed since added
 					pixels.setFromPixels((unsigned char *)frame.ImageBuffer, frame.Width, frame.Height, pixelFormat);
 					frameTime = *(float*)frame.Context[2];
 					bIsFrameNew = true;
@@ -274,11 +272,11 @@ namespace ofxPvAPI {
 				fpsTimes.push_back(time);
 				framesLatencies.push_back((time - frameTime) * 1000);
 				
-				updatedFrames.pop_back();
+				capuredFrameQueue.pop_back();
 				
 				int df = 0;
-				while (updatedFrames.size() > fqOffset) {
-					updatedFrames.pop_back();
+				while (capuredFrameQueue.size() > frameoffset) {
+					capuredFrameQueue.pop_back();
 					df++;
 				}
 				framesDropped.push_back(df);
@@ -344,14 +342,8 @@ namespace ofxPvAPI {
 		if (!setPacketSizeToMax()) return false;
 		if (!allocateFrames()) return false;
 		if (!startCapture()) return false;
-		
-		if (fixedRate) {
-			if (!setEnumAttribute("FrameStartTriggerMode","FixedRate")) return false;
-		}
-		else {
-			if (!setEnumAttribute("FrameStartTriggerMode","Software")) return false;
-		}
-	//		if (!setEnumAttribute("AcquisitionMode", "SingleFrame")) return false;
+		if (fixedRate) { if (!setEnumAttribute("FrameStartTriggerMode","FixedRate")) return false; }
+		else { if (!setEnumAttribute("FrameStartTriggerMode","Software")) return false; }
 		if (!setEnumAttribute("AcquisitionMode", "Continuous")) return false;
 		if (!setEnumAttribute("PixelFormat", getPvPixelFormat(pixelFormat))) return false;
 		if (!startAcquisition()) return false;
@@ -423,10 +415,10 @@ namespace ofxPvAPI {
 	bool Camera::startAcquisition() {
 		tPvErr error = PvCommandRun(cameraHandle,"AcquisitionStart");
 		if( error == ePvErrSuccess ){
-			ofLog(OF_LOG_VERBOSE, "Camera: %lu continuous acquisition started", deviceID);
+			ofLog(OF_LOG_VERBOSE, "Camera: %lu acquisition started", deviceID);
 			return true;
 		} else {
-			ofLog(OF_LOG_ERROR, "Camera: %lu can not start continuous acquisition", deviceID);
+			ofLog(OF_LOG_ERROR, "Camera: %lu can not start acquisition", deviceID);
 			logError(error);
 			return false;
 		}
@@ -537,16 +529,16 @@ namespace ofxPvAPI {
 	
 	
 	void Camera::onFrameDone(tPvFrame* _frame) {
-		
 		lock();
 		if (_frame->Status == ePvErrSuccess) {
 			PvCaptureQueueFrame(cameraHandle, _frame, FrameDoneCB);
 			float& time = *(float*)_frame->Context[2];
 			time = ofGetElapsedTimef();
-			updatedFrames.push_front(_frame);
+			capuredFrameQueue.push_front(_frame);
 		}
-		else {
+		else if (_frame->Status != ePvErrCancelled) {
 			logError(_frame->Status);
+			PvCaptureQueueFrame(cameraHandle, _frame, FrameDoneCB);
 		}
 		unlock();
 	}
