@@ -27,6 +27,7 @@ namespace ofxPvAPI {
 		ofParameter<int>	pFrameDrop;
 		ofParameter<int>	pFrameLatency;
 		ofParameter<int>	pFrameMaxLatency;
+		ofParameter<int>	pFrameMinLatency;
 		ofParameter<bool>	pFixedRate;
 		
 		ofParameter<int>	frameRate;

@@ -93,6 +93,7 @@ namespace ofxPvAPI {
 		int 			getFrameDrop() { return frameDrop; }
 		int 			getLatency() { return frameLatency; }
 		int 			getMaxLatency() { return frameMaxLatency; }
+		int 			getMinLatency() { return frameMinLatency; }
 		
 		protected:
 		bool			bIsFrameNew;
@@ -102,6 +103,7 @@ namespace ofxPvAPI {
 		deque<int> 		framesDropped;
 		int 			frameLatency;
 		int 			frameMaxLatency;
+		int 			frameMinLatency;
 		deque<int> 		framesLatencies;
 		
 		//-- PIXELS ---------------------------------------------------

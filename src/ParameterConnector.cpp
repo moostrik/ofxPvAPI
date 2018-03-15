@@ -28,12 +28,13 @@ namespace ofxPvAPI {
 		
 		frameRateParameters.setName("framerate");
 		frameRateParameters.add(pFps.set("fps", 0, 0, 60));
-		frameRateParameters.add(pFrameDrop.set("frame drop", 0, 0, 60));
+		frameRateParameters.add(pFrameDrop.set("drops per second", 0, 0, 60));
 		frameRateParameters.add(pFrameLatency.set("avg latency (ms)", 0, 0, 60));
 		frameRateParameters.add(pFrameMaxLatency.set("max latency (ms)", 0, 0, 60));
-		frameRateParameters.add(pFixedRate.set("fixed rate", false));
+		frameRateParameters.add(pFrameMinLatency.set("min latency (ms)", 0, 0, 60));
+		frameRateParameters.add(pFixedRate.set("fixed (or trigger)", false));
 		pFixedRate.addListener(this, &ParameterConnector::fixedRateListner);
-		frameRateParameters.add(frameRate.set("framerate", 30, 1, 60));
+		frameRateParameters.add(frameRate.set("fixed rate", 30, 2, 60));
 		frameRate.addListener(this, &ParameterConnector::frameRateListner);
 		parameters.add(frameRateParameters);
 		
@@ -165,6 +166,7 @@ namespace ofxPvAPI {
 			pFrameDrop = getFrameDrop();
 			pFrameLatency = getLatency();
 			pFrameMaxLatency = getMaxLatency();
+			pFrameMinLatency = getMinLatency();
 			
 			if (!bLoadFromInterface) {
 				updateParametersFromCam();

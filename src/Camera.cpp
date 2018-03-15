@@ -258,7 +258,7 @@ namespace ofxPvAPI {
 				//				cout << i << " " << frame.Width << " " << getIntAttribute("Width") << endl;
 				
 				float time = ofGetElapsedTimef();
-				float frameTime = time; // init with something
+				float frameTime = time; // init with current time 
 				
 				if (frame.Status == ePvErrSuccess) { // the state can be changed since added
 					pixels.setFromPixels((unsigned char *)frame.ImageBuffer, frame.Width, frame.Height, pixelFormat);
@@ -298,10 +298,12 @@ namespace ofxPvAPI {
 		}
 		
 		frameMaxLatency = 0;
+		frameMinLatency = 10000;
 		float tL = 0;
 		for (int i=0; i<framesLatencies.size(); i++) {
 			tL += framesLatencies[i];
 			frameMaxLatency = max(frameMaxLatency, framesLatencies[i]);
+			frameMinLatency = min(frameMinLatency, framesLatencies[i]);
 		}
 		frameLatency = (tL / framesLatencies.size());
 	}
