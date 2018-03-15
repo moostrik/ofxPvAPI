@@ -2,12 +2,12 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-//	ofSetFrameRate(60);
-//	ofSetVerticalSync(false);
+	ofSetFrameRate(60);
+	ofSetVerticalSync(true);
 	
 	ofSetLogLevel(OF_LOG_VERBOSE);
 	camera.listDevices();
-//	ofSetLogLevel(OF_LOG_NOTICE);
+	ofSetLogLevel(OF_LOG_NOTICE);
 	
 	//	PRE SETUP FEATURES
 	
@@ -27,7 +27,6 @@ void ofApp::setup(){
 	
 	gui.setup("settings");
 	gui.add(fps.set("FPS", 0, 0, 100));
-	gui.add(camFps.set("Cam FPS", 0, 0, 100));
 	gui.add(fullScreen.set("fullscreen (F)", false));
 	fullScreen.addListener(this, &ofApp::fullScreenLisner);
 	gui.add(drawPixels.set("draw pixels (D)", false));
@@ -54,7 +53,6 @@ void ofApp::update(){
 	// reshape window to fit camera image
 	ofSetWindowShape(30 + gui.getWidth() + max(640.f, camera.getWidth()), 20 + max(gui.getHeight(), camera.getHeight()));
 	fps.set(ofGetFrameRate() + 0.5);
-	camFps.set(camera.getFps());
 	
 }
 
