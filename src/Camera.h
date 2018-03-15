@@ -18,13 +18,6 @@ namespace ofxPvAPI {
 	
 	class Camera :public ofThread {
 		
-			//-- TEMP ------------------------------------------------------------------
-		public :
-		vector<float> T_frameTimes;
-		int camFps;
-		int getCamFps() { return camFps; }
-			//-- TEMP ------------------------------------------------------------------
-		
 		public :
 		Camera();
 		virtual ~Camera();
@@ -71,37 +64,47 @@ namespace ofxPvAPI {
 		bool			startAcquisition();
 		bool			stopAcquisition();
 		bool			abortAcquisition();
-		bool			queueFrame();
-		bool			clearQueue();
 		
-			//-- PIXELS & FRAME ---------------------------------------------------
+			//-- PV FRAMES ---------------------------------------------------
 		public:
-		bool 			isFrameNew(){ return bIsFrameNew; }
-		
-		ofPixels&		getPixels()	{ return frameOut; }
-		float			getWidth()	{ return (frameOut.isAllocated())? frameOut.getWidth() : 0; } 	// pixels, not ROI
-		float			getHeight()	{ return (frameOut.isAllocated())? frameOut.getHeight() : 0; }	// pixels, not ROI
-		
-		bool			setPixelFormat(ofPixelFormat _pixelFormat);
-		ofPixelFormat	getPixelFormat() { return internalPixelFormat; }
+		void			onFrameDone(tPvFrame* _frame); // for internal use only, cannot be protected due to callback
 		
 		protected:
-		ofPixelFormat	internalPixelFormat;
+		tPvFrame*		pvFrames;
+		bool*			bPvFrameNew;
+		
+		bool			allocateFrames();
+		bool			deallocateFrames();
+		bool			queueFrames();
+		bool			clearQueue();
+		bool			triggerFrame();
+		
+		bool 			T_bResizeFrames; // thread message
+		
+		//-- FRAMES ---------------------------------------------------
+		public:
+		bool 			isFrameNew(){ return bIsFrameNew; }
+		int 			getFps() { return fps; }
+		
+		protected:
+		bool			bIsFrameNew;
+		vector<float> 	fpsTimes;
+		int 			fps;
+		
+		//-- PIXELS ---------------------------------------------------
+		public:
+		ofPixels&		getPixels()	{ return pixels; }
+		float			getWidth()	{ return (pixels.isAllocated())? pixels.getWidth() : 0; } 	// pixels, not ROI
+		float			getHeight()	{ return (pixels.isAllocated())? pixels.getHeight() : 0; }	// pixels, not ROI
+		
+		bool			setPixelFormat(ofPixelFormat _pixelFormat);
+		ofPixelFormat	getPixelFormat() { return pixelFormat; }
+		
+		protected:
+		ofPixels		pixels;
+		ofPixelFormat	pixelFormat;
 		ofPixelFormat	getOfPixelFormat(string _format);
 		string			getPvPixelFormat(ofPixelFormat _format);
-		
-		ofPixels		framePixels;
-		deque<ofPixels>	T_frameDeque;
-		ofPixels		frameOut;
-		ofPixels		ancillaryPixels;
-		bool			allocatePixels();
-		bool 			T_bNeedsResize;
-		int 			T_framesDropped;
-		
-		tPvFrame		cameraFrame;
-		bool			bIsFrameNew;
-		bool			bWaitingForFrame;
-		int				T_frameCount;
 		
 			//-- ATTRIBUTES GENERAL-----------------------------------------------
 		public:
@@ -128,12 +131,10 @@ namespace ofxPvAPI {
 		
 			//-- FRAMERATE -------------------------------------------------------
 		public:
-		void	setFrameRate(float rate){ setFloatAttribute("FrameRate", rate); }
-		float	getFrameRate()			{ return getFloatAttribute("FrameRate"); }
-		float	getFrameRateMax()		{ return getFloatAttributeMax("FrameRate"); }
-		float	getFrameRateMin()		{ return getFloatAttributeMin("FrameRate"); }
-		
-		int		getFrameCount() 		{return T_frameCount; }
+		void	setFrameRate(float rate){ setFloatAttribute("FrameRate", rate); }		// obsolete
+		float	getFrameRate()			{ return getFloatAttribute("FrameRate"); }		// obsolete
+		float	getFrameRateMax()		{ return getFloatAttributeMax("FrameRate"); }	// obsolete
+		float	getFrameRateMin()		{ return getFloatAttributeMin("FrameRate"); }	// obsolete
 		
 			//-- REGION OF INTEREST ----------------------------------------------
 		public:

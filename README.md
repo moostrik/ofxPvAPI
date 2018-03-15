@@ -12,9 +12,14 @@ previous versions tested on Windows 7
 
 - [x] fix tearing / make threaded
 - [x] figure out how to include libPvAPI.dylib in app
+- [x] fix slowdown of setAllParametersFromCam in parameterConnector
+- [x] make triggered
+- [ ] better init and close
+- [ ] add callback for discovery
+- [ ] investigate callback for attributes
 - [ ] refactor camFPS and add dropped frames
-- [ ] add fastest mode (with tearing) and fast mode without
-- [ ] fix slowdown of setAllParametersFromCam in parameterConnector
+- [ ] update parameterConnector to intercept the attributes like it already does with the framerate, minimize calls to camera
+- [ ] add fastest mode (with tearing) and fast mode without?
 - [ ] add flip and rotate without texture
 - [ ] better naming of classes
 - [ ] test with color camera

@@ -13,12 +13,11 @@ public:
     void draw();
     void exit();
 	
-	ofxPvAPI::WarpTexPC	camera;
+	ofxPvAPI::ParameterConnector	camera;
 		
 	ofxPanel gui;
 	ofParameter<int> fps;
 	ofParameter<int> camFps;
-	ofParameter<int> camFpsInternal;
 	ofParameter<bool> fullScreen;
 	ofParameter<bool> drawPixels;
 	void fullScreenLisner(bool &_value) { ofSetFullscreen(_value); }
@@ -26,6 +25,4 @@ public:
 	ofTexture tex;
 	
 	void keyPressed(int key);
-	
-	vector<float> frameTimes;
 };

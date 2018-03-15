@@ -7,7 +7,7 @@ void ofApp::setup(){
 	
 	ofSetLogLevel(OF_LOG_VERBOSE);
 	camera.listDevices();
-	ofSetLogLevel(OF_LOG_NOTICE);
+//	ofSetLogLevel(OF_LOG_NOTICE);
 	
 	//	PRE SETUP FEATURES
 	
@@ -28,7 +28,6 @@ void ofApp::setup(){
 	gui.setup("settings");
 	gui.add(fps.set("FPS", 0, 0, 100));
 	gui.add(camFps.set("Cam FPS", 0, 0, 100));
-	gui.add(camFpsInternal.set("Cam FPS I", 0, 0, 100));
 	gui.add(fullScreen.set("fullscreen (F)", false));
 	fullScreen.addListener(this, &ofApp::fullScreenLisner);
 	gui.add(drawPixels.set("draw pixels (D)", false));
@@ -55,18 +54,7 @@ void ofApp::update(){
 	// reshape window to fit camera image
 	ofSetWindowShape(30 + gui.getWidth() + max(640.f, camera.getWidth()), 20 + max(gui.getHeight(), camera.getHeight()));
 	fps.set(ofGetFrameRate() + 0.5);
-	
-	if (camera.isInitialized()  && camera.isFrameNew()) {
-		frameTimes.push_back(ofGetElapsedTimef());
-	}
-	
-	for (int i=frameTimes.size()-1; i>=0; i--) {
-		if (frameTimes[i] < ofGetElapsedTimef() - 1.0) {
-			frameTimes.erase(frameTimes.begin() + i);
-		}
-	}
-	camFps.set(frameTimes.size());
-	camFpsInternal.set(camera.getCamFps());
+	camFps.set(camera.getFps());
 	
 }
 
@@ -74,17 +62,19 @@ void ofApp::update(){
 void ofApp::draw(){
 	ofClear(128);
 	
-	if (drawPixels.get()) {
+//	if (drawPixels.get()) {
+	if (camera.isFrameNew()) {
 		ofPixels& pix = camera.getPixels();
 		ofImage image;
 		image.setFromPixels(pix);
 		image.draw(gui.getWidth() + gui.getPosition().x + 10, gui.getPosition().y);
 	}
-	else {
-		if (camera.getTexture().isAllocated()) {
-			camera.getTexture().draw(gui.getWidth() + gui.getPosition().x + 10, gui.getPosition().y);
-		}
-	}
+//	}
+//	else {
+//		if (camera.getTexture().isAllocated()) {
+//			camera.getTexture().draw(gui.getWidth() + gui.getPosition().x + 10, gui.getPosition().y);
+//		}
+//	}
 	gui.draw();
 	
 }

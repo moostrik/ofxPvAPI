@@ -153,18 +153,12 @@ namespace ofxPvAPI {
         
         if (bInitialized) {
 			if (!bLoadFromInterface) {
-				if (Connector::isFrameNew()) { // why
-					updateParametersFromCam();
-//					blockParameters = false;
-//					setAllParametersFromCam(); // this reduces bandwidth, serious drop in framerate  (~10fps) on higher resolutions
-				}
+				updateParametersFromCam();
 			} else {
 				bLoadFromInterface = false;
 				setAllParametersFromInterface();
 			}
-		} else {
-			;//	bLoadFromInterface = true;  // unfortunately we still get values from camera after connection is lost
-		}
+		} 
 		
 		doAutoConnect.set(getAutoConnect());
 		if (!bInitialized) {
