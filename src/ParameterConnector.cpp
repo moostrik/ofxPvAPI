@@ -3,12 +3,12 @@
 
 namespace ofxPvAPI {
 	
-	//--------------------------------------------------------------
+		//------------------------------------------------------------------------
 	bool ParameterConnector::setup() {
 		return initInterface();
 	}
 	
-	//--------------------------------------------------------------
+		//------------------------------------------------------------------------
 	bool ParameterConnector::initInterface() {
 		Connector::initConnector();
 		
@@ -18,13 +18,13 @@ namespace ofxPvAPI {
 			dID = ofToString(requestedDeviceID);
 		parameters.setName("camera " + dID);
 		parameters.add(reset.set("reset", false));
-		reset.addListener(this, &ParameterConnector::resetListner);
+		reset.addListener(this, &ParameterConnector::resetListener);
 		parameters.add(printAttributes.set("print features", false));
-		printAttributes.addListener(this, &ParameterConnector::printAttributesListner);
-//		parameters.add(printIpSettings.set("print IP settings", false));
-//		printIpSettings.addListener(this, &ParameterConnector::printIpSettingsListner);
+		printAttributes.addListener(this, &ParameterConnector::printAttributesListener);
+			//		parameters.add(printIpSettings.set("print IP settings", false));
+			//		printIpSettings.addListener(this, &ParameterConnector::printIpSettingsListener);
 		parameters.add(resetParametersFromCam.set("load", false));
-		resetParametersFromCam.addListener(this, &ParameterConnector::resetParametersFromCamListner);
+		resetParametersFromCam.addListener(this, &ParameterConnector::resetParametersFromCamListener);
 		
 		frameRateParameters.setName("framerate");
 		frameRateParameters.add(pFps.set("fps", 0, 0, 60));
@@ -33,118 +33,117 @@ namespace ofxPvAPI {
 		frameRateParameters.add(pFrameMaxLatency.set("max latency (ms)", 0, 0, 60));
 		frameRateParameters.add(pFrameMinLatency.set("min latency (ms)", 0, 0, 60));
 		frameRateParameters.add(pFixedRate.set("fixed (or trigger)", false));
-		pFixedRate.addListener(this, &ParameterConnector::fixedRateListner);
-		frameRateParameters.add(frameRate.set("fixed rate", 30, 2, 60));
-		frameRate.addListener(this, &ParameterConnector::frameRateListner);
+		pFixedRate.addListener(this, &ParameterConnector::fixedRateListener);
+		frameRateParameters.add(pFrameRate.set("frame rate", 30, 2, 60));
+		pFrameRate.addListener(this, &ParameterConnector::frameRateListener);
 		parameters.add(frameRateParameters);
 		
-		
 		roiParameters.setName("region of interest");
-		roiParameters.add(ROIWidth.set("width", 640, 1, 640));
-		ROIWidth.addListener(this, &ParameterConnector::ROIWidthListner);
-		roiParameters.add(ROIHeight.set("height", 480, 1, 480));
-		ROIHeight.addListener(this, &ParameterConnector::ROIHeightListner);
-		roiParameters.add(ROIX.set("x", 0, 0, 1));
-		ROIX.addListener(this, &ParameterConnector::ROIXListner);
-		roiParameters.add(ROIY.set("y", 0, 0, 1));
-		ROIY.addListener(this, &ParameterConnector::ROIYListner);
+		roiParameters.add(pROIWidth.set("width", 640, 1, 640));
+		pROIWidth.addListener(this, &ParameterConnector::ROIWidthListener);
+		roiParameters.add(pROIHeight.set("height", 480, 1, 480));
+		pROIHeight.addListener(this, &ParameterConnector::ROIHeightListener);
+		roiParameters.add(pROIX.set("x", 0, 0, 1));
+		pROIX.addListener(this, &ParameterConnector::ROIXListener);
+		roiParameters.add(pROIY.set("y", 0, 0, 1));
+		pROIY.addListener(this, &ParameterConnector::ROIYListener);
 		parameters.add(roiParameters);
 		
 		exposureParameters.setName("exposure");
-		exposureParameters.add(exposure.set("exposure", 30, 0, 40000));
-		exposure.addListener(this, &ParameterConnector::exposureListner);
+		exposureParameters.add(pExposure.set("exposure", 30, 0, 40000));
+		pExposure.addListener(this, &ParameterConnector::exposureListener);
 		autoExposureParameters.setName("auto exposure");
-		autoExposureParameters.add(autoExposure.set("auto", true));
-		autoExposure.addListener(this, &ParameterConnector::autoExposureListner);
-		autoExposureParameters.add(autoExposureOnce.set("auto once", false));
-		autoExposureOnce.addListener(this, &ParameterConnector::autoExposureOnceListner);
-		autoExposureParameters.add(autoExposureTarget.set("target pct", 33, 0, 100));
-		autoExposureTarget.addListener(this, &ParameterConnector::autoExposureTargetListner);
-		autoExposureParameters.add(autoExposureRate.set("rate pct", 10, 1, 100));
-		autoExposureRate.addListener(this, &ParameterConnector::autoExposureRateListner);
-		autoExposureParameters.add(autoExposureAdjustTol.set("tolerance pct", 5, 0, 50));
-		autoExposureAdjustTol.addListener(this, &ParameterConnector::autoExposureAdjustTolListner);
-		autoExposureParameters.add(autoExposureOutliers.set("outliers 0.01pct", 0, 0, 1000));
-		autoExposureOutliers.addListener(this, &ParameterConnector::autoExposureOutliersListner);
-		autoExposureParameters.add(autoExposureMinimum.set("minimium μs", 30, 30, 1000000));
-		autoExposureMinimum.addListener(this, &ParameterConnector::autoExposureMinimumListner);
-		autoExposureParameters.add(autoExposureMaximum.set("maximum μs", 40000, 30, 1000000));
-		autoExposureMaximum.addListener(this, &ParameterConnector::autoExposureMaximumListner);
+		autoExposureParameters.add(pAutoExposure.set("auto", true));
+		pAutoExposure.addListener(this, &ParameterConnector::autoExposureListener);
+		autoExposureParameters.add(pAutoExposureOnce.set("auto once", false));
+		pAutoExposureOnce.addListener(this, &ParameterConnector::autoExposureOnceListener);
+		autoExposureParameters.add(pAutoExposureTarget.set("target pct", 33, 0, 100));
+		pAutoExposureTarget.addListener(this, &ParameterConnector::autoExposureTargetListener);
+		autoExposureParameters.add(pAutoExposureRate.set("rate pct", 10, 1, 100));
+		pAutoExposureRate.addListener(this, &ParameterConnector::autoExposureRateListener);
+		autoExposureParameters.add(pAutoExposureAdjustTol.set("tolerance pct", 5, 0, 50));
+		pAutoExposureAdjustTol.addListener(this, &ParameterConnector::autoExposureAdjustTolListener);
+		autoExposureParameters.add(pAutoExposureOutliers.set("outliers 0.01pct", 0, 0, 1000));
+		pAutoExposureOutliers.addListener(this, &ParameterConnector::autoExposureOutliersListener);
+		autoExposureParameters.add(pAutoExposureMinimum.set("minimium μs", 30, 30, 1000000));
+		pAutoExposureMinimum.addListener(this, &ParameterConnector::autoExposureMinimumListener);
+		autoExposureParameters.add(pAutoExposureMaximum.set("maximum μs", 40000, 30, 1000000));
+		pAutoExposureMaximum.addListener(this, &ParameterConnector::autoExposureMaximumListener);
 		exposureParameters.add(autoExposureParameters);
 		parameters.add(exposureParameters);
 		
 		if(getPixelFormat() != OF_PIXELS_RGB) {
-			parameters.add(gain.set("gain", 0, 0, 1));
-			gain.addListener(this, &ParameterConnector::gainListner);
+			parameters.add(pGain.set("gain", 0, 0, 1));
+			pGain.addListener(this, &ParameterConnector::gainListener);
 		}
 		else {
 			gainParameters.setName("gain");
-			gainParameters.add(gain.set("gain", 0, 0, 30));
-			gain.addListener(this, &ParameterConnector::gainListner);
+			gainParameters.add(pGain.set("gain", 0, 0, 30));
+			pGain.addListener(this, &ParameterConnector::gainListener);
 			autoGainParameters.setName("auto gain");
-			autoGainParameters.add(autoGain.set("auto", false));
-			autoGain.addListener(this, &ParameterConnector::autoGainListner);
-			autoGainParameters.add(autoGainOnce.set("auto once", false));
-			autoGainOnce.addListener(this, &ParameterConnector::autoGainOnceListner);
-			autoGainParameters.add(autoGainTarget.set("target pct", 0, 1, 100));
-			autoGainTarget.addListener(this, &ParameterConnector::autoGainTargetListner);
-			autoGainParameters.add(autoGainRate.set("rate pct", 10, 1, 100));
-			autoGainRate.addListener(this, &ParameterConnector::autoGainRateListner);
-			autoGainParameters.add(autoGainAdjustTol.set("tolerance pct", 5, 0, 50));
-			autoGainAdjustTol.addListener(this, &ParameterConnector::autoGainAdjustTolListner);
-			autoGainParameters.add(autoGainOutliers.set("outliers 0.01pct", 0, 0, 1000));
-			autoGainOutliers.addListener(this, &ParameterConnector::autoGainOutliersListner);
-			autoGainParameters.add(autoGainMinimum.set("minimum dB", 0, 0, 30));
-			autoGainMinimum.addListener(this, &ParameterConnector::autoGainMinimumListner);
-			autoGainParameters.add(autoGainMaximum.set("maximum dB", 30, 0, 30));
-			autoGainMaximum.addListener(this, &ParameterConnector::autoGainMaximumListner);
+			autoGainParameters.add(pAutoGain.set("auto", false));
+			pAutoGain.addListener(this, &ParameterConnector::autoGainListener);
+			autoGainParameters.add(pAutoGainOnce.set("auto once", false));
+			pAutoGainOnce.addListener(this, &ParameterConnector::autoGainOnceListener);
+			autoGainParameters.add(pAutoGainTarget.set("target pct", 0, 1, 100));
+			pAutoGainTarget.addListener(this, &ParameterConnector::autoGainTargetListener);
+			autoGainParameters.add(pAutoGainRate.set("rate pct", 10, 1, 100));
+			pAutoGainRate.addListener(this, &ParameterConnector::autoGainRateListener);
+			autoGainParameters.add(pAutoGainAdjustTol.set("tolerance pct", 5, 0, 50));
+			pAutoGainAdjustTol.addListener(this, &ParameterConnector::autoGainAdjustTolListener);
+			autoGainParameters.add(pAutoGainOutliers.set("outliers 0.01pct", 0, 0, 1000));
+			pAutoGainOutliers.addListener(this, &ParameterConnector::autoGainOutliersListener);
+			autoGainParameters.add(pAutoGainMinimum.set("minimum dB", 0, 0, 30));
+			pAutoGainMinimum.addListener(this, &ParameterConnector::autoGainMinimumListener);
+			autoGainParameters.add(pAutoGainMaximum.set("maximum dB", 30, 0, 30));
+			pAutoGainMaximum.addListener(this, &ParameterConnector::autoGainMaximumListener);
 			gainParameters.add(autoGainParameters);
 			parameters.add(gainParameters);
 			
 			whiteBalanceParameters.setName("white balance");
-			whiteBalanceParameters.add(whiteBalanceRed.set("red", 190, 80, 300));
-			whiteBalanceRed.addListener(this, &ParameterConnector::WhiteBalanceRedListner);
-			whiteBalanceParameters.add(whiteBalanceBlue.set("blue", 190, 80, 300));
-			whiteBalanceBlue.addListener(this, &ParameterConnector::WhiteBalanceBlueListner);
+			whiteBalanceParameters.add(pWhiteBalanceRed.set("red", 190, 80, 300));
+			pWhiteBalanceRed.addListener(this, &ParameterConnector::WhiteBalanceRedListener);
+			whiteBalanceParameters.add(pWhiteBalanceBlue.set("blue", 190, 80, 300));
+			pWhiteBalanceBlue.addListener(this, &ParameterConnector::WhiteBalanceBlueListener);
 			autoWhiteBalanceParameters.setName("auto white balance");
-			autoWhiteBalanceParameters.add(autoWhiteBalance.set("auto", false));
-			autoWhiteBalance.addListener(this, &ParameterConnector::autoWhiteBalanceListner);
-			autoWhiteBalanceParameters.add(autoWhiteBalanceOnce.set("auto once", false));
-			autoWhiteBalanceOnce.addListener(this, &ParameterConnector::autoWhiteBalanceOnceListner);
-			autoWhiteBalanceParameters.add(autoWhiteBalanceRate.set("rate pct", 100, 1, 100));
-			autoWhiteBalanceRate.addListener(this, &ParameterConnector::autoWhiteBalanceRateListner);
-			autoWhiteBalanceParameters.add(autoWhiteBalanceAdjustTol.set("ajust tolerance pct", 1, 1, 100));
-			autoWhiteBalanceAdjustTol.addListener(this, &ParameterConnector::autoWhiteBalanceAdjustTolListner);
+			autoWhiteBalanceParameters.add(pAutoWhiteBalance.set("auto", false));
+			pAutoWhiteBalance.addListener(this, &ParameterConnector::autoWhiteBalanceListener);
+			autoWhiteBalanceParameters.add(pAutoWhiteBalanceOnce.set("auto once", false));
+			pAutoWhiteBalanceOnce.addListener(this, &ParameterConnector::autoWhiteBalanceOnceListener);
+			autoWhiteBalanceParameters.add(pAutoWhiteBalanceRate.set("rate pct", 100, 1, 100));
+			pAutoWhiteBalanceRate.addListener(this, &ParameterConnector::autoWhiteBalanceRateListener);
+			autoWhiteBalanceParameters.add(pAutoWhiteBalanceAdjustTol.set("ajust tolerance pct", 1, 1, 100));
+			pAutoWhiteBalanceAdjustTol.addListener(this, &ParameterConnector::autoWhiteBalanceAdjustTolListener);
 			whiteBalanceParameters.add(autoWhiteBalanceParameters);
 			parameters.add(whiteBalanceParameters);
 			
 			gammaHueSaturationParameters.setName("gamma hue saturation");
-			gammaHueSaturationParameters.add(gamma.set("gamma", 1.0, 0.5, 1.5));
-			gamma.addListener(this, &ParameterConnector::gammaListner);
-			gammaHueSaturationParameters.add(hue.set("hue", 0.0, -10.0, 10.0));
-			hue.addListener(this, &ParameterConnector::hueListner);
-			gammaHueSaturationParameters.add(saturation.set("saturation", 1.0, 0.0, 2.0));
-			saturation.addListener(this, &ParameterConnector::saturationListner);
+			gammaHueSaturationParameters.add(pGamma.set("gamma", 1.0, 0.5, 1.5));
+			pGamma.addListener(this, &ParameterConnector::gammaListener);
+			gammaHueSaturationParameters.add(pHue.set("hue", 0.0, -10.0, 10.0));
+			pHue.addListener(this, &ParameterConnector::hueListener);
+			gammaHueSaturationParameters.add(pSaturation.set("saturation", 1.0, 0.0, 2.0));
+			pSaturation.addListener(this, &ParameterConnector::saturationListener);
 			parameters.add(gammaHueSaturationParameters);
 		}
 		
 		ipParameters.setName("IP");
-		ipParameters.add(ipPersistent.set("persistent", "no"));
-		ipParameters.add(ipAdress.set("adress", "0.0.0.0"));
-		ipParameters.add(ipSubnet.set("subnet", "0.0.0.0"));
-		ipParameters.add(ipGateway.set("gateway", "0.0.0.0"));
+		ipParameters.add(pIpPersistent.set("persistent", "no"));
+		ipParameters.add(pIpAdress.set("adress", "0.0.0.0"));
+		ipParameters.add(pIpSubnet.set("subnet", "0.0.0.0"));
+		ipParameters.add(pIpGateway.set("gateway", "0.0.0.0"));
 		parameters.add(ipParameters);
 		
 		connectParameters.setName("connector");
 		connectParameters.add(doConnect.set("connect", false));
-		doConnect.addListener(this, &ParameterConnector::doConnectListner);
+		doConnect.addListener(this, &ParameterConnector::doConnectListener);
 		connectParameters.add(doDisconnect.set("disconnect", false));
-		doDisconnect.addListener(this, &ParameterConnector::doDisconnectListner);
+		doDisconnect.addListener(this, &ParameterConnector::doDisconnectListener);
 		autoConnectParameters.setName("auto connector");
 		autoConnectParameters.add(doAutoConnect.set("auto connect", false));
-		doAutoConnect.addListener(this, &ParameterConnector::doAutoConnectListner);
+		doAutoConnect.addListener(this, &ParameterConnector::doAutoConnectListener);
 		autoConnectParameters.add(autoConnectAttempts.set("max attempts", 100, 0, 100));
-		autoConnectAttempts.addListener(this, &ParameterConnector::autoConnectAttemptsListner);
+		autoConnectAttempts.addListener(this, &ParameterConnector::autoConnectAttemptsListener);
 		autoConnectParameters.add(autoConnectCounter.set("attempts made", 0, 0, 100));
 		autoConnectParameters.add(autoConnectInterval.set("interval", 0, 0, 60));
 		connectParameters.add(autoConnectParameters);
@@ -152,16 +151,16 @@ namespace ofxPvAPI {
 		
 		
 		bLoadFromInterface = true;
-		blockParameters = true;
+		blockListeners = false;
 		
 		return true;
 	}
 	
-	//--------------------------------------------------------------
+		//------------------------------------------------------------------------
 	void ParameterConnector::update() {
 		Connector::update();
-        
-        if (bInitialized) {
+		
+		if (bInitialized) {
 			pFps = getFps();
 			pFrameDrop = getFrameDrop();
 			pFrameLatency = getLatency();
@@ -174,7 +173,7 @@ namespace ofxPvAPI {
 				bLoadFromInterface = false;
 				setAllParametersFromInterface();
 			}
-		} 
+		}
 		
 		doAutoConnect.set(getAutoConnect());
 		if (!bInitialized) {
@@ -184,246 +183,296 @@ namespace ofxPvAPI {
 		}
 	}
 	
-	//--------------------------------------------------------------
-	
+		//------------------------------------------------------------------------
 	void ParameterConnector::updateParametersFromCam() {
-		blockParameters = true;
-		if (autoExposure.get()) {
-			exposure.set(getExposure());
+		blockListeners = true;
+		if (pAutoExposure.get()) {
+			pExposure.set(getExposure());
 		}
-		if (autoGain.get()) {
-			gain.set(getGain());
+		if (pAutoGain.get()) {
+			pGain.set(getGain());
 		}
-		if (autoWhiteBalance.get()) {
-			whiteBalanceRed.set(getWhiteBalanceRed());
-			whiteBalanceBlue.set(getWhiteBalanceBlue());
+		if (pAutoWhiteBalance.get()) {
+			pWhiteBalanceRed.set(getWhiteBalanceRed());
+			pWhiteBalanceBlue.set(getWhiteBalanceBlue());
 		}
 		
-		frameRate.setMin(ceil(getFrameRateMin()));
-		frameRate.setMax(floor(getFrameRateMax()));
-		setParameterInItsOwnRange(frameRate);
+		pFrameRate.setMin(ceil(getFrameRateMin()));
+		pFrameRate.setMax(floor(getFrameRateMax()));
+		setParameterInItsOwnRange(pFrameRate);
 		
-		exposure.setMax(getAutoExposureMaxForCurrentFrameRate());				//  <<
-		setParameterInItsOwnRange(exposure);
+		pExposure.setMax(getExposureMaxForCurrentFrameRate());				//  <<
+		setParameterInItsOwnRange(pExposure);
 		
-		blockParameters = false;
+		blockListeners = false;
 		
-//		setParametersRange();
+			//		setParametersRange();
 	}
 	
-	//--------------------------------------------------------------
+		//------------------------------------------------------------------------
 	void ParameterConnector::setAllParametersFromCam() {
-		blockParameters = true;
+		blockListeners = true;
 		
-		frameRate.set(getFrameRate());
-		ROIWidth.set(getROIWidth());
-		ROIHeight.set(getROIHeight());
-		ROIX.set(getROIX());
-		ROIY.set(getROIY());
+		pFrameRate.set(getFrameRate());
+		pROIWidth.set(getROIWidth());
+		pROIHeight.set(getROIHeight());
+		pROIX.set(getROIX());
+		pROIY.set(getROIY());
 		
-		exposure.set(getExposure());
+		pExposure.set(getExposure());
 		
-		autoExposure.set(getAutoExposure());
-		autoExposureOnce.set(getAutoExposureOnce());
-		autoExposureAdjustTol.set(getAutoExposureAdjustTol());
-		autoExposureMinimum.set(getAutoExposureMinimum());
-		autoExposureMaximum.set(getAutoExposureMaximum());
-		autoExposureOutliers.set(getAutoExposureOutliers());
-		autoExposureRate.set(getAutoExposureRate());
-		autoExposureTarget.set(getAutoExposureTarget());
-				
-		gain = getGain();
+		pAutoExposure.set(getAutoExposure());
+		pAutoExposureOnce.set(getAutoExposureOnce());
+		pAutoExposureAdjustTol.set(getAutoExposureAdjustTol());
+		pAutoExposureMinimum.set(getAutoExposureMinimum());
+		pAutoExposureMaximum.set(getAutoExposureMaximum());
+		pAutoExposureOutliers.set(getAutoExposureOutliers());
+		pAutoExposureRate.set(getAutoExposureRate());
+		pAutoExposureTarget.set(getAutoExposureTarget());
+		
+		pGain = getGain();
 		if (getPixelFormat() == OF_PIXELS_RGB) {
-			gamma.set(getGamma());
-			hue.set(getHue());
-			saturation.set(getSaturation());
+			pGamma.set(getGamma());
+			pHue.set(getHue());
+			pSaturation.set(getSaturation());
 			
-			gain.set(getGain());
-			autoGain.set(getAutoGain());
-			autoGainOnce.set(getAutoGainOnce());
-			autoGainAdjustTol.set(getAutoGainAdjustTol());
-			autoGainMinimum.set(getAutoGainMinimum());
-			autoGainMaximum.set(getAutoGainMaximum());
-			autoGainOutliers.set(getAutoGainOutliers());
-			autoGainRate.set(getAutoGainRate());
-			autoGainTarget.set(getAutoGainTarget());
+			pGain.set(getGain());
+			pAutoGain.set(getAutoGain());
+			pAutoGainOnce.set(getAutoGainOnce());
+			pAutoGainAdjustTol.set(getAutoGainAdjustTol());
+			pAutoGainMinimum.set(getAutoGainMinimum());
+			pAutoGainMaximum.set(getAutoGainMaximum());
+			pAutoGainOutliers.set(getAutoGainOutliers());
+			pAutoGainRate.set(getAutoGainRate());
+			pAutoGainTarget.set(getAutoGainTarget());
 			
-			whiteBalanceRed.set(getWhiteBalanceRed());
-			whiteBalanceBlue.set(getWhiteBalanceBlue());
-			autoWhiteBalance.set(getAutoWhiteBalance());
-			autoWhiteBalanceOnce.set(getAutoWhiteBalanceOnce());
-			autoWhiteBalanceRate.set(getAutoWhiteBalanceRate());
-			autoWhiteBalanceAdjustTol.set(getAutoWhiteBalanceAdjustTol());
+			pWhiteBalanceRed.set(getWhiteBalanceRed());
+			pWhiteBalanceBlue.set(getWhiteBalanceBlue());
+			pAutoWhiteBalance.set(getAutoWhiteBalance());
+			pAutoWhiteBalanceOnce.set(getAutoWhiteBalanceOnce());
+			pAutoWhiteBalanceRate.set(getAutoWhiteBalanceRate());
+			pAutoWhiteBalanceAdjustTol.set(getAutoWhiteBalanceAdjustTol());
 		}
 		
 		if (getIpPersistent())
-			ipPersistent.set("yes");
+			pIpPersistent.set("yes");
 		else
-			ipPersistent.set("no");
-			
-		ipAdress.set(getIpAdress());
-		ipSubnet.set(getIpSubnet());
-		ipGateway.set(getIpGateway());
+			pIpPersistent.set("no");
 		
-		blockParameters = false;
+		pIpAdress.set(getIpAdress());
+		pIpSubnet.set(getIpSubnet());
+		pIpGateway.set(getIpGateway());
+		
+		blockListeners = false;
 		
 		setParametersRange();
 	}
 	
-	//--------------------------------------------------------------
 	void ParameterConnector::setAllParametersFromInterface() {
 		
-		setFrameRate(frameRate.get());
-        setROIWidth(ROIWidth.get());
-        setROIHeight(ROIHeight.get());
-        setROIX(ROIX.get());
-        setROIY(ROIY.get());
+		setFrameRate(pFrameRate.get());
 		
-        setExposure(exposure.get());
-        setAutoExposure(autoExposure.get());
-        setAutoExposureTarget(autoExposureTarget.get());
-        setAutoExposureRate(autoExposureRate.get());
-		setAutoExposureAdjustTol(autoExposureAdjustTol.get());
-		setAutoExposureMinimum(autoExposureMinimum.get());
-		setAutoExposureMaximum(autoExposureMaximum.get());
-        setAutoExposureOutliers(autoExposureOutliers.get());
+		setROIWidth(pROIWidth.get());
+		setROIHeight(pROIHeight.get());
+		setROIX(pROIX.get());
+		setROIY(pROIY.get());
 		
-		setGain(gain.get());
+		setExposure(pExposure.get());
+		setAutoExposure(pAutoExposure.get());
+		setAutoExposureTarget(pAutoExposureTarget.get());
+		setAutoExposureRate(pAutoExposureRate.get());
+		setAutoExposureAdjustTol(pAutoExposureAdjustTol.get());
+		setAutoExposureMinimum(pAutoExposureMinimum.get());
+		setAutoExposureMaximum(pAutoExposureMaximum.get());
+		setAutoExposureOutliers(pAutoExposureOutliers.get());
+		
+		setGain(pGain.get());
 		if (getPixelFormat() == OF_PIXELS_RGB) {
-			setGamma(gamma.get());
-			setHue(hue.get());
-			setSaturation(saturation.get());
+			setGamma(pGamma.get());
+			setHue(pHue.get());
+			setSaturation(pSaturation.get());
 			
-			setGain(gain.get());
-			setAutoGain(autoGain.get());
-			setAutoGainAdjustTol(autoGainAdjustTol.get());
-			setAutoGainMinimum(autoGainMinimum.get());
-			setAutoGainMaximum(autoGainMaximum.get());
-			setAutoGainOutliers(autoGainOutliers.get());
-			setAutoGainRate(autoGainRate.get());
-			setAutoGainTarget(autoGainTarget.get());
+			setGain(pGain.get());
+			setAutoGain(pAutoGain.get());
+			setAutoGainAdjustTol(pAutoGainAdjustTol.get());
+			setAutoGainMinimum(pAutoGainMinimum.get());
+			setAutoGainMaximum(pAutoGainMaximum.get());
+			setAutoGainOutliers(pAutoGainOutliers.get());
+			setAutoGainRate(pAutoGainRate.get());
+			setAutoGainTarget(pAutoGainTarget.get());
 			
-			setWhiteBalanceRed(whiteBalanceRed.get());
-			setWhiteBalanceBlue(whiteBalanceBlue.get());
-			setAutoWhiteBalance(autoWhiteBalance.get());
-			setAutoWhiteBalanceRate(autoWhiteBalanceRate.get());
-			setAutoWhiteBalanceAdjustTol(autoWhiteBalanceAdjustTol.get());
+			setWhiteBalanceRed(pWhiteBalanceRed.get());
+			setWhiteBalanceBlue(pWhiteBalanceBlue.get());
+			setAutoWhiteBalance(pAutoWhiteBalance.get());
+			setAutoWhiteBalanceRate(pAutoWhiteBalanceRate.get());
+			setAutoWhiteBalanceAdjustTol(pAutoWhiteBalanceAdjustTol.get());
 		}
 		
 		setParametersRange();
 	}
 	
-	//--------------------------------------------------------------
+		//------------------------------------------------------------------------
 	void ParameterConnector::setParametersRange() {
 		
-		frameRate.setMin(ceil(getFrameRateMin()));
-		frameRate.setMax(floor(getFrameRateMax()));
-		setParameterInItsOwnRange(frameRate);
+		pFrameRate.setMin(ceil(getFrameRateMin()));
+		pFrameRate.setMax(floor(getFrameRateMax()));
+		setParameterInItsOwnRange(pFrameRate);
 		
-		ROIWidth.setMin(getROIWidthMin());
-		ROIWidth.setMax(getROIWidthMax());
-		setParameterInItsOwnRange(ROIWidth);
-		ROIHeight.setMin(getROIHeightMin());
-		ROIHeight.setMax(getROIHeightMax());
-		setParameterInItsOwnRange(ROIHeight);
-		ROIX.setMin(getROIXMin());
-		ROIX.setMax(MAX(getROIXMax(),1)); // prevent parameter devide by 0
-		setParameterInItsOwnRange(ROIX);
-		ROIY.setMin(getROIYMin());
-		ROIY.setMax(MAX(getROIYMax(),1)); // prevent parameter devide by 0
-		setParameterInItsOwnRange(ROIY);
+		pROIWidth.setMin(getROIWidthMin());
+		pROIWidth.setMax(getROIWidthMax());
+		setParameterInItsOwnRange(pROIWidth);
+		pROIHeight.setMin(getROIHeightMin());
+		pROIHeight.setMax(getROIHeightMax());
+		setParameterInItsOwnRange(pROIHeight);
+		pROIX.setMin(getROIXMin());
+		pROIX.setMax(MAX(getROIXMax(),1)); // prevent parameter devide by 0
+		setParameterInItsOwnRange(pROIX);
+		pROIY.setMin(getROIYMin());
+		pROIY.setMax(MAX(getROIYMax(),1)); // prevent parameter devide by 0
+		setParameterInItsOwnRange(pROIY);
 		
-		exposure.setMin(getExposureMin());
-		exposure.setMax(getAutoExposureMaxForCurrentFrameRate());				//  <<
-		setParameterInItsOwnRange(exposure);
-		autoExposureTarget.setMin(getAutoExposureTargetMin());
-		autoExposureTarget.setMax(getAutoExposureTargetMax());
-		setParameterInItsOwnRange(autoExposureTarget);
-		autoExposureAdjustTol.setMin(getAutoExposureAdjustTolMin());
-		autoExposureAdjustTol.setMax(getAutoExposureAdjustTolMax());
-		setParameterInItsOwnRange(autoExposureAdjustTol);
-		autoExposureMinimum.setMin(getAutoExposureMinimumMin());
-		autoExposureMinimum.setMax(getAutoExposureMaxForCurrentFrameRate());
-		setParameterInItsOwnRange(autoExposureMinimum);
-		autoExposureMaximum.setMin(getAutoExposureMaximumMin());
-		autoExposureMaximum.setMax(getAutoExposureMaxForCurrentFrameRate());
-		setParameterInItsOwnRange(autoExposureMaximum);
-		autoExposureOutliers.setMin(getAutoExposureOutliersMin());
-		autoExposureOutliers.setMax(getAutoExposureOutliersMax());
-		setParameterInItsOwnRange(autoExposureOutliers);
-		autoExposureRate.setMin(getAutoExposureRateMin());
-		autoExposureRate.setMax(getAutoExposureRateMax());
-		setParameterInItsOwnRange(autoExposureRate);
+		pExposure.setMin(getExposureMin());
+		pExposure.setMax(getExposureMaxForCurrentFrameRate());
+		setParameterInItsOwnRange(pExposure);
+		pAutoExposureTarget.setMin(getAutoExposureTargetMin());
+		pAutoExposureTarget.setMax(getAutoExposureTargetMax());
+		setParameterInItsOwnRange(pAutoExposureTarget);
+		pAutoExposureAdjustTol.setMin(getAutoExposureAdjustTolMin());
+		pAutoExposureAdjustTol.setMax(getAutoExposureAdjustTolMax());
+		setParameterInItsOwnRange(pAutoExposureAdjustTol);
+		pAutoExposureMinimum.setMin(getAutoExposureMinimumMin());
+		pAutoExposureMinimum.setMax(getExposureMaxForCurrentFrameRate());
+		setParameterInItsOwnRange(pAutoExposureMinimum);
+		pAutoExposureMaximum.setMin(getAutoExposureMaximumMin());
+		pAutoExposureMaximum.setMax(getExposureMaxForCurrentFrameRate());
+		setParameterInItsOwnRange(pAutoExposureMaximum);
+		pAutoExposureOutliers.setMin(getAutoExposureOutliersMin());
+		pAutoExposureOutliers.setMax(getAutoExposureOutliersMax());
+		setParameterInItsOwnRange(pAutoExposureOutliers);
+		pAutoExposureRate.setMin(getAutoExposureRateMin());
+		pAutoExposureRate.setMax(getAutoExposureRateMax());
+		setParameterInItsOwnRange(pAutoExposureRate);
 		
-		gain.setMin(getGainMin());
-		gain.setMax(getGainMax());
-		setParameterInItsOwnRange(gain);
+		pGain.setMin(getGainMin());
+		pGain.setMax(getGainMax());
+		setParameterInItsOwnRange(pGain);
+		
 		if (getPixelFormat() == OF_PIXELS_RGB) {
-			gamma.setMin(getGammaMin());
-			gamma.setMax(getGammaMax());
-			setParameterInItsOwnRange(gamma);
-			hue.setMin(getHueMin());
-			hue.setMax(getHueMax());
-			setParameterInItsOwnRange(hue);
-			saturation.setMin(getSaturationMin());
-			saturation.setMax(getSaturationMax());
-			setParameterInItsOwnRange(saturation);
+			pGamma.setMin(getGammaMin());
+			pGamma.setMax(getGammaMax());
+			setParameterInItsOwnRange(pGamma);
+			pHue.setMin(getHueMin());
+			pHue.setMax(getHueMax());
+			setParameterInItsOwnRange(pHue);
+			pSaturation.setMin(getSaturationMin());
+			pSaturation.setMax(getSaturationMax());
+			setParameterInItsOwnRange(pSaturation);
 			
-			autoGainTarget.setMin(getAutoGainTargetMin());
-			autoGainTarget.setMax(getAutoGainTargetMax());
-			setParameterInItsOwnRange(autoGainTarget);
-			autoGainAdjustTol.setMin(getAutoGainAdjustTolMin());
-			autoGainAdjustTol.setMax(getAutoGainAdjustTolMax());
-			setParameterInItsOwnRange(autoGainAdjustTol);
-			autoGainMinimum.setMin(getAutoGainMinimumMin());
-			autoGainMinimum.setMax(getAutoGainMinimumMax());
-			setParameterInItsOwnRange(autoGainMinimum);
-			autoGainMaximum.setMin(getAutoGainMaximumMin());
-			autoGainMaximum.setMax(getAutoGainMaximumMax());
-			setParameterInItsOwnRange(autoGainMaximum);
-			autoGainOutliers.setMin(getAutoGainOutliersMin());
-			autoGainOutliers.setMax(getAutoGainOutliersMax());
-			setParameterInItsOwnRange(autoGainOutliers);
-			autoGainRate.setMin(getAutoGainRateMin());
-			autoGainRate.setMax(getAutoGainRateMax());
-			setParameterInItsOwnRange(autoGainRate);
+			pAutoGainTarget.setMin(getAutoGainTargetMin());
+			pAutoGainTarget.setMax(getAutoGainTargetMax());
+			setParameterInItsOwnRange(pAutoGainTarget);
+			pAutoGainAdjustTol.setMin(getAutoGainAdjustTolMin());
+			pAutoGainAdjustTol.setMax(getAutoGainAdjustTolMax());
+			setParameterInItsOwnRange(pAutoGainAdjustTol);
+			pAutoGainMinimum.setMin(getAutoGainMinimumMin());
+			pAutoGainMinimum.setMax(getAutoGainMinimumMax());
+			setParameterInItsOwnRange(pAutoGainMinimum);
+			pAutoGainMaximum.setMin(getAutoGainMaximumMin());
+			pAutoGainMaximum.setMax(getAutoGainMaximumMax());
+			setParameterInItsOwnRange(pAutoGainMaximum);
+			pAutoGainOutliers.setMin(getAutoGainOutliersMin());
+			pAutoGainOutliers.setMax(getAutoGainOutliersMax());
+			setParameterInItsOwnRange(pAutoGainOutliers);
+			pAutoGainRate.setMin(getAutoGainRateMin());
+			pAutoGainRate.setMax(getAutoGainRateMax());
+			setParameterInItsOwnRange(pAutoGainRate);
 			
-			whiteBalanceRed.setMin(getWhiteBalanceRedMin());
-			whiteBalanceRed.setMax(getWhiteBalanceRedMax());
-			setParameterInItsOwnRange(whiteBalanceRed);
-			whiteBalanceBlue.setMin(getWhiteBalanceBlueMin());
-			whiteBalanceBlue.setMax(getWhiteBalanceBlueMax());
-			setParameterInItsOwnRange(whiteBalanceBlue);
-			autoWhiteBalanceRate.setMin(getAutoWhiteBalanceRateMin());
-			autoWhiteBalanceRate.setMax(getAutoWhiteBalanceRateMax());
-			setParameterInItsOwnRange(autoWhiteBalanceRate);
-			autoWhiteBalanceAdjustTol.setMin(getAutoWhiteBalanceAdjustTolMin());
-			autoWhiteBalanceAdjustTol.setMax(getAutoWhiteBalanceAdjustTolMax());
-			setParameterInItsOwnRange(autoWhiteBalanceAdjustTol);
+			pWhiteBalanceRed.setMin(getWhiteBalanceRedMin());
+			pWhiteBalanceRed.setMax(getWhiteBalanceRedMax());
+			setParameterInItsOwnRange(pWhiteBalanceRed);
+			pWhiteBalanceBlue.setMin(getWhiteBalanceBlueMin());
+			pWhiteBalanceBlue.setMax(getWhiteBalanceBlueMax());
+			setParameterInItsOwnRange(pWhiteBalanceBlue);
+			pAutoWhiteBalanceRate.setMin(getAutoWhiteBalanceRateMin());
+			pAutoWhiteBalanceRate.setMax(getAutoWhiteBalanceRateMax());
+			setParameterInItsOwnRange(pAutoWhiteBalanceRate);
+			pAutoWhiteBalanceAdjustTol.setMin(getAutoWhiteBalanceAdjustTolMin());
+			pAutoWhiteBalanceAdjustTol.setMax(getAutoWhiteBalanceAdjustTolMax());
+			setParameterInItsOwnRange(pAutoWhiteBalanceAdjustTol);
 		}
 	}
 	
-	//--------------------------------------------------------------
 	void ParameterConnector::setParameterInItsOwnRange(ofParameter<int> &_parameter) {
 		if (_parameter.get() < _parameter.getMin()) { _parameter.set(_parameter.getMin()); }
 		else if (_parameter.get() > _parameter.getMax()) {_parameter.set(_parameter.getMax()); }
-		else { _parameter.set(_parameter.get()); } // dirty way to update
+		else { _parameter.set(_parameter.get()); } // dirty way to update, should go
 	}
 	
-	//--------------------------------------------------------------
 	void ParameterConnector::setParameterInItsOwnRange(ofParameter<float> &_parameter) {
 		if (_parameter.get() < _parameter.getMin()) _parameter.set(_parameter.getMin());
 		if (_parameter.get() > _parameter.getMax()) _parameter.set(_parameter.getMax());
 	}
 	
-	//--------------------------------------------------------------
-	void ParameterConnector::setFrameRate(float rate) {
+	
+		//-- FRAMES ----------------------------------------------------------
+	
+	void ParameterConnector::frameRateListener(float &_value) {
 		if (bInitialized) {
-			Camera::setFrameRate(rate);
-			setAutoExposureRangeFromFrameRate();
-			if (getExposure() > getAutoExposureMaxForCurrentFrameRate())
-				setExposure(getAutoExposureMaxForCurrentFrameRate());
+			Camera::setFrameRate(_value);
+			if (pExposure != getExposure()) pExposure.set(getExposure()); // only if autoexposure = off
 		}
 	}
 	
+		//-- REGION OF INTEREST ----------------------------------------------
+	void ParameterConnector::ROIWidthListener(int &_value) {
+		if (bInitialized) {
+			Camera::setROIWidth(_value);
+			pROIX.setMax(max(getROIXMax(), 1)); // prevent divide by 0
+			if (pROIX != getROIX()) pROIX.set(getROIX());
+		}
+	}
+	
+	void ParameterConnector::ROIHeightListener(int &_value) {
+		if (bInitialized) {
+			Camera::setROIHeight(_value);
+			pROIY.setMax(max(getROIYMax(), 1)); // prevent divide by 0
+			if (pROIY != getROIY()) pROIY.set(getROIY());
+		}
+	}
+	
+	void ParameterConnector::ROIXListener(int &_value) {
+		if (bInitialized) {
+			Camera::setROIX(_value);
+			pROIWidth.setMax(max(getROIWidthMax(), 1)); // prevent divide by 0
+			if (pROIWidth != getROIWidth()) pROIWidth.set(getROIWidth());
+		}
+	}
+	
+	void ParameterConnector::ROIYListener(int &_value) {
+		if (bInitialized) {
+			Camera::setROIY(_value);
+			pROIHeight.setMax(max(getROIHeightMax(), 1)); // prevent divide by 0
+			if (pROIHeight != getROIHeight()) pROIHeight.set(getROIHeight());
+		}
+	}
+	
+	
+		//-- RANGE -----------------------------------------------------------
+	
+	void ParameterConnector::inRange(ofParameter<int>& _parameter, int& _value) {
+		if ( _value < _parameter.getMin() || _value > _parameter.getMax()) {
+			int clampedValue = ofClamp(_value, _parameter.getMin(), _parameter.getMax());
+			ofLogWarning("ParameterConnector") << _value << " for parameter " << _parameter.getName() << "out of range, clamping to " << clampedValue;
+			_value = clampedValue;
+		}
+	}
+	
+	void ParameterConnector::inRange(ofParameter<float>& _parameter, float& _value) {
+		if ( _value < _parameter.getMin() || _value > _parameter.getMax()) {
+			int clampedValue = ofClamp(_value, _parameter.getMin(), _parameter.getMax());
+			ofLogWarning("ParameterConnector") << _value << " for parameter " << _parameter.getName() << "out of range, clamping to " << clampedValue;
+			_value = clampedValue;
+		}
+	}
 }
+

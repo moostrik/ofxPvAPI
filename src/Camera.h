@@ -16,7 +16,7 @@
 
 namespace ofxPvAPI {
 	
-	class Camera :public ofThread {
+	class Camera : public ofThread {
 		
 		public :
 		Camera();
@@ -41,7 +41,7 @@ namespace ofxPvAPI {
 		unsigned long	deviceID;
 		unsigned long	requestedDeviceID;
 		
-			//-- OF -----------------------------------------------------
+			//-- OF --------------------------------------------------------------
 		public:
 		bool			setup();
 		void			update();
@@ -69,9 +69,8 @@ namespace ofxPvAPI {
 		bool			abortAcquisition();
 		
 		
-			//-- PV FRAMES ---------------------------------------------------
+			//-- PV FRAMES -------------------------------------------------------
 		public:
-		void			setFixedRate(bool _value);
 		void			onFrameDone(tPvFrame* _frame); // for internal use only, cannot be protected due to callback
 		
 		protected:
@@ -86,14 +85,22 @@ namespace ofxPvAPI {
 		bool			triggerFrame();
 		bool			fixedRate;
 		
-		//-- FRAMES ---------------------------------------------------
+		//-- FRAMES --------------------------------------------------------------
 		public:
-		bool 			isFrameNew(){ return bIsFrameNew; }
-		int 			getFps() { return fps; }
-		int 			getFrameDrop() { return frameDrop; }
-		int 			getLatency() { return frameLatency; }
-		int 			getMaxLatency() { return frameMaxLatency; }
-		int 			getMinLatency() { return frameMinLatency; }
+		bool 			isFrameNew()			{ return bIsFrameNew; }
+		
+		int 			getFps() 				{ return fps; }
+		int 			getFrameDrop() 			{ return frameDrop; }
+		int 			getLatency() 			{ return frameLatency; }
+		int 			getMaxLatency() 		{ return frameMaxLatency; }
+		int 			getMinLatency() 		{ return frameMinLatency; }
+		float			getFixedRate()			{ return fixedRate; }
+		float			getFrameRate()			{ return getFloatAttribute("FrameRate"); }
+		float			getFrameRateMax()		{ return getFloatAttributeMax("FrameRate"); }
+		float			getFrameRateMin()		{ return getFloatAttributeMin("FrameRate"); }
+		
+		void			setFixedRate(bool _value);
+		void			setFrameRate(float rate);
 		
 		protected:
 		bool			bIsFrameNew;
@@ -106,7 +113,7 @@ namespace ofxPvAPI {
 		int 			frameMinLatency;
 		deque<int> 		framesLatencies;
 		
-		//-- PIXELS ---------------------------------------------------
+		//-- PIXELS --------------------------------------------------------------
 		public:
 		ofPixels&		getPixels()	{ return pixels; }
 		float			getWidth()	{ return (pixels.isAllocated())? pixels.getWidth() : 0; } 	// pixels, not ROI
@@ -144,19 +151,12 @@ namespace ofxPvAPI {
 		bool	setEnumAttribute(string _name, string _value);
 		string	getEnumAttribute(string _name);
 		
-			//-- FRAMERATE -------------------------------------------------------
-		public:
-		void	setFrameRate(float rate){ setFloatAttribute("FrameRate", rate); }		// obsolete
-		float	getFrameRate()			{ return getFloatAttribute("FrameRate"); }		// obsolete
-		float	getFrameRateMax()		{ return getFloatAttributeMax("FrameRate"); }	// obsolete
-		float	getFrameRateMin()		{ return getFloatAttributeMin("FrameRate"); }	// obsolete
-		
 			//-- REGION OF INTEREST ----------------------------------------------
 		public:
-		void	setROIWidth(int w);
-		void	setROIHeight(int h);
-		void	setROIX(int x);
-		void	setROIY(int y);
+		void	setROIWidth(int _value);
+		void	setROIHeight(int _value);
+		void	setROIX(int _value);
+		void	setROIY(int _value);
 		
 		int 	getROIWidth()		{ return getIntAttribute("Width"); }
 		int 	getROIHeight()		{ return getIntAttribute("Height"); }
@@ -183,7 +183,7 @@ namespace ofxPvAPI {
 		bool	getAutoExposure()					{ return (getEnumAttribute("ExposureMode") == "Auto")? true: false; }
 		bool	getAutoExposureOnce()				{ return (getEnumAttribute("ExposureMode") == "AutoOnce")? true: false; }
 		
-		void	setAutoExposureRangeFromFrameRate()	{ setAutoExposureMaximum(getAutoExposureMaxForCurrentFrameRate()); setAutoExposureMinimum(getAutoExposureMinimumMin());}
+		void	setAutoExposureRangeFromFrameRate()	{ setAutoExposureMaximum(getExposureMaxForCurrentFrameRate()); setAutoExposureMinimum(getAutoExposureMinimumMin());}
 		
 		void	setExposure(int _value)				{ setIntAttribute("ExposureValue", _value); }
 		
@@ -234,7 +234,7 @@ namespace ofxPvAPI {
 		int		getAutoExposureTargetMin()		{ return getIntAttributeMin("ExposureAutoTarget"); }
 		int		getAutoExposureTargetMax()		{ return getIntAttributeMax("ExposureAutoTarget"); }
 		
-		int 	getAutoExposureMaxForCurrentFrameRate() { return 1000000 / getFrameRate(); }
+		int 	getExposureMaxForCurrentFrameRate() { return 1000000 / getFrameRate(); }
 		
 			//-- GAIN ------------------------------------------------------------
 		void 	setAutoGain(bool state)			{ setEnumAttribute("GainMode", (state == true)? "Auto": "Manual"); }
