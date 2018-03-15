@@ -26,6 +26,18 @@ namespace ofxPvAPI {
 		parameters.add(resetParametersFromCam.set("load", false));
 		resetParametersFromCam.addListener(this, &ParameterConnector::resetParametersFromCamListner);
 		
+		frameRateParameters.setName("framerate");
+		frameRateParameters.add(pFps.set("fps", 0, 0, 60));
+		frameRateParameters.add(pFrameDrop.set("frame drop", 0, 0, 60));
+		frameRateParameters.add(pFrameLatency.set("avg latency (ms)", 0, 0, 60));
+		frameRateParameters.add(pFrameMaxLatency.set("max latency (ms)", 0, 0, 60));
+		frameRateParameters.add(pFixedRate.set("fixed rate", false));
+		pFixedRate.addListener(this, &ParameterConnector::fixedRateListner);
+		frameRateParameters.add(frameRate.set("framerate", 30, 1, 60));
+		frameRate.addListener(this, &ParameterConnector::frameRateListner);
+		parameters.add(frameRateParameters);
+		
+		
 		roiParameters.setName("region of interest");
 		roiParameters.add(ROIWidth.set("width", 640, 1, 640));
 		ROIWidth.addListener(this, &ParameterConnector::ROIWidthListner);
@@ -36,9 +48,6 @@ namespace ofxPvAPI {
 		roiParameters.add(ROIY.set("y", 0, 0, 1));
 		ROIY.addListener(this, &ParameterConnector::ROIYListner);
 		parameters.add(roiParameters);
-		
-		parameters.add(frameRate.set("framerate", 25, 1, 60));
-		frameRate.addListener(this, &ParameterConnector::frameRateListner);
 		
 		exposureParameters.setName("exposure");
 		exposureParameters.add(exposure.set("exposure", 30, 0, 40000));
@@ -152,6 +161,11 @@ namespace ofxPvAPI {
 		Connector::update();
         
         if (bInitialized) {
+			pFps = getFps();
+			pFrameDrop = getFrameDrop();
+			pFrameLatency = getLatency();
+			pFrameMaxLatency = getMaxLatency();
+			
 			if (!bLoadFromInterface) {
 				updateParametersFromCam();
 			} else {

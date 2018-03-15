@@ -48,6 +48,9 @@ namespace ofxPvAPI {
 		void			close();
 		void 			threadedFunction();
 		
+		bool 			T_bResizeFrames; // thread message
+		bool			T_bChangeTriggerMode;
+		
 			//-- ACQUISITION -----------------------------------------------------
 		public:
 		bool			isInitialized() { return bInitialized; }
@@ -65,31 +68,41 @@ namespace ofxPvAPI {
 		bool			stopAcquisition();
 		bool			abortAcquisition();
 		
+		
 			//-- PV FRAMES ---------------------------------------------------
 		public:
+		void			setFixedRate(bool _value);
 		void			onFrameDone(tPvFrame* _frame); // for internal use only, cannot be protected due to callback
 		
 		protected:
+		static int		numPvFrames;
 		tPvFrame*		pvFrames;
-		bool*			bPvFrameNew;
+		deque<tPvFrame*>	updatedFrames;
 		
 		bool			allocateFrames();
 		bool			deallocateFrames();
 		bool			queueFrames();
 		bool			clearQueue();
 		bool			triggerFrame();
-		
-		bool 			T_bResizeFrames; // thread message
+		bool			fixedRate;
 		
 		//-- FRAMES ---------------------------------------------------
 		public:
 		bool 			isFrameNew(){ return bIsFrameNew; }
 		int 			getFps() { return fps; }
+		int 			getFrameDrop() { return frameDrop; }
+		int 			getLatency() { return frameLatency; }
+		int 			getMaxLatency() { return frameMaxLatency; }
 		
 		protected:
 		bool			bIsFrameNew;
-		vector<float> 	fpsTimes;
+		deque<float> 	fpsTimes;
 		int 			fps;
+		int 			frameDrop;
+		deque<int> 		framesDropped;
+		int 			frameLatency;
+		int 			frameMaxLatency;
+		deque<int> 		framesLatencies;
 		
 		//-- PIXELS ---------------------------------------------------
 		public:

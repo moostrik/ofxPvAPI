@@ -15,17 +15,21 @@ namespace ofxPvAPI {
 		void	update();
 		
 		void	setFrameRate(float _value);
-        bool    getShowMe() { return showMe.get(); }
 		
 		ofParameterGroup	parameters;
 		
-		ofParameter<bool>	showMe;
 		ofParameter<bool>	printAttributes;
 		ofParameter<bool>	printIpSettings;
 		ofParameter<bool>	reset;
 		ofParameter<bool>	resetParametersFromCam;
 		
-		ofParameter<float>	frameRate;
+		ofParameter<int>	pFps;
+		ofParameter<int>	pFrameDrop;
+		ofParameter<int>	pFrameLatency;
+		ofParameter<int>	pFrameMaxLatency;
+		ofParameter<bool>	pFixedRate;
+		
+		ofParameter<int>	frameRate;
 		
 		ofParameter<int>	ROIWidth;
 		ofParameter<int>	ROIHeight;
@@ -76,6 +80,7 @@ namespace ofxPvAPI {
 		ofParameter<float>	autoConnectInterval;
 		
 	private:
+		ofParameterGroup	frameRateParameters;
 		ofParameterGroup	roiParameters;
 		ofParameterGroup	exposureParameters;
 		ofParameterGroup	autoExposureParameters;
@@ -93,7 +98,8 @@ namespace ofxPvAPI {
 		void	resetListner(bool & _value)				{ if(!blockParameters && _value) { resetAttributes(); setAllParametersFromCam(); } _value = false; }
 		void	resetParametersFromCamListner(bool & _value) { if(!blockParameters && _value) setAllParametersFromCam(); _value = false; }
 		
-		void	frameRateListner(float& _value)			{ if(!blockParameters) setFrameRate(float(int(_value))); }
+		void	frameRateListner(int& _value)			{ if(!blockParameters) setFrameRate(_value); }
+		void	fixedRateListner(bool& _value)			{ setFixedRate(_value); }
 		
 		void	ROIWidthListner(int& _value)			{ if(!blockParameters) setROIWidth(_value); if (bInitialized) {ROIX.setMax(MAX(getROIXMax(),1)); setParameterInItsOwnRange(ROIX);} }
 		void	ROIHeightListner(int& _value)			{ if(!blockParameters) setROIHeight(_value); if (bInitialized) {ROIY.setMax(MAX(getROIYMax(),1)); setParameterInItsOwnRange(ROIY);} }
