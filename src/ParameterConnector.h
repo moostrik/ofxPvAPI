@@ -28,7 +28,6 @@ namespace ofxPvAPI {
 		void	setFixedRate(bool _value)	{ pFixedRate.set(_value); }
 		void	setFrameRate(float _value)	{ inRange(pFrameRate, _value); pFrameRate.set(_value); }
 		
-		
 	protected:
 		ofParameterGroup	frameRateParameters;
 		ofParameter<int>	pFps;
@@ -42,6 +41,21 @@ namespace ofxPvAPI {
 		void	frameRateListener(float& _value);
 		void	fixedRateListener(bool& _value);
 		
+		
+			//-- PIXELS ----------------------------------------------------------
+	public:
+		void	setFlipH(bool _value)	{ pFlipH.set(_value); }
+		void	setFlipV(bool _value)	{ pFlipV.set(_value);  }
+		void	setRotate90(int _value)	{ inRange(pRotate90, _value); pRotate90.set(_value); }
+	protected:
+		ofParameterGroup	flipParameters;
+		ofParameter<bool>	pFlipH;
+		ofParameter<bool>	pFlipV;
+		ofParameter<int>	pRotate90;
+		
+		void	flipHListener(bool& _value)		{ if(!blockListeners) Camera::setFlipH(_value); }
+		void	flipVListener(bool& _value)		{ if(!blockListeners) Camera::setFlipV(_value); }
+		void	rotate90Listener(int& _value)	{ if(!blockListeners) Camera::setRotate90(_value); }
 		
 			//-- REGION OF INTEREST ----------------------------------------------
 	public:

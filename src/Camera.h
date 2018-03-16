@@ -15,6 +15,12 @@
 
 namespace ofxPvAPI {
 	
+	struct CameraFrame {
+		ofPixels* pixels;
+		float timeStamp;
+	};
+	
+	
 	class Camera : public ofThread {
 		
 		public :
@@ -74,9 +80,11 @@ namespace ofxPvAPI {
 //		void			onFrameDone(tPvFrame* _frame); // for internal use only, cannot be protected due to callback
 		
 		protected:
-		static int		numPvFrames;
-		tPvFrame*		pvFrames;
-		deque<tPvFrame*>	capuredFrameQueue;
+//		static int		numPvFrames;
+		tPvFrame*		pvSwapFrame;
+		bool			pvSwapState;
+//		deque<tPvFrame*>	capuredFrameQueue;
+		deque<ofPixels*>	capuredFrames;
 		
 		bool			allocateFrames();
 		bool			deallocateFrames();
@@ -122,11 +130,21 @@ namespace ofxPvAPI {
 		bool			setPixelFormat(ofPixelFormat _pixelFormat);
 		ofPixelFormat	getPixelFormat() { return pixelFormat; }
 		
+		void			setFlipH(bool _value)	{ flipH = _value; }
+		void			getFlipH()				{ return flipH; }
+		void			setFlipV(bool _value)	{ flipV = _value; }
+		void			getFlipV()				{ return flipV; }
+		void			setRotate90(int _value)	{ rotate90 = _value % 4; }
+		void			getRotate90()			{ return rotate90; }
+		
 		protected:
 		ofPixels		pixels;
 		ofPixelFormat	pixelFormat;
 		ofPixelFormat	getOfPixelFormat(string _format);
 		string			getPvPixelFormat(ofPixelFormat _format);
+		bool 			flipH;
+		bool 			flipV;
+		int 			rotate90;
 		
 			//-- ATTRIBUTES GENERAL-----------------------------------------------
 		public:

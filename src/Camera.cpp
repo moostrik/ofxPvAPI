@@ -7,11 +7,6 @@ namespace ofxPvAPI {
 	int Camera::numCamerasInUse = 0;
 	int Camera::numPvFrames = 5;
 	
-//	void FrameDoneCB(tPvFrame* pFrame){
-//		Camera* cam = (Camera*)pFrame->Context[0];
-//		if(cam) {cam->onFrameDone(pFrame); }
-//	}
-	
 	//--------------------------------------------------------------------
 	
 	Camera::Camera() :
@@ -218,44 +213,54 @@ namespace ofxPvAPI {
 				}
 				unlock();
 				
+				// make two 
 				for (int i=0; i<numPvFrames; i++) {
 					tPvFrame& frame = pvFrames[i];
-					tPvErr error = PvCaptureWaitForFrameDone(cameraHandle, &frame, 0);
+					tPvErr error = PvCaptureWaitForFrameDone(cameraHandle, &frame, 1);
 					if (frame.Status == ePvErrTimeout) {
-						
+						;
 					}
 					else if (frame.Status == ePvErrSuccess) {
-						
+
 						lock();
+						ofPixels* newPixels = new ofPixels;
 						if (!T_bResizeFrames) {
-							PvCaptureQueueFrame(cameraHandle, &frame, NULL);
-							float& time = *(float*)frame.Context[2];
-							time = ofGetElapsedTimef();
-							
-							ofPixels dinges;
-							dinges.setFromExternalPixels((unsigned char *)frame.ImageBuffer, frame.Width, frame.Height, pixelFormat);
-							//						dinges.mirror(0,1);
-							//						dinges.rotate90(1);
-							
-							capuredFrameQueue.push_front(&frame);
+//							float& time = *(float*)frame.Context[2];
+//							time = ofGetElapsedTimef();
+//							newPixels->setFromPixels((unsigned char *)frame.ImageBuffer, frame.Width, frame.Height, pixelFormat);
 						}
 						unlock();
-					}
-					else if (frame.Status != ePvErrCancelled) {
-						logError(frame.Status);
+//
 						PvCaptureQueueFrame(cameraHandle, &frame, NULL);
-						triggerFrame();
-					}
-					else {
-						logError(frame.Status);
-						PvCaptureQueueFrame(cameraHandle, &frame, NULL);
-						triggerFrame();
+//
+						if (newPixels->isAllocated()) {
+//							newPixels->mirror(flipV, flipH);
+//							newPixels->rotate90(rotate90);
+//
+//							capuredFrames.push_front(newPixels);
+//
+//							size_t maxSize = (fixedRate)? 2 : 1;
+//							if (capuredFrames.size() > maxSize) {
+//								delete capuredFrames[capuredFrames.size()-1];
+//								capuredFrames.pop_back();
+////								cout << "deleted" << endl;
+//							}
+						}
+						else {
+							delete newPixels;
+						}
+//					}
+//					else if (frame.Status != ePvErrCancelled) {
+//						logError(frame.Status);
+//						PvCaptureQueueFrame(cameraHandle, &frame, NULL);
+//						triggerFrame();
+//					}
+//					else {
+//						logError(frame.Status);
+//						PvCaptureQueueFrame(cameraHandle, &frame, NULL);
+//						triggerFrame();
 					}
 				}
-				
-				
-				
-				
 			}
 			sleep(1);
 		}
@@ -267,10 +272,17 @@ namespace ofxPvAPI {
 		
 		if (bInitialized) {
 			if (!fixedRate) { triggerFrame(); }
-			if ( capuredFrameQueue.size() > 0) {
+			
+			lock();
+			if ( capuredFrames.size() > 0) {
 				size_t frameoffset = (fixedRate)? 1 : 0;
-				frameoffset = min(capuredFrameQueue.size(), frameoffset);
-				tPvFrame& frame = *capuredFrameQueue[frameoffset];
+				frameoffset = min(capuredFrames.size(), frameoffset);
+//				pixels.setFromPixels(&capuredFrames[frameoffset]);
+				if ( capuredFrames.size() > 0) {
+					frameoffset = min(capuredFrames.size(), frameoffset);
+					pixels = *capuredFrames[frameoffset];
+				}
+//				tPvFrame& frame = *capuredFrameQueue[frameoffset];
 				
 				//				cout << i << " " << frame.Width << " " << frame.Height << " " << frame.ImageBufferSize << endl;
 				//				cout << i << " " << frame.Width << " " << getIntAttribute("Width") << endl;
@@ -278,35 +290,37 @@ namespace ofxPvAPI {
 				float time = ofGetElapsedTimef();
 				float frameTime = time; // init with current time 
 				
-				if (frame.Status == ePvErrSuccess) { // the state can be changed since added
-					pixels.setFromExternalPixels((unsigned char *)frame.ImageBuffer, frame.Width, frame.Height, pixelFormat);
-					frameTime = *(float*)frame.Context[2];
+//				if (frame.Status == ePvErrSuccess) { // the state can be changed since added
+//					pixels.setFromExternalPixels((unsigned char *)frame.ImageBuffer, frame.Width, frame.Height, pixelFormat);
+//					frameTime = *(float*)frame.Context[2];
 					bIsFrameNew = true;
-				}
-				else {
-					ofLogWarning("Camera") << " croocked frame";
-				}
-				
+//				}
+//				else {
+//					ofLogWarning("Camera") << " croocked frame";
+//				}
+//
 				fpsTimes.push_back(time);
-				framesLatencies.push_back((time - frameTime) * 1000);
-				
-				capuredFrameQueue.pop_back();
-				
-				int df = 0;
-				while (capuredFrameQueue.size() > frameoffset) {
-					capuredFrameQueue.pop_back();
-					df++;
-				}
-				framesDropped.push_back(df);
+//				framesLatencies.push_back((time - frameTime) * 1000);
+//
+//				capuredFrameQueue.pop_back();
+//
+//				int df = 0;
+//				while (capuredFrameQueue.size() > frameoffset) {
+//					capuredFrameQueue.pop_back();
+//					df++;
+//				}
+//				framesDropped.push_back(df);
 			}
+			
+			unlock();
 		}
 		
 		float timeWindow = ofGetElapsedTimef() - (1 - (1.0 / max(fps, 1) / 3.0));
 		
 		while (fpsTimes.size() > 0 && fpsTimes.at(0) < timeWindow) {
 			fpsTimes.pop_front();
-			framesDropped.pop_front();
-			framesLatencies.pop_front();
+//			framesDropped.pop_front();
+//			framesLatencies.pop_front();
 		}
 		fps = fpsTimes.size();
 		

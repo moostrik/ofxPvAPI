@@ -49,6 +49,15 @@ namespace ofxPvAPI {
 		pROIY.addListener(this, &ParameterConnector::ROIYListener);
 		parameters.add(roiParameters);
 		
+		flipParameters.setName("flip");
+		flipParameters.add(pFlipH.set("flip H", false));
+		pFlipH.addListener(this, &ParameterConnector::flipHListener);
+		flipParameters.add(pFlipV.set("flip V", false));
+		pFlipV.addListener(this, &ParameterConnector::flipVListener);
+		flipParameters.add(pRotate90.set("rotate 90", 0, 0, 3));
+		pRotate90.addListener(this, &ParameterConnector::rotate90Listener);
+		parameters.add(flipParameters);
+		
 		exposureParameters.setName("exposure");
 		exposureParameters.add(pExposure.set("exposure", 30, 0, 40000));
 		pExposure.addListener(this, &ParameterConnector::exposureListener);

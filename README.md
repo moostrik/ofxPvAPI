@@ -21,7 +21,7 @@ previous versions tested on Windows 7
 - [x] update parameterConnector to intercept the attributes like it already does with the framerate, minimize calls to camera
 - [ ] investigate callback for attributes
 
-- [ ] add flip and rotate without texture
+- [x] add flip and rotate without texture (threaded)
 
 - [ ] better naming of classes
 - [ ] test with color camera
