@@ -25,9 +25,7 @@ namespace ofxPvAPI {
 	requestedDeviceID(0),
 	persistentIpAdress(""),
 	persistentIpGateway(""),
-	persistentIpSubnetMask("0.0.0.0"),
-	T_bResizeFrames(false),
-	T_bChangeTriggerMode(false) {
+	persistentIpSubnetMask("0.0.0.0"){
 		
 		if (!bPvApiInitiated) PvApiInitialize() ;
 		
@@ -41,6 +39,7 @@ namespace ofxPvAPI {
 			pvFrames[i].Context[2] = new float(0);
 		}
 		
+		lastIdentifier = numPvFrames - 1;
 	}
 	
 	Camera::~Camera(){
@@ -206,38 +205,12 @@ namespace ofxPvAPI {
 			
 			if (bInitialized) {
 				
-				if (T_bResizeFrames) { // why is this in a thread?
-					T_bResizeFrames = false;
-					clearQueue();
-					stopAcquisition();		// without these pvFrame width and height don't register correctly
-					stopCapture();			// without these pvFrame width and height don't register correctly
-					allocateFrames();
-					startCapture();			// without these pvFrame width and height don't register correctly
-					startAcquisition();		// without these pvFrame width and height don't register correctly
-					
-					queueFrames();
-					triggerFrame();
-				}
 				
-				if (T_bChangeTriggerMode) { // why is this in a thread?
-					T_bChangeTriggerMode = false;
-					clearQueue();
-					stopAcquisition();
-					
-					if (fixedRate) {
-						if (!setEnumAttribute("FrameStartTriggerMode","FixedRate")) return false;
-					}
-					else {
-						if (!setEnumAttribute("FrameStartTriggerMode","Software")) return false;
-					}
-					
-					startAcquisition();
-					
-					queueFrames();
-					triggerFrame();
-				}
+				
+				
+				
 			}
-			sleep(4);
+			sleep(1);
 		}
 	}
 	
@@ -261,12 +234,12 @@ namespace ofxPvAPI {
 				float frameTime = time; // init with current time 
 				
 				if (frame.Status == ePvErrSuccess) { // the state can be changed since added
-					pixels.setFromPixels((unsigned char *)frame.ImageBuffer, frame.Width, frame.Height, pixelFormat);
+					pixels.setFromExternalPixels((unsigned char *)frame.ImageBuffer, frame.Width, frame.Height, pixelFormat);
 					frameTime = *(float*)frame.Context[2];
 					bIsFrameNew = true;
 				}
 				else {
-					cout << "no succes" << endl;
+					ofLogWarning("Camera") << " croocked frame";
 				}
 				
 				fpsTimes.push_back(time);
@@ -504,6 +477,7 @@ namespace ofxPvAPI {
 			}
 		}
 		ofLog(OF_LOG_VERBOSE, "Camera: " + ofToString(deviceID) + " frames queued");
+		lastIdentifier = numPvFrames - 1;
 		return true;
 	}
 	
@@ -531,7 +505,15 @@ namespace ofxPvAPI {
 	
 	
 	void Camera::onFrameDone(tPvFrame* _frame) {
-		lock();
+//		lock();
+		
+		int identifier = *(int*)_frame->Context[1];
+		int expectedIdentifier = (lastIdentifier + 1) % numPvFrames;
+		if (expectedIdentifier != identifier) {
+			ofLogWarning("Camera") << "frame " << expectedIdentifier << " not in queue " << identifier;
+		}
+		lastIdentifier = identifier;
+		
 		if (_frame->Status == ePvErrSuccess) {
 			PvCaptureQueueFrame(cameraHandle, _frame, FrameDoneCB);
 			float& time = *(float*)_frame->Context[2];
@@ -542,17 +524,27 @@ namespace ofxPvAPI {
 			logError(_frame->Status);
 			PvCaptureQueueFrame(cameraHandle, _frame, FrameDoneCB);
 		}
-		unlock();
+		else {
+			logError(_frame->Status);
+		}
+//		unlock();
 	}
 	
 	
 		//----------------------------------------------------------------------------
 		//-- FRAMES --------------------------------------------------------------
 	void Camera::setFixedRate(bool _value) {
-		lock();
 		fixedRate = _value;
-		T_bChangeTriggerMode = true;
-		unlock();
+		
+		clearQueue();
+//		stopAcquisition();
+		
+		if (fixedRate) { setEnumAttribute("FrameStartTriggerMode","FixedRate"); }
+		else { setEnumAttribute("FrameStartTriggerMode","Software"); }
+		
+//		startAcquisition();
+		queueFrames();
+		triggerFrame();
 	}
 	
 	void Camera::setFrameRate(float rate) {
@@ -601,23 +593,25 @@ namespace ofxPvAPI {
 	
 	void Camera::setROIWidth(int _value) {
 		if (getIntAttribute("Width") != _value) {
-			lock();	// lock neccesary?
-			T_bResizeFrames = true;
+//			lock();	// lock neccesary?
+//			T_bResizeFrames = true;
 			setIntAttribute("Width", _value);
 			if(getROIX() > getROIXMax()) { setROIX(getROIXMax()); }
+			resizeFrame();
 			//			regionX = (float)getROIX() / getROIXMax();
-			unlock();
+//			unlock();
 		}
 	}
 	
 	void Camera::setROIHeight(int _value) {
 		if (getIntAttribute("Height") != _value) {
-			lock();	// lock neccesary?
-			T_bResizeFrames = true;
+//			lock();	// lock neccesary?
+//			T_bResizeFrames = true;
 			setIntAttribute("Height", _value);
 			if(getROIY() > getROIYMax()) { setROIY(getROIYMax()); }
 			//			regionY = (float)getROIY() / getROIYMax();
-			unlock();
+			resizeFrame();
+//			unlock();
 		}
 	}
 	
@@ -639,6 +633,18 @@ namespace ofxPvAPI {
 		setIntAttribute("RegionY", _value);
 		
 		//		regionY = (float)getROIY() / getROIYMax();
+	}
+	
+	void Camera::resizeFrame() {
+		clearQueue();
+		stopAcquisition();		// without these pvFrame width and height don't register correctly
+		stopCapture();			// without these pvFrame width and height don't register correctly
+		allocateFrames();
+		startCapture();			// without these pvFrame width and height don't register correctly
+		startAcquisition();		// without these pvFrame width and height don't register correctly
+		
+		queueFrames();
+		triggerFrame();
 	}
 	
 	

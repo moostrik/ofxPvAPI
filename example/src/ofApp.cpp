@@ -51,6 +51,7 @@ void ofApp::setup(){
 void ofApp::update(){
 	camera.update();
 	// reshape window to fit camera image
+	
 	ofSetWindowShape(30 + gui.getWidth() + max(640.f, camera.getWidth()), 20 + max(gui.getHeight(), camera.getHeight()));
 	fps.set(ofGetFrameRate() + 0.5);
 	

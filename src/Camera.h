@@ -19,6 +19,8 @@ namespace ofxPvAPI {
 	class Camera : public ofThread {
 		
 		public :
+		int lastIdentifier;
+		
 		Camera();
 		virtual ~Camera();
 		
@@ -48,9 +50,6 @@ namespace ofxPvAPI {
 		void			close();
 		void 			threadedFunction();
 		
-		bool 			T_bResizeFrames; // thread message
-		bool			T_bChangeTriggerMode;
-		
 			//-- ACQUISITION -----------------------------------------------------
 		public:
 		bool			isInitialized() { return bInitialized; }
@@ -78,12 +77,12 @@ namespace ofxPvAPI {
 		tPvFrame*		pvFrames;
 		deque<tPvFrame*>	capuredFrameQueue;
 		
+		void			resizeFrame();
 		bool			allocateFrames();
 		bool			deallocateFrames();
 		bool			queueFrames();
 		bool			clearQueue();
 		bool			triggerFrame();
-		bool			fixedRate;
 		
 		//-- FRAMES --------------------------------------------------------------
 		public:
@@ -112,6 +111,7 @@ namespace ofxPvAPI {
 		int 			frameMaxLatency;
 		int 			frameMinLatency;
 		deque<int> 		framesLatencies;
+		bool			fixedRate;
 		
 		//-- PIXELS --------------------------------------------------------------
 		public:
