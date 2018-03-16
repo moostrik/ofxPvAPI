@@ -73,7 +73,7 @@ namespace ofxPvAPI {
 		parameters.add(exposureParameters);
 		
 		if(getPixelFormat() != OF_PIXELS_RGB) {
-			parameters.add(pGain.set("gain", 0, 0, 1));
+			parameters.add(pGain.set("gain", 0, 0, 30));
 			pGain.addListener(this, &ParameterConnector::gainListener);
 		}
 		else {
@@ -151,7 +151,7 @@ namespace ofxPvAPI {
 		
 		
 		bLoadFromInterface = true;
-		blockListeners = false;
+		blockListeners = !bInitialized;
 		
 		return true;
 	}
@@ -159,6 +159,7 @@ namespace ofxPvAPI {
 		//------------------------------------------------------------------------
 	void ParameterConnector::update() {
 		Connector::update();
+		blockListeners = !bInitialized;
 		
 		if (bInitialized) {
 			pFps = getFps();
@@ -167,11 +168,11 @@ namespace ofxPvAPI {
 			pFrameMaxLatency = getMaxLatency();
 			pFrameMinLatency = getMinLatency();
 			
-			if (!bLoadFromInterface) {
-				updateParametersFromCam();
-			} else {
+			if (bLoadFromInterface) {
 				bLoadFromInterface = false;
 				setAllParametersFromInterface();
+			} else {
+				updateParametersFromCam();
 			}
 		}
 		
@@ -186,7 +187,7 @@ namespace ofxPvAPI {
 		//------------------------------------------------------------------------
 	void ParameterConnector::updateParametersFromCam() {
 		blockListeners = true;
-		if (pAutoExposure.get()) {
+		if (pAutoExposure.get() || pAutoExposureOnce.get()) {
 			pExposure.set(getExposure());
 		}
 		if (pAutoGain.get()) {
@@ -196,17 +197,7 @@ namespace ofxPvAPI {
 			pWhiteBalanceRed.set(getWhiteBalanceRed());
 			pWhiteBalanceBlue.set(getWhiteBalanceBlue());
 		}
-		
-		pFrameRate.setMin(ceil(getFrameRateMin()));
-		pFrameRate.setMax(floor(getFrameRateMax()));
-		setParameterInItsOwnRange(pFrameRate);
-		
-		pExposure.setMax(getExposureMaxForCurrentFrameRate());				//  <<
-		setParameterInItsOwnRange(pExposure);
-		
 		blockListeners = false;
-		
-			//		setParametersRange();
 	}
 	
 		//------------------------------------------------------------------------
@@ -405,21 +396,36 @@ namespace ofxPvAPI {
 	void ParameterConnector::setParameterInItsOwnRange(ofParameter<int> &_parameter) {
 		if (_parameter.get() < _parameter.getMin()) { _parameter.set(_parameter.getMin()); }
 		else if (_parameter.get() > _parameter.getMax()) {_parameter.set(_parameter.getMax()); }
-		else { _parameter.set(_parameter.get()); } // dirty way to update, should go
 	}
 	
 	void ParameterConnector::setParameterInItsOwnRange(ofParameter<float> &_parameter) {
 		if (_parameter.get() < _parameter.getMin()) _parameter.set(_parameter.getMin());
-		if (_parameter.get() > _parameter.getMax()) _parameter.set(_parameter.getMax());
+		else if (_parameter.get() > _parameter.getMax()) _parameter.set(_parameter.getMax());
 	}
 	
 	
 		//-- FRAMES ----------------------------------------------------------
+	void ParameterConnector::fixedRateListener(bool &_value)  {
+		
+		if (bInitialized) {
+			bool cFixedRate = Camera::getFixedRate();
+			if (_value != cFixedRate) {
+				Camera::setFixedRate(_value);
+			
+				pExposure.setMax(getExposureMaxForCurrentFrameRate());
+				if (pExposure != getExposure()) pExposure.set(getExposure());
+			}
+		}
+	}
 	
 	void ParameterConnector::frameRateListener(float &_value) {
 		if (bInitialized) {
+			_value = int(_value + .5);
 			Camera::setFrameRate(_value);
-			if (pExposure != getExposure()) pExposure.set(getExposure()); // only if autoexposure = off
+			
+			pExposure.setMax(getExposureMaxForCurrentFrameRate());
+			int cExposure = Camera::getExposure();
+			if (pExposure != cExposure) pExposure.set(cExposure);
 		}
 	}
 	
@@ -427,32 +433,48 @@ namespace ofxPvAPI {
 	void ParameterConnector::ROIWidthListener(int &_value) {
 		if (bInitialized) {
 			Camera::setROIWidth(_value);
+			
 			pROIX.setMax(max(getROIXMax(), 1)); // prevent divide by 0
-			if (pROIX != getROIX()) pROIX.set(getROIX());
+			int cRoiX = getROIX();
+			if (pROIX != cRoiX) pROIX.set(cRoiX);
+			
+			pFrameRate.setMax(floor(getFrameRateMax()));
+			float cFrameRate = getFrameRate();
+			if (pFrameRate != cFrameRate) pFrameRate.set(cFrameRate);
 		}
 	}
 	
 	void ParameterConnector::ROIHeightListener(int &_value) {
 		if (bInitialized) {
 			Camera::setROIHeight(_value);
+			
 			pROIY.setMax(max(getROIYMax(), 1)); // prevent divide by 0
-			if (pROIY != getROIY()) pROIY.set(getROIY());
+			int cRoiY = getROIY();
+			if (pROIY != cRoiY) pROIY.set(cRoiY);
+			
+			pFrameRate.setMax(floor(getFrameRateMax()));
+			float cFrameRate = getFrameRate();
+			if (pFrameRate != cFrameRate) pFrameRate.set(cFrameRate);
 		}
 	}
 	
 	void ParameterConnector::ROIXListener(int &_value) {
 		if (bInitialized) {
 			Camera::setROIX(_value);
+			
 			pROIWidth.setMax(max(getROIWidthMax(), 1)); // prevent divide by 0
-			if (pROIWidth != getROIWidth()) pROIWidth.set(getROIWidth());
+			int cRoiYWidth = getROIWidth();
+			if (pROIWidth != cRoiYWidth) pROIWidth.set(cRoiYWidth);
 		}
 	}
 	
 	void ParameterConnector::ROIYListener(int &_value) {
 		if (bInitialized) {
 			Camera::setROIY(_value);
+			
 			pROIHeight.setMax(max(getROIHeightMax(), 1)); // prevent divide by 0
-			if (pROIHeight != getROIHeight()) pROIHeight.set(getROIHeight());
+			int cRoiYHeight= getROIHeight();
+			if (pROIHeight != cRoiYHeight) pROIHeight.set(cRoiYHeight);
 		}
 	}
 	
@@ -462,7 +484,7 @@ namespace ofxPvAPI {
 	void ParameterConnector::inRange(ofParameter<int>& _parameter, int& _value) {
 		if ( _value < _parameter.getMin() || _value > _parameter.getMax()) {
 			int clampedValue = ofClamp(_value, _parameter.getMin(), _parameter.getMax());
-			ofLogWarning("ParameterConnector") << _value << " for parameter " << _parameter.getName() << "out of range, clamping to " << clampedValue;
+			ofLogWarning("ParameterConnector") << _parameter.getName() << " out of range, clamping " << _value << " to " << clampedValue;
 			_value = clampedValue;
 		}
 	}
@@ -470,7 +492,7 @@ namespace ofxPvAPI {
 	void ParameterConnector::inRange(ofParameter<float>& _parameter, float& _value) {
 		if ( _value < _parameter.getMin() || _value > _parameter.getMax()) {
 			int clampedValue = ofClamp(_value, _parameter.getMin(), _parameter.getMax());
-			ofLogWarning("ParameterConnector") << _value << " for parameter " << _parameter.getName() << "out of range, clamping to " << clampedValue;
+			ofLogWarning("ParameterConnector") << _value << " for parameter " << _parameter.getName() << " out of range, clamping to " << clampedValue;
 			_value = clampedValue;
 		}
 	}

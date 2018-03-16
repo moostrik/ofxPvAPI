@@ -234,7 +234,7 @@ namespace ofxPvAPI {
 		int		getAutoExposureTargetMin()		{ return getIntAttributeMin("ExposureAutoTarget"); }
 		int		getAutoExposureTargetMax()		{ return getIntAttributeMax("ExposureAutoTarget"); }
 		
-		int 	getExposureMaxForCurrentFrameRate() { return 1000000 / getFrameRate(); }
+		int 	getExposureMaxForCurrentFrameRate() { return fixedRate? 1000000 / getFrameRate() : 200000 / getFrameRate(); }
 		
 			//-- GAIN ------------------------------------------------------------
 		void 	setAutoGain(bool state)			{ setEnumAttribute("GainMode", (state == true)? "Auto": "Manual"); }

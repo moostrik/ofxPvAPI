@@ -837,7 +837,7 @@ namespace ofxPvAPI {
 		tPvErr error = PvAttrEnumSet(cameraHandle, _name.c_str(), _value.c_str());
 		
 		if (error == ePvErrSuccess) {
-			//			ofLog(OF_LOG_VERBOSE, "Camera: %lu set %s to %s", deviceID, _name.c_str(), _value.c_str());
+//			ofLog(OF_LOG_VERBOSE, "Camera: %lu set %s to %s", deviceID, _name.c_str(), _value.c_str());
 			return true;
 		}
 		
@@ -857,6 +857,7 @@ namespace ofxPvAPI {
 			return "none";
 		}
 		
+//		ofLog(OF_LOG_VERBOSE, "Camera: %lu %s is %s", deviceID, _name.c_str(), attribute);
 		return attribute ;
 	}
 	
@@ -873,7 +874,7 @@ namespace ofxPvAPI {
 		tPvErr error = PvAttrUint32Set(cameraHandle, _name.c_str(), _value);
 		
 		if (error == ePvErrSuccess) {
-			//			ofLog(OF_LOG_VERBOSE, "Camera: %lu set attribute %s to %i in range %lu to %lu", deviceID, _name.c_str(), _value, min, max);
+//			ofLog(OF_LOG_VERBOSE, "Camera: %lu set attribute %s to %i in range %lu to %lu", deviceID, _name.c_str(), _value, min, max);
 			return true;
 		}
 		
@@ -894,6 +895,7 @@ namespace ofxPvAPI {
 			return 0;
 		}
 		
+//		ofLog(OF_LOG_VERBOSE, "Camera: %lu %s is %lu", deviceID, _name.c_str(), value);
 		return value ;
 	}
 	
@@ -935,7 +937,7 @@ namespace ofxPvAPI {
 		tPvErr error = PvAttrFloat32Set(cameraHandle, _name.c_str(), _value);
 		
 		if (error == ePvErrSuccess) {
-			//			ofLog(OF_LOG_VERBOSE, "Camera: %lu set attribute %s to %f in range %f to %f", deviceID, _name.c_str(), _value, min, max);
+//			ofLog(OF_LOG_VERBOSE, "Camera: %lu set attribute %s to %f in range %f to %f", deviceID, _name.c_str(), _value, min, max);
 			return true;
 		}
 		
@@ -954,6 +956,7 @@ namespace ofxPvAPI {
 			return 0;
 		}
 		
+//		ofLog(OF_LOG_VERBOSE, "Camera: %lu %s is %f", deviceID, _name.c_str(), value);
 		return value ;
 	}
 	

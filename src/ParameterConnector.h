@@ -40,7 +40,7 @@ namespace ofxPvAPI {
 		ofParameter<float>	pFrameRate;
 		
 		void	frameRateListener(float& _value);
-		void	fixedRateListener(bool& _value) { Camera::setFixedRate(_value); }
+		void	fixedRateListener(bool& _value);
 		
 		
 			//-- REGION OF INTEREST ----------------------------------------------
@@ -88,15 +88,15 @@ namespace ofxPvAPI {
 		ofParameter<int>	pAutoExposureMinimum;
 		ofParameter<int>	pAutoExposureMaximum;
 		
-		void	exposureListener(int& _value)				{ if(bInitialized) Camera::setExposure(_value); }
-		void	autoExposureOnceListener(bool& _value)		{ if(bInitialized) Camera::setAutoExposureOnce(_value); }
-		void	autoExposureListener(bool& _value)			{ if(bInitialized) Camera::setAutoExposure(_value); }
-		void	autoExposureTargetListener(int& _value)		{ if(bInitialized) Camera::setAutoExposureTarget(_value); }
-		void	autoExposureRateListener(int& _value)		{ if(bInitialized) Camera::setAutoExposureRate(_value); }
-		void	autoExposureAdjustTolListener(int& _value)	{ if(bInitialized) Camera::setAutoExposureAdjustTol(_value); }
-		void	autoExposureOutliersListener(int& _value)	{ if(bInitialized) Camera::setAutoExposureOutliers(_value); }
-		void	autoExposureMinimumListener(int& _value)	{ if(bInitialized) Camera::setAutoExposureMinimum(_value); }
-		void	autoExposureMaximumListener(int& _value)	{ if(bInitialized) Camera::setAutoExposureMaximum(_value); }
+		void	exposureListener(int& _value)				{ if(!blockListeners) Camera::setExposure(_value); }
+		void	autoExposureOnceListener(bool& _value)		{ if(!blockListeners) Camera::setAutoExposureOnce(_value); }
+		void	autoExposureListener(bool& _value)			{ if(!blockListeners) Camera::setAutoExposure(_value); }
+		void	autoExposureTargetListener(int& _value)		{ if(!blockListeners) Camera::setAutoExposureTarget(_value); }
+		void	autoExposureRateListener(int& _value)		{ if(!blockListeners) Camera::setAutoExposureRate(_value); }
+		void	autoExposureAdjustTolListener(int& _value)	{ if(!blockListeners) Camera::setAutoExposureAdjustTol(_value); }
+		void	autoExposureOutliersListener(int& _value)	{ if(!blockListeners) Camera::setAutoExposureOutliers(_value); }
+		void	autoExposureMinimumListener(int& _value)	{ if(!blockListeners) Camera::setAutoExposureMinimum(_value); }
+		void	autoExposureMaximumListener(int& _value)	{ if(!blockListeners) Camera::setAutoExposureMaximum(_value); }
 		
 		
 			//-- GAIN ------------------------------------------------------------
@@ -124,15 +124,15 @@ namespace ofxPvAPI {
 		ofParameter<int>	pAutoGainMinimum;
 		ofParameter<int>	pAutoGainMaximum;
 		
-		void	gainListener(int& _value)					{ if(bInitialized) Camera::setGain(_value); }
-		void	autoGainListener(bool& _value)				{ if(bInitialized) Camera::setAutoGain(_value); }
-		void	autoGainOnceListener(bool& _value)			{ if(bInitialized) Camera::setAutoGainOnce(_value); }
-		void	autoGainTargetListener(int& _value)			{ if(bInitialized) Camera::setAutoGainTarget(_value); }
-		void	autoGainRateListener(int& _value)			{ if(bInitialized) Camera::setAutoGainRate(_value); }
-		void	autoGainAdjustTolListener(int& _value)		{ if(bInitialized) Camera::setAutoGainAdjustTol(_value); }
-		void	autoGainOutliersListener(int& _value)		{ if(bInitialized) Camera::setAutoGainOutliers(_value); }
-		void	autoGainMinimumListener(int& _value)		{ if(bInitialized) Camera::setAutoGainMinimum(_value); }
-		void	autoGainMaximumListener(int& _value)		{ if(bInitialized) Camera::setAutoGainMaximum(_value); }
+		void	gainListener(int& _value)					{ if(!blockListeners) Camera::setGain(_value); }
+		void	autoGainListener(bool& _value)				{ if(!blockListeners) Camera::setAutoGain(_value); }
+		void	autoGainOnceListener(bool& _value)			{ if(!blockListeners) Camera::setAutoGainOnce(_value); }
+		void	autoGainTargetListener(int& _value)			{ if(!blockListeners) Camera::setAutoGainTarget(_value); }
+		void	autoGainRateListener(int& _value)			{ if(!blockListeners) Camera::setAutoGainRate(_value); }
+		void	autoGainAdjustTolListener(int& _value)		{ if(!blockListeners) Camera::setAutoGainAdjustTol(_value); }
+		void	autoGainOutliersListener(int& _value)		{ if(!blockListeners) Camera::setAutoGainOutliers(_value); }
+		void	autoGainMinimumListener(int& _value)		{ if(!blockListeners) Camera::setAutoGainMinimum(_value); }
+		void	autoGainMaximumListener(int& _value)		{ if(!blockListeners) Camera::setAutoGainMaximum(_value); }
 		
 		
 			//-- GAMMA HUE STURATION ---------------------------------------------
@@ -147,9 +147,9 @@ namespace ofxPvAPI {
 		ofParameter<float>	pHue;
 		ofParameter<float>	pSaturation;
 		
-		void	gammaListener(float& _value)				{ if(bInitialized) Camera::setGamma(_value); }
-		void	hueListener(float& _value)					{ if(bInitialized) Camera::setHue(_value); }
-		void	saturationListener(float& _value)			{ if(bInitialized) Camera::setSaturation(_value); }
+		void	gammaListener(float& _value)				{ if(!blockListeners) Camera::setGamma(_value); }
+		void	hueListener(float& _value)					{ if(!blockListeners) Camera::setHue(_value); }
+		void	saturationListener(float& _value)			{ if(!blockListeners) Camera::setSaturation(_value); }
 		
 		
 			//-- WHITEBALANCE ----------------------------------------------------
@@ -171,12 +171,12 @@ namespace ofxPvAPI {
 		ofParameter<int>	pAutoWhiteBalanceRate;
 		ofParameter<int>	pAutoWhiteBalanceAdjustTol;
 		
-		void	WhiteBalanceRedListener(int& _value)		{ if(bInitialized) Camera::setWhiteBalanceRed(_value); }
-		void	WhiteBalanceBlueListener(int& _value)		{ if(bInitialized) Camera::setWhiteBalanceBlue(_value); }
-		void	autoWhiteBalanceListener(bool& _value)		{ if(bInitialized) Camera::setAutoWhiteBalance(_value); }
-		void	autoWhiteBalanceOnceListener(bool& _value)	{ if(bInitialized) Camera::setAutoWhiteBalanceOnce(_value); }
-		void	autoWhiteBalanceRateListener(int& _value)	{ if(bInitialized) Camera::setAutoWhiteBalanceRate(_value); }
-		void	autoWhiteBalanceAdjustTolListener(int& _value) { if(bInitialized) Camera::setAutoWhiteBalanceAdjustTol(_value); }
+		void	WhiteBalanceRedListener(int& _value)		{ if(!blockListeners) Camera::setWhiteBalanceRed(_value); }
+		void	WhiteBalanceBlueListener(int& _value)		{ if(!blockListeners) Camera::setWhiteBalanceBlue(_value); }
+		void	autoWhiteBalanceListener(bool& _value)		{ if(!blockListeners) Camera::setAutoWhiteBalance(_value); }
+		void	autoWhiteBalanceOnceListener(bool& _value)	{ if(!blockListeners) Camera::setAutoWhiteBalanceOnce(_value); }
+		void	autoWhiteBalanceRateListener(int& _value)	{ if(!blockListeners) Camera::setAutoWhiteBalanceRate(_value); }
+		void	autoWhiteBalanceAdjustTolListener(int& _value) { if(!blockListeners) Camera::setAutoWhiteBalanceAdjustTol(_value); }
 		
 		
 			//-- IP SETTINGS -----------------------------------------------------
@@ -233,9 +233,9 @@ namespace ofxPvAPI {
 
 		bool	blockListeners;
 		
-		void inRange(ofParameter<int>& _parameter, int& _value);
+		void 	inRange(ofParameter<int>& _parameter, int& _value);
 		
-		void inRange(ofParameter<float>& _parameter, float& _value);
+		void 	inRange(ofParameter<float>& _parameter, float& _value);
 		
 	};
 }
