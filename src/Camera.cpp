@@ -219,10 +219,8 @@ namespace ofxPvAPI {
 		bIsFrameNew = false;
 		
 		if (bInitialized) {
+			if (!fixedRate) { triggerFrame(); }
 			if ( capuredFrameQueue.size() > 0) {
-				if (!fixedRate) {
-					triggerFrame();
-				}
 				size_t frameoffset = (fixedRate)? 1 : 0;
 				frameoffset = min(capuredFrameQueue.size(), frameoffset);
 				tPvFrame& frame = *capuredFrameQueue[frameoffset];
