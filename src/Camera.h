@@ -13,7 +13,6 @@
 #include <arpa/inet.h>
 #endif
 
-
 namespace ofxPvAPI {
 	
 	class Camera : public ofThread {
@@ -50,6 +49,8 @@ namespace ofxPvAPI {
 		void			close();
 		void 			threadedFunction();
 		
+		bool 			T_bResizeFrames; // thread message
+		bool 			T_bChangeRate; // thread message
 			//-- ACQUISITION -----------------------------------------------------
 		public:
 		bool			isInitialized() { return bInitialized; }
@@ -70,14 +71,13 @@ namespace ofxPvAPI {
 		
 			//-- PV FRAMES -------------------------------------------------------
 		public:
-		void			onFrameDone(tPvFrame* _frame); // for internal use only, cannot be protected due to callback
+//		void			onFrameDone(tPvFrame* _frame); // for internal use only, cannot be protected due to callback
 		
 		protected:
 		static int		numPvFrames;
 		tPvFrame*		pvFrames;
 		deque<tPvFrame*>	capuredFrameQueue;
 		
-		void			resizeFrame();
 		bool			allocateFrames();
 		bool			deallocateFrames();
 		bool			queueFrames();

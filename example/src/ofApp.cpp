@@ -7,7 +7,7 @@ void ofApp::setup(){
 	
 	ofSetLogLevel(OF_LOG_VERBOSE);
 	camera.listDevices();
-	ofSetLogLevel(OF_LOG_NOTICE);
+//	ofSetLogLevel(OF_LOG_NOTICE);
 	
 	//	PRE SETUP FEATURES
 	
