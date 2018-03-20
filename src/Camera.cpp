@@ -3,26 +3,6 @@
 
 namespace ofxPvAPI {
 	
-	bool Camera::bPvApiInitiated = false;
-	int Camera::numActiveDevices = 0;
-	int Camera::numPvFrames = 4;
-	
-	void Camera::frameCB(tPvFrame* pFrame){
-		Camera* cam = (Camera*)pFrame->Context[0];
-		if(cam) {cam->onFrameDone(pFrame); }
-	}
-	
-	void Camera::camLinkCB(void* Context, tPvInterface Interface, tPvLinkEvent Event, unsigned long UniqueId) {
-		Camera* cam = (Camera*)Context;
-		if (Event == ePvLinkAdd) {
-			cam->plugCamera(UniqueId);
-		} else if (Event == ePvLinkRemove) {
-			cam->unplugCamera(UniqueId);
-		}
-	}
-	
-	//--------------------------------------------------------------------
-	
 	Camera::Camera() :
 	bDeviceActive(false),
 	bIsFrameNew(false),
@@ -38,6 +18,7 @@ namespace ofxPvAPI {
 		
 		if (!bPvApiInitiated) PvApiInitialize() ;
 		
+		// to allocate?
 		pvFrames = new tPvFrame[numPvFrames];
 		if (pvFrames) { memset(pvFrames,0,sizeof(tPvFrame) * numPvFrames); }
 		
@@ -53,6 +34,11 @@ namespace ofxPvAPI {
 		if (numActiveDevices == 0 && bPvApiInitiated)
 		PvApiUnInitialize();
 	}
+	
+	
+	//----------------------------------------------------------------------------
+	//-- API ---------------------------------------------------------------------
+	bool Camera::bPvApiInitiated = false;
 	
 	void Camera::PvApiInitialize() {
 		
@@ -101,8 +87,8 @@ namespace ofxPvAPI {
 			activateDevice();
 		}
 		
-		PvLinkCallbackRegister(camLinkCB, ePvLinkAdd, this);
-		PvLinkCallbackRegister(camLinkCB, ePvLinkRemove, this);
+		PvLinkCallbackRegister(plugCallBack, ePvLinkAdd, this);
+		PvLinkCallbackRegister(plugCallBack, ePvLinkRemove, this);
 	}
 	
 	void Camera::update() {
@@ -184,6 +170,9 @@ namespace ofxPvAPI {
 	//----------------------------------------------------------------------------
 	//-- DEVICES -----------------------------------------------------------------
 	
+	int Camera::numActiveDevices = 0;
+	
+	
 	vector<ofVideoDevice> Camera::listDevices(){
 		
 		vector <ofVideoDevice> devices;
@@ -246,6 +235,7 @@ namespace ofxPvAPI {
 		return 0;
 	}
 	
+	
 	int Camera::getDeviceIDFromIpAdress(string _IPAdress) {
 		deviceID = 0;
 		
@@ -275,6 +265,7 @@ namespace ofxPvAPI {
 			requestedDeviceID = _deviceID;
 		}
 	}
+
 	
 	int Camera::getDeviceID() {
 		return deviceID;
@@ -314,6 +305,15 @@ namespace ofxPvAPI {
 		ofLog(OF_LOG_NOTICE,"Camera: %lu deactivated", deviceID);
 	}
 	
+	
+	void Camera::plugCallBack(void* Context, tPvInterface Interface, tPvLinkEvent Event, unsigned long UniqueId) {
+		Camera* cam = (Camera*)Context;
+		if (Event == ePvLinkAdd) {
+			cam->plugCamera(UniqueId);
+		} else if (Event == ePvLinkRemove) {
+			cam->unplugCamera(UniqueId);
+		}
+	}
 	
 	void Camera::plugCamera(unsigned long _cameraUid) {
 		
@@ -435,6 +435,9 @@ namespace ofxPvAPI {
 	//----------------------------------------------------------------------------
 	//-- PV FRAMES ---------------------------------------------------------------
 	
+	int Camera::numPvFrames = 4;
+	
+	
 	bool Camera::allocateFrames() {
 		
 		unsigned long frameSize = 0;
@@ -475,7 +478,7 @@ namespace ofxPvAPI {
 	
 	bool Camera::queueFrames(){
 		for (int i=0; i<numPvFrames; i++) {
-			tPvErr error = PvCaptureQueueFrame( deviceHandle, &pvFrames[i], frameCB);
+			tPvErr error = PvCaptureQueueFrame( deviceHandle, &pvFrames[i], frameCallBack);
 			if (error != ePvErrSuccess ){
 				ofLog(OF_LOG_NOTICE, "Camera: " + ofToString(deviceID) + " failed to queue frame " + ofToString(i));
 				logError(error);
@@ -509,16 +512,21 @@ namespace ofxPvAPI {
 	}
 	
 	
-	void Camera::onFrameDone(tPvFrame* _frame) {
+	void Camera::frameCallBack(tPvFrame* pFrame){
+		Camera* cam = (Camera*)pFrame->Context[0];
+		if(cam) {cam->receiveFrame(pFrame); }
+	}
+	
+	void Camera::receiveFrame(tPvFrame* _frame) {
 		if (_frame->Status == ePvErrSuccess) {
-			PvCaptureQueueFrame(deviceHandle, _frame, frameCB);
+			PvCaptureQueueFrame(deviceHandle, _frame, frameCallBack);
 			float& time = *(float*)_frame->Context[2];
 			time = ofGetElapsedTimef();
 			capuredFrameQueue.push_front(_frame);
 		}
 		else if (_frame->Status != ePvErrCancelled) {
 			logError(_frame->Status);
-			PvCaptureQueueFrame(deviceHandle, _frame, frameCB);
+			PvCaptureQueueFrame(deviceHandle, _frame, frameCallBack);
 		}
 		else {
 			logError(_frame->Status);

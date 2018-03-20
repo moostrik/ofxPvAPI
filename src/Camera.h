@@ -28,11 +28,13 @@ namespace ofxPvAPI {
 		void			PvApiUnInitialize();
 		static bool		bPvApiInitiated;
 		
+		
 			//-- OF --------------------------------------------------------------
-	public:
+		public:
 		bool			setup();
 		void			update();
 		void			destroy();
+		
 		
 			//-- DEVICE ----------------------------------------------------------
 		public:
@@ -56,6 +58,7 @@ namespace ofxPvAPI {
 		void			activateDevice(); // use id?
 		void			deactivateDevice();
 		
+		static void 	plugCallBack(void* Context, tPvInterface Interface, tPvLinkEvent Event, unsigned long UniqueId);
 		void			plugCamera(unsigned long cameraUid);
 		void			unplugCamera(unsigned long cameraUid);
 		
@@ -73,12 +76,6 @@ namespace ofxPvAPI {
 		bool			abortAcquisition();
 		
 		
-		//-- CALLBACK --------------------------------------------------------
-		protected:
-		static void 	frameCB(tPvFrame* pFrame);
-		static void 	camLinkCB(void* Context, tPvInterface Interface, tPvLinkEvent Event, unsigned long UniqueId);
-		
-		
 		//-- PV FRAMES -------------------------------------------------------
 		protected:
 		static int		numPvFrames;
@@ -91,7 +88,9 @@ namespace ofxPvAPI {
 		bool			queueFrames();
 		bool			clearQueue();
 		bool			triggerFrame();
-		void			onFrameDone(tPvFrame* _frame); // for internal use only, cannot be protected due to callback
+		
+		static void 	frameCallBack(tPvFrame* pFrame);
+		void			receiveFrame(tPvFrame* _frame);
 		
 		//-- FRAMES --------------------------------------------------------------
 		public:
