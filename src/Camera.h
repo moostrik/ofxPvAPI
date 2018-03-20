@@ -15,9 +15,14 @@
 
 namespace ofxPvAPI {
 	
-	struct CameraFrame {
-		ofPixels* pixels;
-		float timeStamp;
+	enum ofxPvAPIMessageType {
+		OFX_PVAPI_FRAME,
+		OFX_PVAPI_RESIZE
+	};
+	
+	struct ofxPvAPIMessage {
+		ofxPvAPIMessageType type;
+		tPvFrame*	frame;
 	};
 	
 	
@@ -53,10 +58,21 @@ namespace ofxPvAPI {
 		bool			setup();
 		void			update();
 		void			close();
+		
+	protected:
 		void 			threadedFunction();
+		
+		void 			enqueue(ofxPvAPIMessage message);
+		void 			dequeue();
+		
+		queue<ofxPvAPIMessage> messageQueue;
 		
 		bool 			T_bResizeFrames; // thread message
 		bool 			T_bChangeRate; // thread message
+		
+		void 			processFrame(tPvFrame* _frame);
+		void 			processResize();
+		
 			//-- ACQUISITION -----------------------------------------------------
 		public:
 		bool			isInitialized() { return bInitialized; }
@@ -77,14 +93,13 @@ namespace ofxPvAPI {
 		
 			//-- PV FRAMES -------------------------------------------------------
 		public:
-//		void			onFrameDone(tPvFrame* _frame); // for internal use only, cannot be protected due to callback
+		void			onFrameDone(tPvFrame* _frame); // for internal use only, cannot be protected due to callback
 		
 		protected:
-//		static int		numPvFrames;
-		tPvFrame*		pvSwapFrame;
-		bool			pvSwapState;
-//		deque<tPvFrame*>	capuredFrameQueue;
-		deque<ofPixels*>	capuredFrames;
+		static int			numPvFrames;
+		int					pvCurrentFrameIndex;
+		tPvFrame*			pvFrames;
+		deque<ofPixels*>	ofFrames;
 		
 		bool			allocateFrames();
 		bool			deallocateFrames();

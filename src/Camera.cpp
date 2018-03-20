@@ -7,6 +7,12 @@ namespace ofxPvAPI {
 	int Camera::numCamerasInUse = 0;
 	int Camera::numPvFrames = 5;
 	
+	void FrameDoneCB(tPvFrame* pFrame){
+		Camera* cam = (Camera*)pFrame->Context[0];
+		if(cam) {cam->onFrameDone(pFrame); }
+	}
+
+	
 	//--------------------------------------------------------------------
 	
 	Camera::Camera() :
@@ -35,8 +41,7 @@ namespace ofxPvAPI {
 			pvFrames[i].Context[1] = new int(i);
 			pvFrames[i].Context[2] = new float(0);
 		}
-		
-		lastIdentifier = numPvFrames - 1;
+		pvCurrentFrameIndex = 0;
 	}
 	
 	Camera::~Camera(){
@@ -197,75 +202,6 @@ namespace ofxPvAPI {
 		return initCamera(requestedDeviceID);
 	}
 	
-	void Camera::threadedFunction(){
-		while(isThreadRunning()) {
-			
-			if (bInitialized) {
-				lock();
-				if (T_bResizeFrames) {
-					T_bResizeFrames = false;
-					clearQueue();
-					stopAcquisition();		// without these pvFrame width and height don't register correctly
-					stopCapture();			// without these pvFrame width and height don't register correctly
-					allocateFrames();
-					startCapture();			// without these pvFrame width and height don't register correctly
-					startAcquisition();		// without these pvFrame width and height don't register correctly
-				}
-				unlock();
-				
-				// make two 
-				for (int i=0; i<numPvFrames; i++) {
-					tPvFrame& frame = pvFrames[i];
-					tPvErr error = PvCaptureWaitForFrameDone(cameraHandle, &frame, 1);
-					if (frame.Status == ePvErrTimeout) {
-						;
-					}
-					else if (frame.Status == ePvErrSuccess) {
-
-						lock();
-						ofPixels* newPixels = new ofPixels;
-						if (!T_bResizeFrames) {
-//							float& time = *(float*)frame.Context[2];
-//							time = ofGetElapsedTimef();
-//							newPixels->setFromPixels((unsigned char *)frame.ImageBuffer, frame.Width, frame.Height, pixelFormat);
-						}
-						unlock();
-//
-						PvCaptureQueueFrame(cameraHandle, &frame, NULL);
-//
-						if (newPixels->isAllocated()) {
-//							newPixels->mirror(flipV, flipH);
-//							newPixels->rotate90(rotate90);
-//
-//							capuredFrames.push_front(newPixels);
-//
-//							size_t maxSize = (fixedRate)? 2 : 1;
-//							if (capuredFrames.size() > maxSize) {
-//								delete capuredFrames[capuredFrames.size()-1];
-//								capuredFrames.pop_back();
-////								cout << "deleted" << endl;
-//							}
-						}
-						else {
-							delete newPixels;
-						}
-//					}
-//					else if (frame.Status != ePvErrCancelled) {
-//						logError(frame.Status);
-//						PvCaptureQueueFrame(cameraHandle, &frame, NULL);
-//						triggerFrame();
-//					}
-//					else {
-//						logError(frame.Status);
-//						PvCaptureQueueFrame(cameraHandle, &frame, NULL);
-//						triggerFrame();
-					}
-				}
-			}
-			sleep(1);
-		}
-	}
-	
 	void Camera::update() {
 		
 		bIsFrameNew = false;
@@ -274,13 +210,13 @@ namespace ofxPvAPI {
 			if (!fixedRate) { triggerFrame(); }
 			
 			lock();
-			if ( capuredFrames.size() > 0) {
+			if ( ofFrames.size() > 0) {
 				size_t frameoffset = (fixedRate)? 1 : 0;
-				frameoffset = min(capuredFrames.size(), frameoffset);
-//				pixels.setFromPixels(&capuredFrames[frameoffset]);
-				if ( capuredFrames.size() > 0) {
-					frameoffset = min(capuredFrames.size(), frameoffset);
-					pixels = *capuredFrames[frameoffset];
+				frameoffset = min(ofFrames.size(), frameoffset);
+//				pixels.setFromPixels(&ofFrames[frameoffset]);
+				if ( ofFrames.size() > 0) {
+					frameoffset = min(ofFrames.size(), frameoffset);
+					pixels = *ofFrames[frameoffset];
 				}
 //				tPvFrame& frame = *capuredFrameQueue[frameoffset];
 				
@@ -361,6 +297,97 @@ namespace ofxPvAPI {
 		}
 	}
 	
+	void Camera::threadedFunction(){
+		while(isThreadRunning()) {
+			
+			if (bInitialized) {
+				lock();
+				if (T_bResizeFrames) {
+					T_bResizeFrames = false;
+					processResize();
+				}
+				unlock();
+				
+				dequeue();
+				
+			}
+			sleep(1);
+		}
+	}
+	
+	void Camera::enqueue(ofxPvAPIMessage message) {
+		if(!bInitialized) return;
+		
+//		std::unique_lock<std::mutex> lock(writerMutex);
+		lock();
+		messageQueue.push(message);
+		unlock();
+//		writerCondition.notify_one();
+	}
+	
+	void Camera::dequeue() {
+		if(messageQueue.empty()) return;
+		
+		ofxPvAPIMessage message = messageQueue.front();
+		if(message.type == OFX_PVAPI_FRAME) {
+			processFrame(message.frame);
+//		} else if(message.type == OFX_PVAPI_RESIZE) {
+//			processResize();
+		}
+		
+//		std::unique_lock<std::mutex> lock(masterMutex);
+		lock();
+		messageQueue.pop();
+		unlock();
+//		masterCondition.notify_one();
+	}
+	
+	void Camera::processResize() {
+		
+		clearQueue();
+		stopAcquisition();		// stop Aq and Cap to make width and height register correctly
+		stopCapture();
+		allocateFrames();
+		startCapture();
+		startAcquisition();
+		queueFrames();
+	}
+	
+	void Camera::processFrame(tPvFrame* _frame) {
+		
+		if (_frame->Status != ePvErrSuccess) {
+			ofLogWarning("Camera: processFrame") << " something went wrong state is not ePvErrSuccess";
+			return;
+		}
+				
+		ofPixels* newPixels = new ofPixels;
+		lock();
+		if (!T_bResizeFrames) {
+					float& time = *(float*)_frame->Context[2];
+					time = ofGetElapsedTimef();
+					newPixels->setFromPixels((unsigned char *)_frame->ImageBuffer, _frame->Width, _frame->Height, pixelFormat);
+		}
+		unlock();
+		
+		if (newPixels->isAllocated()) {
+			newPixels->mirror(flipV, flipH);
+			newPixels->rotate90(rotate90);
+			
+			lock();
+			ofFrames.push_front(newPixels);
+			unlock();
+			
+			size_t maxSize = (fixedRate)? 2 : 1;
+			if (ofFrames.size() > maxSize) {
+				delete ofFrames[ofFrames.size()-1];
+				ofFrames.pop_back();
+				//								cout << "deleted" << endl;
+			}
+		}
+		else {
+			delete newPixels;
+		}
+	}
 	
 	//----------------------------------------------------------------------------
 	//-- ACQUISITION -------------------------------------------------------------
@@ -489,7 +516,7 @@ namespace ofxPvAPI {
 	//-- PV FRAMES ---------------------------------------------------------------
 	
 	bool Camera::allocateFrames() {
-		
+		pvCurrentFrameIndex = 0;
 		unsigned long frameSize = 0;
 		tPvErr error = PvAttrUint32Get( cameraHandle, "TotalBytesPerFrame", &frameSize );
 		
@@ -527,7 +554,8 @@ namespace ofxPvAPI {
 	
 	bool Camera::queueFrames(){
 		for (int i=0; i<numPvFrames; i++) {
-			tPvErr error = PvCaptureQueueFrame( cameraHandle, &pvFrames[i], NULL);
+			tPvErr error = PvCaptureQueueFrame( cameraHandle, &pvFrames[i], FrameDoneCB);
+//			tPvErr error = PvCaptureQueueFrame( cameraHandle, &pvFrames[i], NULL);
 			if (error != ePvErrSuccess ){
 				ofLog(OF_LOG_NOTICE, "Camera: " + ofToString(deviceID) + " failed to queue frame " + ofToString(i));
 				logError(error);
@@ -562,31 +590,34 @@ namespace ofxPvAPI {
 	}
 	
 	
-//	void Camera::onFrameDone(tPvFrame* _frame) {
-////		lock();
-//
+	void Camera::onFrameDone(tPvFrame* _frame) {
+		
+
 //		int identifier = *(int*)_frame->Context[1];
 //		int expectedIdentifier = (lastIdentifier + 1) % numPvFrames;
 //		if (expectedIdentifier != identifier) {
 //			ofLogWarning("Camera") << "frame " << expectedIdentifier << " not in queue " << identifier;
 //		}
 //		lastIdentifier = identifier;
-//
-//		if (_frame->Status == ePvErrSuccess) {
-//			PvCaptureQueueFrame(cameraHandle, _frame, FrameDoneCB);
-//			float& time = *(float*)_frame->Context[2];
-//			time = ofGetElapsedTimef();
-//			capuredFrameQueue.push_front(_frame);
-//		}
-//		else if (_frame->Status != ePvErrCancelled) {
-//			logError(_frame->Status);
-//			PvCaptureQueueFrame(cameraHandle, _frame, FrameDoneCB);
-//		}
-//		else {
-//			logError(_frame->Status);
-//		}
-////		unlock();
-//	}
+
+		if (_frame->Status == ePvErrSuccess) {
+			PvCaptureQueueFrame(cameraHandle, _frame, FrameDoneCB);
+			float& time = *(float*)_frame->Context[2];
+			time = ofGetElapsedTimef();
+			
+			ofxPvAPIMessage message;
+			message.type = OFX_PVAPI_FRAME;
+			message.frame = _frame;
+			enqueue(message);
+		}
+		else if (_frame->Status != ePvErrCancelled) {
+			logError(_frame->Status);
+			PvCaptureQueueFrame(cameraHandle, _frame, FrameDoneCB);
+		}
+		else {
+			logError(_frame->Status);
+		}
+	}
 	
 	
 		//----------------------------------------------------------------------------
@@ -662,8 +693,8 @@ namespace ofxPvAPI {
 			lock();	// lock neccesary?
 			T_bResizeFrames = true;
 			setIntAttribute("Width", _value);
-			if(getROIX() > getROIXMax()) { setROIX(getROIXMax()); }
 			unlock();
+			if(getROIX() > getROIXMax()) { setROIX(getROIXMax()); }
 		}
 	}
 	
@@ -672,9 +703,8 @@ namespace ofxPvAPI {
 			lock();	// lock neccesary?
 			T_bResizeFrames = true;
 			setIntAttribute("Height", _value);
-			if(getROIY() > getROIYMax()) { setROIY(getROIYMax()); }
-			//			regionY = (float)getROIY() / getROIYMax();
 			unlock();
+			if(getROIY() > getROIYMax()) { setROIY(getROIYMax()); }
 		}
 	}
 	
