@@ -16,11 +16,9 @@
 
 namespace ofxPvAPI {
 	
-	class Camera : public ofThread {
+	class Camera {
 		
 		public :
-		int lastIdentifier;
-		
 		Camera();
 		virtual ~Camera();
 		
@@ -48,7 +46,6 @@ namespace ofxPvAPI {
 		bool			setup();
 		void			update();
 		void			close();
-		void 			threadedFunction();
 		
 			//-- ACQUISITION -----------------------------------------------------
 		public:

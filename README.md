@@ -13,7 +13,6 @@ previous versions tested on Windows 7
 - [x] fix tearing
 - [x] figure out how to include libPvAPI.dylib in app
 - [x] make triggered
-- [ ] make threaded
 - [ ] add callback for discovery
 - [ ] better init and close
 
@@ -21,7 +20,8 @@ previous versions tested on Windows 7
 - [x] update parameterConnector to intercept the attributes like it already does with the framerate, minimize calls to camera
 - [ ] investigate callback for attributes
 
-- [ ] add flip and rotate without texture
+- [x] make threaded
+- [x] add flip and rotate without texture
 
 - [ ] better naming of classes
 - [ ] test with color camera
