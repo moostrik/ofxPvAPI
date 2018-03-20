@@ -42,7 +42,7 @@ namespace ofxPvAPI {
 		int 			getDeviceID();
 		int				getDeviceIDFromIpAdress(string _IpAdress);
 		bool			isDeviceAvailable(int _deviceID);
-		int			getFirstDeviceAvailable();
+		int				getFirstDeviceAvailable();
 		
 		bool			isActive() { return bDeviceActive; }
 		
@@ -53,7 +53,7 @@ namespace ofxPvAPI {
 		tPvHandle		deviceHandle;
 		bool 			bDeviceActive;
 		
-		void			activateDevice();
+		void			activateDevice(); // use id?
 		void			deactivateDevice();
 		
 		void			plugCamera(unsigned long cameraUid);

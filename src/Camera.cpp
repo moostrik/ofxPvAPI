@@ -89,7 +89,7 @@ namespace ofxPvAPI {
 	
 	bool Camera::setup() {
 		
-		if (requestedDeviceID == 0) {
+		if (requestedDeviceID == 0 && numActiveDevices == 0) { // default first camera only
 			requestedDeviceID = getFirstDeviceAvailable();
 			if (requestedDeviceID != 0) {
 				deviceID = requestedDeviceID;
@@ -280,30 +280,6 @@ namespace ofxPvAPI {
 		return deviceID;
 	}
 	
-	void Camera::plugCamera(unsigned long _cameraUid) {
-		
-		if (requestedDeviceID == 0) {
-			ofLog(OF_LOG_NOTICE, "Camera: no camera ID specified, defaulting to camera %lu", _cameraUid);
-			requestedDeviceID = _cameraUid;
-		}
-		
-		if (requestedDeviceID != _cameraUid) {
-			return;
-		}
-		
-		ofLog(OF_LOG_NOTICE, "Camera: %lu connected", requestedDeviceID);
-		deviceID = _cameraUid;
-		
-		activateDevice();
-		
-	}
-	
-	void Camera::unplugCamera(unsigned long cameraUid) {
-		if (cameraUid == deviceID) {
-			ofLog(OF_LOG_NOTICE, "Camera: %lu lost", requestedDeviceID);
-			deactivateDevice();
-		}
-	}
 	
 	void Camera::activateDevice() {
 		
@@ -331,10 +307,36 @@ namespace ofxPvAPI {
 		bDeviceActive = false;
 		numActiveDevices--;
 		clearQueue();
+//		stopAcquisition(); // why ommit?
 		stopCapture();
 		closeCamera();
 		
 		ofLog(OF_LOG_NOTICE,"Camera: %lu deactivated", deviceID);
+	}
+	
+	
+	void Camera::plugCamera(unsigned long _cameraUid) {
+		
+		if (requestedDeviceID == 0  && numActiveDevices == 0) {
+			ofLog(OF_LOG_NOTICE, "Camera: no camera ID specified, defaulting to camera %lu", _cameraUid);
+			requestedDeviceID = _cameraUid;
+		}
+		
+		if (requestedDeviceID != _cameraUid) {
+			return;
+		}
+		
+		ofLog(OF_LOG_NOTICE, "Camera: %lu connected", requestedDeviceID);
+		deviceID = _cameraUid;
+		
+		activateDevice();
+	}
+	
+	void Camera::unplugCamera(unsigned long cameraUid) {
+		if (cameraUid == deviceID) {
+			ofLog(OF_LOG_NOTICE, "Camera: %lu lost", requestedDeviceID);
+			deactivateDevice();
+		}
 	}
 	
 	//----------------------------------------------------------------------------
