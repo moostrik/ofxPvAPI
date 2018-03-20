@@ -38,6 +38,7 @@ namespace ofxPvAPI {
 	
 	//----------------------------------------------------------------------------
 	//-- API ---------------------------------------------------------------------
+	
 	bool Camera::bPvApiInitiated = false;
 	
 	void Camera::PvApiInitialize() {
@@ -535,7 +536,8 @@ namespace ofxPvAPI {
 	
 	
 	//----------------------------------------------------------------------------
-	//-- FRAMES --------------------------------------------------------------
+	//-- FRAMES ------------------------------------------------------------------
+	
 	void Camera::setFixedRate(bool _value) {
 		fixedRate = _value;
 		if (fixedRate) { setEnumAttribute("FrameStartTriggerMode","FixedRate"); }

@@ -18,8 +18,7 @@ previous versions tested on Windows 7
 - [x] fix slowdown of setAllParametersFromCam in parameterConnector
 - [x] update parameterConnector to intercept the attributes
 
-- [ ] fix camera initialized and found
-- [ ] investigate callback for attributes
+- [ ] refactor (de) allocation
 - [ ] fix parameters after connection lost and found
 
 - [ ] better naming of classes
