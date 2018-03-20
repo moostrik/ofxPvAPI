@@ -7,12 +7,12 @@ namespace ofxPvAPI {
 	int Camera::numCamerasInUse = 0;
 	int Camera::numPvFrames = 4;
 	
-	void FrameDoneCB(tPvFrame* pFrame){
+	void Camera::frameCB(tPvFrame* pFrame){
 		Camera* cam = (Camera*)pFrame->Context[0];
 		if(cam) {cam->onFrameDone(pFrame); }
 	}
 	
-	void CamLinkCB(void* Context, tPvInterface Interface, tPvLinkEvent Event, unsigned long UniqueId) {
+	void Camera::camLinkCB(void* Context, tPvInterface Interface, tPvLinkEvent Event, unsigned long UniqueId) {
 		Camera* cam = (Camera*)Context;
 		if (Event == ePvLinkAdd) {
 			cam->plugCamera(UniqueId);
@@ -161,8 +161,8 @@ namespace ofxPvAPI {
 	//-- OF ----------------------------------------------------------------------
 	
 	bool Camera::setup() {
-		PvLinkCallbackRegister(CamLinkCB, ePvLinkAdd, this);
-		PvLinkCallbackRegister(CamLinkCB, ePvLinkRemove, this);
+		PvLinkCallbackRegister(camLinkCB, ePvLinkAdd, this);
+		PvLinkCallbackRegister(camLinkCB, ePvLinkRemove, this);
 		
 		if (requestedDeviceID == 0) {
 			// if cameras are already present default to first available
@@ -439,7 +439,7 @@ namespace ofxPvAPI {
 	
 	bool Camera::queueFrames(){
 		for (int i=0; i<numPvFrames; i++) {
-			tPvErr error = PvCaptureQueueFrame( cameraHandle, &pvFrames[i], FrameDoneCB);
+			tPvErr error = PvCaptureQueueFrame( cameraHandle, &pvFrames[i], frameCB);
 			if (error != ePvErrSuccess ){
 				ofLog(OF_LOG_NOTICE, "Camera: " + ofToString(deviceID) + " failed to queue frame " + ofToString(i));
 				logError(error);
@@ -475,14 +475,14 @@ namespace ofxPvAPI {
 	
 	void Camera::onFrameDone(tPvFrame* _frame) {
 		if (_frame->Status == ePvErrSuccess) {
-			PvCaptureQueueFrame(cameraHandle, _frame, FrameDoneCB);
+			PvCaptureQueueFrame(cameraHandle, _frame, frameCB);
 			float& time = *(float*)_frame->Context[2];
 			time = ofGetElapsedTimef();
 			capuredFrameQueue.push_front(_frame);
 		}
 		else if (_frame->Status != ePvErrCancelled) {
 			logError(_frame->Status);
-			PvCaptureQueueFrame(cameraHandle, _frame, FrameDoneCB);
+			PvCaptureQueueFrame(cameraHandle, _frame, frameCB);
 		}
 		else {
 			logError(_frame->Status);
@@ -583,7 +583,6 @@ namespace ofxPvAPI {
 		allocateFrames();
 		startCapture();
 		startAcquisition();
-		
 		queueFrames();
 	}
 	
@@ -1047,7 +1046,7 @@ namespace ofxPvAPI {
 		}
 		
 		ofLogNotice("Camera:") << deviceID << " Reinitializing...";
-		initCamera(deviceID);
+//		initCamera(deviceID);
 		
 #endif
 	}
