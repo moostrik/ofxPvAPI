@@ -13,7 +13,7 @@ public:
     void draw();
     void exit();
 	
-	ofxPvAPI::ParameterConnector	camera;
+	ofxPvAPI::ParamCam	camera;
 		
 	ofxPanel gui;
 	ofParameter<int> fps;

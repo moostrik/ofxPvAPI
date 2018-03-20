@@ -5,17 +5,27 @@ namespace ofxPvAPI {
 	
 	bool Camera::bPvApiInitiated = false;
 	int Camera::numCamerasInUse = 0;
-	int Camera::numPvFrames = 5;
+	int Camera::numPvFrames = 4;
 	
 	void FrameDoneCB(tPvFrame* pFrame){
 		Camera* cam = (Camera*)pFrame->Context[0];
 		if(cam) {cam->onFrameDone(pFrame); }
 	}
 	
+	void CamLinkCB(void* Context, tPvInterface Interface, tPvLinkEvent Event, unsigned long UniqueId) {
+		Camera* cam = (Camera*)Context;
+		if (Event == ePvLinkAdd) {
+			cam->plugCamera(UniqueId);
+		} else if (Event == ePvLinkRemove) {
+			cam->unplugCamera(UniqueId);
+		}
+	}
+	
 	//--------------------------------------------------------------------
 	
 	Camera::Camera() :
 	bInitialized(false),
+	bCamFound(false),
 	bIsFrameNew(false),
 	fps(0),
 	frameDrop(0),
@@ -29,7 +39,6 @@ namespace ofxPvAPI {
 		
 		if (!bPvApiInitiated) PvApiInitialize() ;
 		
-		// to allocateFrame
 		pvFrames = new tPvFrame[numPvFrames];
 		if (pvFrames) { memset(pvFrames,0,sizeof(tPvFrame) * numPvFrames); }
 		
@@ -54,6 +63,7 @@ namespace ofxPvAPI {
 		else {
 			tPvErr error = PvInitialize();
 			if( error == ePvErrSuccess ) {
+				ofSleepMillis(500); // wait for cams to register
 				ofLog(OF_LOG_NOTICE, "Camera: PvAPI initialized");
 				
 			} else {
@@ -151,58 +161,20 @@ namespace ofxPvAPI {
 	//-- OF ----------------------------------------------------------------------
 	
 	bool Camera::setup() {
-		vector<ofVideoDevice> deviceList = listDevices();
-		if (deviceList.size() == 0) {
-			ofLog(OF_LOG_WARNING, "Camera: %lu no cameras found", deviceID);
-			return false;
-		}
+		PvLinkCallbackRegister(CamLinkCB, ePvLinkAdd, this);
+		PvLinkCallbackRegister(CamLinkCB, ePvLinkRemove, this);
 		
 		if (requestedDeviceID == 0) {
-			bool foundAvailableCamera = false;
-			for (int i=0; i<deviceList.size(); i++) {
-				if (deviceList[i].bAvailable) {
-					requestedDeviceID = deviceList[i].id;
-					foundAvailableCamera = true;
-					break;
-				}
-			}
-			if (foundAvailableCamera){
-				ofLog(OF_LOG_NOTICE, "Camera: no camera ID specified, defaulting to camera %lu", requestedDeviceID);
-			}
-			else {
-				ofLog(OF_LOG_WARNING, "Camera: found no camera available ");
-				return false;
-			}
+			// if cameras are already present default to first available
 		}
-		
-		bool requestedDeviceFound = false;
-		bool requestedDeviceAvailable = false;
-		for (int i=0; i<deviceList.size(); i++) {
-			if (requestedDeviceID == deviceList[i].id) {
-				requestedDeviceFound = true;
-				if (deviceList[i].bAvailable) {
-					requestedDeviceAvailable = true;
-					ofLog(OF_LOG_VERBOSE, "Camera: %lu found", requestedDeviceID);
-				}
-			}
-		}
-		if (!requestedDeviceFound) {
-			ofLog(OF_LOG_WARNING, "Camera: %lu not found", requestedDeviceID);
-			return false;
-		}
-		if (!requestedDeviceAvailable) {
-			ofLog(OF_LOG_WARNING, "Camera: %lu not available", requestedDeviceID);
-			return false;
-		}
-		
-		return initCamera(requestedDeviceID);
+		plugCamera(requestedDeviceID);
 	}
 	
 	void Camera::update() {
 		
 		bIsFrameNew = false;
 		
-		if (bInitialized) {
+		if (bInitialized && bCamFound) {
 			if (!fixedRate) { triggerFrame(); }
 			if ( capuredFrameQueue.size() > 0) {
 				size_t frameoffset = (fixedRate)? 1 : 0;
@@ -265,7 +237,8 @@ namespace ofxPvAPI {
 		if( bInitialized ) {
 			
 			clearQueue();
-			stopAcquisition();
+//			stopAcquisition();
+//			abortAcquisition();
 			stopCapture();
 			closeCamera();
 			
@@ -284,8 +257,18 @@ namespace ofxPvAPI {
 	//----------------------------------------------------------------------------
 	//-- ACQUISITION -------------------------------------------------------------
 	
-	bool Camera::initCamera(int _cameraUid){
+	void Camera::plugCamera(unsigned long _cameraUid) {
 		
+		if (requestedDeviceID == 0) {
+			ofLog(OF_LOG_NOTICE, "Camera: no camera ID specified, defaulting to camera %lu", _cameraUid);
+			requestedDeviceID = _cameraUid;
+		}
+			
+		if (requestedDeviceID != _cameraUid) {
+			return;
+		}
+		
+		ofLog(OF_LOG_NOTICE, "Camera: %lu found", requestedDeviceID);
 		deviceID = _cameraUid;
 		
 		// todo: better handling of failures
@@ -302,6 +285,7 @@ namespace ofxPvAPI {
 		if (!startAcquisition()) return false;
 		
 		
+		bCamFound = true;
 		bInitialized = true;
 		triggerFrame();
 		numCamerasInUse++;
@@ -311,6 +295,15 @@ namespace ofxPvAPI {
 		return true;
 	}
 	
+	void Camera::unplugCamera(unsigned long cameraUid) {
+		if (cameraUid == requestedDeviceID) {
+			ofLog(OF_LOG_NOTICE, "Camera: %lu lost", requestedDeviceID);
+			bCamFound = false;
+			clearQueue();
+			stopCapture();
+			closeCamera();
+		}
+	}
 	
 	bool Camera::openCamera() {
 		tPvErr error = PvCameraOpen( deviceID, ePvAccessMaster, &cameraHandle );
@@ -1142,9 +1135,9 @@ namespace ofxPvAPI {
 			ofLog(OF_LOG_ERROR, "Camera: %lu can not be opened in the specified mode", deviceID);
 			break;
 			case ePvErrUnplugged:
-			ofLog(OF_LOG_ERROR, "Camera: %lu was unplugged", deviceID);
+			ofLog(OF_LOG_WARNING, "Camera: %lu was unplugged", deviceID);
 			
-			close(); // should not close, but should close cam
+//				unplugCamera(deviceID); // should not close, but should close cam
 			
 			break;
 			case ePvErrInvalidSetup:
@@ -1166,7 +1159,7 @@ namespace ofxPvAPI {
 			ofLog(OF_LOG_VERBOSE, "Camera: %lu Frame cancelled by user", deviceID);
 			break;
 			case ePvErrDataLost:
-			ofLog(OF_LOG_ERROR, "Camera: %lu The data for the frame was lost", deviceID);
+			ofLog(OF_LOG_WARNING, "Camera: %lu The data for the frame was lost", deviceID);
 			break;
 			case ePvErrDataMissing:
 			ofLog(OF_LOG_NOTICE, "Camera: %lu Some data in the frame is missing", deviceID);
@@ -1175,7 +1168,7 @@ namespace ofxPvAPI {
 			ofLog(OF_LOG_ERROR, "Camera: %lu Timeout during wait", deviceID);
 			break;
 			case ePvErrOutOfRange:
-			ofLog(OF_LOG_ERROR, "Camera: %lu Attribute value is out of the expected range", deviceID);
+			ofLog(OF_LOG_NOTICE, "Camera: %lu Attribute value is out of the expected range", deviceID);
 			break;
 			case ePvErrWrongType:
 			ofLog(OF_LOG_ERROR, "Camera: %lu Attribute is not this type (wrong access function)", deviceID);

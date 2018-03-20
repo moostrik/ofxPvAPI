@@ -12,7 +12,7 @@
 namespace ofxPvAPI {
 	
 	bool TexPC::setup(){
-		ParameterConnector::setup();
+		ParamCam::setup();
 		
 		internalTexture.allocate(640, 480, GL_R8);
 		// bug in OF won't allow for ofFbo's to be re-allocated with different internal format so default to RGB
@@ -40,18 +40,18 @@ namespace ofxPvAPI {
 	
 	//--------------------------------------------------------------
 	void TexPC::update() {
-		ParameterConnector::update();
+		ParamCam::update();
 		
-		if (ParameterConnector::isFrameNew()){
-			int w = ParameterConnector::getWidth();
-			int h = ParameterConnector::getHeight();
+		if (ParamCam::isFrameNew()){
+			int w = ParamCam::getWidth();
+			int h = ParamCam::getHeight();
 			int glFormat = ofGetGLInternalFormatFromPixelFormat(getPixelFormat());
 			if (internalTexture.getWidth() != w || internalTexture.getHeight() != h || internalTexture.getTextureData().glInternalFormat != glFormat) {
 				internalTexture.clear();
 				internalTexture.allocate(w, h, glFormat);
 			}
 			
-			internalTexture.loadData(ParameterConnector::getPixels());
+			internalTexture.loadData(ParamCam::getPixels());
 			
 			int dstWidth = w;
 			int dstHeight = h;

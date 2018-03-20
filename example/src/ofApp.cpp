@@ -13,7 +13,7 @@ void ofApp::setup(){
 	
 	//  select camera, default is first in list
 	//  select camera by deviceID
-//	camera.setDeviceID(6002494);
+	camera.setDeviceID(6022891);
 	
 	//	select camera by IP
 //	int deviceID = camera.getDeviceIDFromIpAdress("10.0.0.50");

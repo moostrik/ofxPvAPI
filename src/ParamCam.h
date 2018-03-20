@@ -1,18 +1,18 @@
 #pragma once
 
 #include "ofMain.h"
-#include "Connector.h"
+#include "Camera.h"
 
 namespace ofxPvAPI {
 	
-	class ParameterConnector : public Connector {
+	class ParamCam : public Camera {
 	
 	public:
 		
-		ParameterConnector() {;}
-		virtual ~ParameterConnector() {;}
+		ParamCam() {;}
+		virtual ~ParamCam() {;}
 		
-		bool	setup();
+		void	setup();
 		void	update();
 		
 		ofParameterGroup	parameters;
@@ -196,16 +196,16 @@ namespace ofxPvAPI {
 		
 			//-- CONNECTION ------------------------------------------------------
 		
-		ofParameter<bool>	doConnect;
-		ofParameter<bool>	doDisconnect;
-		ofParameter<bool>	doAutoConnect;
-		ofParameter<int>	autoConnectAttempts;
-		ofParameter<int>	autoConnectCounter;
-		ofParameter<float>	autoConnectInterval;
+//		ofParameter<bool>	doConnect;
+//		ofParameter<bool>	doDisconnect;
+//		ofParameter<bool>	doAutoConnect;
+//		ofParameter<int>	autoConnectAttempts;
+//		ofParameter<int>	autoConnectCounter;
+//		ofParameter<float>	autoConnectInterval;
 		
 	private:
-		ofParameterGroup	connectParameters;
-		ofParameterGroup	autoConnectParameters;
+//		ofParameterGroup	connectParameters;
+//		ofParameterGroup	autoConnectParameters;
 		
 		void	printAttributesListener(bool & _value)		{ if(!blockListeners && _value) listAttributes(); _value = false; }
 		void	printIpSettingsListener(bool & _value)		{ if(!blockListeners && _value) listIpSettings(); _value = false; }
@@ -214,13 +214,12 @@ namespace ofxPvAPI {
 		
 		
 		
-		void	doConnectListener(bool& _value)				{ if(_value) connect(); _value = false; }
-		void	doDisconnectListener(bool& _value)			{ if(_value) disconnect(); doAutoConnect.set(false); _value = false; }
-		void	doAutoConnectListener(bool& _value)			{ setAutoConnect(_value); }
-		void	autoConnectAttemptsListener(int& _value)	{ if(!blockListeners) setAutoConnectAttempts(_value); }
+//		void	doConnectListener(bool& _value)				{ if(_value) connect(); _value = false; }
+//		void	doDisconnectListener(bool& _value)			{ if(_value) disconnect(); doAutoConnect.set(false); _value = false; }
+//		void	doAutoConnectListener(bool& _value)			{ setAutoConnect(_value); }
+//		void	autoConnectAttemptsListener(int& _value)	{ if(!blockListeners) setAutoConnectAttempts(_value); }
 		
 		
-		bool	initInterface();
 		void	updateParametersFromCam();
 		void	setAllParametersFromCam();
 		void	setAllParametersFromInterface();

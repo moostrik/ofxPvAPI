@@ -54,7 +54,13 @@ namespace ofxPvAPI {
 		protected:
 		tPvHandle		cameraHandle;
 		bool 			bInitialized;
+		bool 			bCamFound;
 		
+		public:
+		void			plugCamera(unsigned long cameraUid);
+		void			unplugCamera(unsigned long cameraUid);
+		
+		protected:
 		bool			initCamera(int cameraUid);
 		bool			openCamera();
 		bool			closeCamera();
@@ -65,10 +71,12 @@ namespace ofxPvAPI {
 		bool			abortAcquisition();
 		
 		
-			//-- PV FRAMES -------------------------------------------------------
+		//-- CALLBACK --------------------------------------------------------
 		public:
 		void			onFrameDone(tPvFrame* _frame); // for internal use only, cannot be protected due to callback
 		
+		
+		//-- PV FRAMES -------------------------------------------------------
 		protected:
 		static int		numPvFrames;
 		tPvFrame*		pvFrames;
