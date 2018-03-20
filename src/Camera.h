@@ -27,7 +27,12 @@ namespace ofxPvAPI {
 		void			PvApiInitialize();
 		void			PvApiUnInitialize();
 		static bool		bPvApiInitiated;
-		static int		numCamerasInUse;
+		
+			//-- OF --------------------------------------------------------------
+	public:
+		bool			setup();
+		void			update();
+		void			destroy();
 		
 			//-- DEVICE ----------------------------------------------------------
 		public:
@@ -36,31 +41,27 @@ namespace ofxPvAPI {
 		void			requestDeviceByID(int _deviceID);
 		int 			getDeviceID();
 		int				getDeviceIDFromIpAdress(string _IpAdress);
+		bool			isDeviceAvailable(int _deviceID);
+		int			getFirstDeviceAvailable();
+		
+		bool			isActive() { return bDeviceActive; }
 		
 		protected:
+		static int		numActiveDevices;
 		unsigned long	deviceID;
 		unsigned long	requestedDeviceID;
+		tPvHandle		deviceHandle;
+		bool 			bDeviceActive;
 		
-			//-- OF --------------------------------------------------------------
-		public:
-		bool			setup();
-		void			update();
-		void			close();
-		
-			//-- ACQUISITION -----------------------------------------------------
-		public:
-		bool			isInitialized() { return bInitialized; }
-		
-		protected:
-		tPvHandle		cameraHandle;
-		bool 			bInitialized;
-		bool 			bCamFound;
+		void			activateDevice();
+		void			deactivateDevice();
 		
 		void			plugCamera(unsigned long cameraUid);
 		void			unplugCamera(unsigned long cameraUid);
 		
 		
 			//-- ACQUISITION -----------------------------------------------------
+		protected:
 		bool			openCamera();
 		bool			closeCamera();
 		

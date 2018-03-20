@@ -4,7 +4,7 @@
 namespace ofxPvAPI {
 	
 	bool Camera::bPvApiInitiated = false;
-	int Camera::numCamerasInUse = 0;
+	int Camera::numActiveDevices = 0;
 	int Camera::numPvFrames = 4;
 	
 	void Camera::frameCB(tPvFrame* pFrame){
@@ -24,8 +24,7 @@ namespace ofxPvAPI {
 	//--------------------------------------------------------------------
 	
 	Camera::Camera() :
-	bInitialized(false),
-	bCamFound(false),
+	bDeviceActive(false),
 	bIsFrameNew(false),
 	fps(0),
 	frameDrop(0),
@@ -50,8 +49,8 @@ namespace ofxPvAPI {
 	}
 	
 	Camera::~Camera(){
-		close();
-		if (numCamerasInUse == 0 && bPvApiInitiated)
+		destroy();
+		if (numActiveDevices == 0 && bPvApiInitiated)
 		PvApiUnInitialize();
 	}
 	
@@ -77,7 +76,7 @@ namespace ofxPvAPI {
 	}
 	
 	void Camera::PvApiUnInitialize() {
-		if (numCamerasInUse == 0 && bPvApiInitiated) {
+		if (numActiveDevices == 0 && bPvApiInitiated) {
 			PvUnInitialize();
 			bPvApiInitiated = false;
 			ofLog(OF_LOG_NOTICE, "Camera: PvAPI uninitialized");
@@ -86,95 +85,31 @@ namespace ofxPvAPI {
 	
 	
 	//----------------------------------------------------------------------------
-	//-- DEVICES -----------------------------------------------------------------
-	
-	vector<ofVideoDevice> Camera::listDevices(){
-		
-		vector <ofVideoDevice> devices;
-		
-		tPvUint32 count, connected;
-		unsigned long cameraCount = PvCameraCount();;
-		tPvCameraInfoEx* devList = new tPvCameraInfoEx[cameraCount];
-		
-		
-		count = PvCameraListEx( devList, cameraCount, &connected, sizeof(tPvCameraInfoEx) );
-		
-		if( connected > cameraCount ) {
-			ofLog(OF_LOG_VERBOSE, "Camera: more cameras connected than will be listed");
-		}
-		
-		ofLog(OF_LOG_VERBOSE, "Camera: listing available capture devices:");
-		for(int i = 0; i < count; i++){
-			ofVideoDevice vd;
-			vd.id = devList[i].UniqueId;
-			vd.deviceName = devList[i].CameraName;
-			vd.hardwareName = devList[i].ModelName;
-			vd.bAvailable = devList[i].PermittedAccess > 2;
-			devices.push_back(vd);
-			
-			ofLog(OF_LOG_VERBOSE, "%i: %s | model: %s | id: %d | available: %d", i, vd.deviceName.c_str(), vd.hardwareName.c_str(), vd.id, vd.bAvailable);
-		}
-		
-		if (cameraCount == 0)
-		ofLog(OF_LOG_VERBOSE, "Camera: no cameras found");
-		
-		delete[] devList;
-		return devices;
-	}
-	
-	int Camera::getDeviceIDFromIpAdress(string _IPAdress) {
-		deviceID = 0;
-		
-		tPvCameraInfoEx pInfo;
-		tPvIpSettings pIpSettings;
-		
-		tPvErr error = PvCameraInfoByAddrEx(IPStringToLong(_IPAdress),
-											&pInfo,
-											&pIpSettings,
-											sizeof(pInfo));
-		
-		if (error == ePvErrSuccess) {
-			deviceID = pInfo.UniqueId;
-			ofLog(OF_LOG_NOTICE, "Camera: found camera %lu on IP adress %s", deviceID, _IPAdress.c_str());
-		}
-		else {
-			ofLog(OF_LOG_WARNING, "Camera: no camera found on IP adress %s", _IPAdress.c_str());
-			logError(error);
-		}
-		return deviceID;
-	}
-	
-	void Camera::requestDeviceByID(int _deviceID) {
-		if (bInitialized)
-		ofLog(OF_LOG_ERROR, "Camera: %lu: setDeviceID(): can't set ID while grabber is running", deviceID);
-		else {
-			requestedDeviceID = _deviceID;
-		}
-	}
-	
-	int Camera::getDeviceID() {
-		return deviceID;
-	}
-	
-	
-	//----------------------------------------------------------------------------
 	//-- OF ----------------------------------------------------------------------
 	
 	bool Camera::setup() {
-		PvLinkCallbackRegister(camLinkCB, ePvLinkAdd, this);
-		PvLinkCallbackRegister(camLinkCB, ePvLinkRemove, this);
 		
 		if (requestedDeviceID == 0) {
-			// if cameras are already present default to first available
+			requestedDeviceID = getFirstDeviceAvailable();
+			if (requestedDeviceID != 0) {
+				deviceID = requestedDeviceID;
+				ofLog(OF_LOG_NOTICE, "Camera: no camera ID specified, defaulting to camera %lu", deviceID);
+			}
 		}
-		plugCamera(requestedDeviceID);
+		if (isDeviceAvailable(requestedDeviceID)) {
+			deviceID = requestedDeviceID;
+			activateDevice();
+		}
+		
+		PvLinkCallbackRegister(camLinkCB, ePvLinkAdd, this);
+		PvLinkCallbackRegister(camLinkCB, ePvLinkRemove, this);
 	}
 	
 	void Camera::update() {
 		
 		bIsFrameNew = false;
 		
-		if (bInitialized && bCamFound) {
+		if (bDeviceActive) {
 			if (!fixedRate) { triggerFrame(); }
 			if ( capuredFrameQueue.size() > 0) {
 				size_t frameoffset = (fixedRate)? 1 : 0;
@@ -182,7 +117,7 @@ namespace ofxPvAPI {
 				tPvFrame& frame = *capuredFrameQueue[frameoffset];
 				
 				float time = ofGetElapsedTimef();
-				float frameTime = time; // init with current time 
+				float frameTime = time; // init with current time
 				
 				if (frame.Status == ePvErrSuccess) {
 					pixels.setFromExternalPixels((unsigned char *)frame.ImageBuffer, frame.Width, frame.Height, pixelFormat);
@@ -232,30 +167,118 @@ namespace ofxPvAPI {
 		frameLatency = (tL / framesLatencies.size());
 	}
 	
-	void Camera::close(){
+	void Camera::destroy(){
 		
-		if( bInitialized ) {
-			
-			clearQueue();
-//			stopAcquisition();
-//			abortAcquisition();
-			stopCapture();
-			closeCamera();
+		if( bDeviceActive ) {
+			deactivateDevice();
 			
 			for (int i=0; i<numPvFrames; i++) {
 				delete (char*)pvFrames[i].ImageBuffer;
 			}
 			
-			bInitialized = false;
-			numCamerasInUse--;
-			
-			ofLog(OF_LOG_NOTICE, "Camera: %lu closed", deviceID);
+			ofLog(OF_LOG_NOTICE, "Camera: %lu destroyed", deviceID);
 		}
 	}
 	
 	
 	//----------------------------------------------------------------------------
-	//-- ACQUISITION -------------------------------------------------------------
+	//-- DEVICES -----------------------------------------------------------------
+	
+	vector<ofVideoDevice> Camera::listDevices(){
+		
+		vector <ofVideoDevice> devices;
+		
+		tPvUint32 count, connected;
+		unsigned long cameraCount = PvCameraCount();;
+		tPvCameraInfoEx* devList = new tPvCameraInfoEx[cameraCount];
+		
+		
+		count = PvCameraListEx( devList, cameraCount, &connected, sizeof(tPvCameraInfoEx) );
+		
+		if( connected > cameraCount ) {
+			ofLog(OF_LOG_VERBOSE, "Camera: more cameras connected than will be listed");
+		}
+		
+		ofLog(OF_LOG_VERBOSE, "Camera: listing available capture devices:");
+		for(int i = 0; i < count; i++){
+			ofVideoDevice vd;
+			vd.id = devList[i].UniqueId;
+			vd.deviceName = devList[i].CameraName;
+			vd.hardwareName = devList[i].ModelName;
+			vd.bAvailable = devList[i].PermittedAccess > 2;
+			devices.push_back(vd);
+			
+			ofLog(OF_LOG_VERBOSE, "%i: %s | model: %s | id: %d | available: %d", i, vd.deviceName.c_str(), vd.hardwareName.c_str(), vd.id, vd.bAvailable);
+		}
+		
+		if (cameraCount == 0)
+		ofLog(OF_LOG_VERBOSE, "Camera: no cameras found");
+		
+		delete[] devList;
+		return devices;
+	}
+	
+	bool Camera::isDeviceAvailable(int _deviceID) {
+		vector<ofVideoDevice> deviceList = listDevices();
+		bool requestedDeviceFound = false;
+		bool requestedDeviceAvailable = false;
+		for (int i=0; i<deviceList.size(); i++) {
+			if (requestedDeviceID == deviceList[i].id) {
+				requestedDeviceFound = true;
+				if (deviceList[i].bAvailable) {
+					requestedDeviceAvailable = true;
+					ofLog(OF_LOG_VERBOSE, "Camera: %lu found and available", requestedDeviceID);
+				} else {
+					ofLog(OF_LOG_NOTICE, "Camera: %lu found, but not available", requestedDeviceID);
+				}
+			}
+		}
+		return requestedDeviceFound && requestedDeviceAvailable;
+	}
+	
+	int Camera::getFirstDeviceAvailable() {
+		vector<ofVideoDevice> deviceList = listDevices();
+		for (int i=0; i<deviceList.size(); i++) {
+			if (deviceList[i].bAvailable) {
+				return deviceList[i].id;
+			}
+		}
+		return 0;
+	}
+	
+	int Camera::getDeviceIDFromIpAdress(string _IPAdress) {
+		deviceID = 0;
+		
+		tPvCameraInfoEx pInfo;
+		tPvIpSettings pIpSettings;
+		
+		tPvErr error = PvCameraInfoByAddrEx(IPStringToLong(_IPAdress),
+											&pInfo,
+											&pIpSettings,
+											sizeof(pInfo));
+		
+		if (error == ePvErrSuccess) {
+			deviceID = pInfo.UniqueId;
+			ofLog(OF_LOG_NOTICE, "Camera: found camera %lu on IP adress %s", deviceID, _IPAdress.c_str());
+		}
+		else {
+			ofLog(OF_LOG_WARNING, "Camera: no camera found on IP adress %s", _IPAdress.c_str());
+			logError(error);
+		}
+		return deviceID;
+	}
+	
+	void Camera::requestDeviceByID(int _deviceID) {
+		if (bDeviceActive)
+		ofLog(OF_LOG_ERROR, "Camera: %lu: setDeviceID(): can't set ID while grabber is running", deviceID);
+		else {
+			requestedDeviceID = _deviceID;
+		}
+	}
+	
+	int Camera::getDeviceID() {
+		return deviceID;
+	}
 	
 	void Camera::plugCamera(unsigned long _cameraUid) {
 		
@@ -263,50 +286,62 @@ namespace ofxPvAPI {
 			ofLog(OF_LOG_NOTICE, "Camera: no camera ID specified, defaulting to camera %lu", _cameraUid);
 			requestedDeviceID = _cameraUid;
 		}
-			
+		
 		if (requestedDeviceID != _cameraUid) {
 			return;
 		}
 		
-		ofLog(OF_LOG_NOTICE, "Camera: %lu found", requestedDeviceID);
+		ofLog(OF_LOG_NOTICE, "Camera: %lu connected", requestedDeviceID);
 		deviceID = _cameraUid;
 		
-		// todo: better handling of failures
-		// for exaple: a failure on starting aquisition leaves camera open.
+		activateDevice();
 		
-		if (!openCamera()) return false;
-		if (!setPacketSizeToMax()) return false;
-		if (!allocateFrames()) return false;
-		if (!startCapture()) return false;
-		if (fixedRate) { if (!setEnumAttribute("FrameStartTriggerMode","FixedRate")) return false; }
-		else { if (!setEnumAttribute("FrameStartTriggerMode","Software")) return false; }
-		if (!setEnumAttribute("AcquisitionMode", "Continuous")) return false;
-		if (!setEnumAttribute("PixelFormat", getPvPixelFormat(pixelFormat))) return false;
-		if (!startAcquisition()) return false;
-		
-		
-		bCamFound = true;
-		bInitialized = true;
-		triggerFrame();
-		numCamerasInUse++;
-		ofLog(OF_LOG_NOTICE,"Camera: %lu up and running", deviceID);
-		
-		queueFrames();
-		return true;
 	}
 	
 	void Camera::unplugCamera(unsigned long cameraUid) {
-		if (cameraUid == requestedDeviceID) {
+		if (cameraUid == deviceID) {
 			ofLog(OF_LOG_NOTICE, "Camera: %lu lost", requestedDeviceID);
-			bCamFound = false;
-			clearQueue();
-			stopCapture();
-			closeCamera();
+			deactivateDevice();
 		}
 	}
 	
+	void Camera::activateDevice() {
+		
+		openCamera();
+		setPacketSizeToMax(); // first?
+		allocateFrames();
+		startCapture();
+		if (fixedRate) { setEnumAttribute("FrameStartTriggerMode","FixedRate"); }
+		else { setEnumAttribute("FrameStartTriggerMode","Software"); }
+		setEnumAttribute("AcquisitionMode", "Continuous");
+		setEnumAttribute("PixelFormat", getPvPixelFormat(pixelFormat));
+		startAcquisition();
+		
+		numActiveDevices++;
+		bDeviceActive = true;
+		queueFrames();
+		
+		ofLog(OF_LOG_NOTICE,"Camera: %lu active", deviceID);
+		
+		return true;
+	}
+	
+	void Camera::deactivateDevice() {
+		
+		bDeviceActive = false;
+		numActiveDevices--;
+		clearQueue();
+		stopCapture();
+		closeCamera();
+		
+		ofLog(OF_LOG_NOTICE,"Camera: %lu deactivated", deviceID);
+	}
+	
+	//----------------------------------------------------------------------------
+	//-- ACQUISITION -------------------------------------------------------------
+	
 	bool Camera::openCamera() {
-		tPvErr error = PvCameraOpen( deviceID, ePvAccessMaster, &cameraHandle );
+		tPvErr error = PvCameraOpen( deviceID, ePvAccessMaster, &deviceHandle );
 		if( error == ePvErrSuccess ){
 			ofLog(OF_LOG_VERBOSE, "Camera: %lu opened", deviceID);
 			return true;
@@ -318,10 +353,9 @@ namespace ofxPvAPI {
 	}
 	
 	bool Camera::closeCamera() {
-		tPvErr error = PvCameraClose(cameraHandle);
+		tPvErr error = PvCameraClose(deviceHandle);
 		if( error == ePvErrSuccess ){
 			ofLog(OF_LOG_VERBOSE, "Camera: %lu camera closed", deviceID);
-			bInitialized = false;
 			return true;
 		} else {
 			ofLog(OF_LOG_ERROR, "Camera: %lu failed to close", deviceID);
@@ -333,7 +367,7 @@ namespace ofxPvAPI {
 	
 	bool Camera::startCapture() {
 		
-		tPvErr error = PvCaptureStart(cameraHandle);
+		tPvErr error = PvCaptureStart(deviceHandle);
 		if( error == ePvErrSuccess ){
 			ofLog(OF_LOG_VERBOSE, "Camera: %lu set to capture mode", deviceID);
 			return true;
@@ -345,7 +379,7 @@ namespace ofxPvAPI {
 	}
 	
 	bool Camera::stopCapture() {
-		tPvErr error = PvCaptureEnd(cameraHandle);
+		tPvErr error = PvCaptureEnd(deviceHandle);
 		if( error == ePvErrSuccess ){
 			ofLog(OF_LOG_VERBOSE, "Camera: %lu stopped capture mode", deviceID);
 			return true;
@@ -358,7 +392,7 @@ namespace ofxPvAPI {
 	
 	
 	bool Camera::startAcquisition() {
-		tPvErr error = PvCommandRun(cameraHandle,"AcquisitionStart");
+		tPvErr error = PvCommandRun(deviceHandle,"AcquisitionStart");
 		if( error == ePvErrSuccess ){
 			ofLog(OF_LOG_VERBOSE, "Camera: %lu acquisition started", deviceID);
 			return true;
@@ -371,7 +405,7 @@ namespace ofxPvAPI {
 	
 	bool Camera::stopAcquisition() {
 		
-		tPvErr error = PvCommandRun(cameraHandle,"AcquisitionStop");
+		tPvErr error = PvCommandRun(deviceHandle,"AcquisitionStop");
 		if( error == ePvErrSuccess ){
 			ofLog(OF_LOG_VERBOSE, "Camera: %lu continuous acquisition stopped", deviceID);
 			return true;
@@ -384,7 +418,7 @@ namespace ofxPvAPI {
 	
 	bool Camera::abortAcquisition() {
 		
-		tPvErr error = PvCommandRun(cameraHandle,"AcquisitionAbort");
+		tPvErr error = PvCommandRun(deviceHandle,"AcquisitionAbort");
 		if( error == ePvErrSuccess ){
 			ofLog(OF_LOG_VERBOSE, "Camera: %lu continuous acquisition aborted", deviceID);
 			return true;
@@ -402,7 +436,7 @@ namespace ofxPvAPI {
 	bool Camera::allocateFrames() {
 		
 		unsigned long frameSize = 0;
-		tPvErr error = PvAttrUint32Get( cameraHandle, "TotalBytesPerFrame", &frameSize );
+		tPvErr error = PvAttrUint32Get( deviceHandle, "TotalBytesPerFrame", &frameSize );
 		
 		int width = getIntAttribute("Width");
 		int height = getIntAttribute("Height");
@@ -439,7 +473,7 @@ namespace ofxPvAPI {
 	
 	bool Camera::queueFrames(){
 		for (int i=0; i<numPvFrames; i++) {
-			tPvErr error = PvCaptureQueueFrame( cameraHandle, &pvFrames[i], frameCB);
+			tPvErr error = PvCaptureQueueFrame( deviceHandle, &pvFrames[i], frameCB);
 			if (error != ePvErrSuccess ){
 				ofLog(OF_LOG_NOTICE, "Camera: " + ofToString(deviceID) + " failed to queue frame " + ofToString(i));
 				logError(error);
@@ -451,7 +485,7 @@ namespace ofxPvAPI {
 	}
 	
 	bool Camera::clearQueue() {
-		tPvErr error = PvCaptureQueueClear(cameraHandle);
+		tPvErr error = PvCaptureQueueClear(deviceHandle);
 		if (error != ePvErrSuccess ){
 			logError(error);
 			return false;
@@ -461,7 +495,7 @@ namespace ofxPvAPI {
 	
 	
 	bool Camera::triggerFrame(){
-		tPvErr error = PvCommandRun(cameraHandle,"FrameStartTriggerSoftware");
+		tPvErr error = PvCommandRun(deviceHandle,"FrameStartTriggerSoftware");
 		if( error == ePvErrSuccess ){
 			//			ofLog(OF_LOG_VERBOSE, "Camera: %lu frame triggered", deviceID);
 			return true;
@@ -475,14 +509,14 @@ namespace ofxPvAPI {
 	
 	void Camera::onFrameDone(tPvFrame* _frame) {
 		if (_frame->Status == ePvErrSuccess) {
-			PvCaptureQueueFrame(cameraHandle, _frame, frameCB);
+			PvCaptureQueueFrame(deviceHandle, _frame, frameCB);
 			float& time = *(float*)_frame->Context[2];
 			time = ofGetElapsedTimef();
 			capuredFrameQueue.push_front(_frame);
 		}
 		else if (_frame->Status != ePvErrCancelled) {
 			logError(_frame->Status);
-			PvCaptureQueueFrame(cameraHandle, _frame, frameCB);
+			PvCaptureQueueFrame(deviceHandle, _frame, frameCB);
 		}
 		else {
 			logError(_frame->Status);
@@ -490,8 +524,8 @@ namespace ofxPvAPI {
 	}
 	
 	
-		//----------------------------------------------------------------------------
-		//-- FRAMES --------------------------------------------------------------
+	//----------------------------------------------------------------------------
+	//-- FRAMES --------------------------------------------------------------
 	void Camera::setFixedRate(bool _value) {
 		fixedRate = _value;
 		if (fixedRate) { setEnumAttribute("FrameStartTriggerMode","FixedRate"); }
@@ -509,8 +543,8 @@ namespace ofxPvAPI {
 	//-- PIXELS ------------------------------------------------------------------
 	
 	bool Camera::setPixelFormat(ofPixelFormat _pixelFormat) {
-		if (bInitialized)
-		ofLog(OF_LOG_ERROR, "Camera: %lu: setPixelFormat(): can't set pixel format while grabber is running", deviceID);
+		if (bDeviceActive)
+		ofLog(OF_LOG_ERROR, "Camera: %lu: setPixelFormat(): can't set pixel format while device is active", deviceID);
 		else {
 			if (_pixelFormat == OF_PIXELS_MONO || _pixelFormat == OF_PIXELS_RGB) {
 				pixelFormat = _pixelFormat;
@@ -593,13 +627,13 @@ namespace ofxPvAPI {
 	void Camera::listAttributes(){
 		tPvAttrListPtr listPtr;
 		unsigned long listLength;
-		if (PvAttrList(cameraHandle, &listPtr, &listLength) == ePvErrSuccess) {
+		if (PvAttrList(deviceHandle, &listPtr, &listLength) == ePvErrSuccess) {
 			for (int i = 0; i < listLength; i++)
 			{
 				const char* attributeName = listPtr[i];
 				printf("Attribute: %s", attributeName);
 				tPvAttributeInfo pInfo;
-				PvAttrInfo(cameraHandle, attributeName, &pInfo);
+				PvAttrInfo(deviceHandle, attributeName, &pInfo);
 				tPvDatatype pDatatype = pInfo.Datatype;
 				
 				
@@ -615,38 +649,38 @@ namespace ofxPvAPI {
 					break;
 					case 3 :
 					char pString[128];
-					PvAttrStringGet(cameraHandle, attributeName, pString, sizeof(pString), NULL);
+					PvAttrStringGet(deviceHandle, attributeName, pString, sizeof(pString), NULL);
 					printf(", Datatype: String, Value: %s \n", pString);
 					break;
 					case 4 :
 					char pEnum[128];
 					char pEnumRange[2048];
 					
-					PvAttrEnumGet(cameraHandle, attributeName, pEnum, sizeof(pEnum), NULL);
-					PvAttrRangeEnum(cameraHandle, attributeName, pEnumRange, sizeof(pEnum), NULL);
+					PvAttrEnumGet(deviceHandle, attributeName, pEnum, sizeof(pEnum), NULL);
+					PvAttrRangeEnum(deviceHandle, attributeName, pEnumRange, sizeof(pEnum), NULL);
 					printf(", Datatype: Enum, Value: %s, Set: %s \n", pEnum, pEnumRange);
 					break;
 					case 5 :
 					tPvUint32 pUIValue, pUIMin, pUIMax;
-					PvAttrUint32Get(cameraHandle, attributeName, &pUIValue);
-					PvAttrRangeUint32(cameraHandle, attributeName, &pUIMin, &pUIMax);
+					PvAttrUint32Get(deviceHandle, attributeName, &pUIValue);
+					PvAttrRangeUint32(deviceHandle, attributeName, &pUIMin, &pUIMax);
 					printf(", Datatype: Uint32, Value: %li, Min: %li, Max: %li \n", pUIValue, pUIMin, pUIMax);
 					break;
 					case 6 :
 					tPvFloat32 pFValue, pFMin, pFMax;
-					PvAttrFloat32Get(cameraHandle, attributeName, &pFValue);
-					PvAttrRangeFloat32(cameraHandle, attributeName, &pFMin, &pFMax);
+					PvAttrFloat32Get(deviceHandle, attributeName, &pFValue);
+					PvAttrRangeFloat32(deviceHandle, attributeName, &pFMin, &pFMax);
 					printf(", Datatype: Float32, Value: %f, Min: %f, Max: %f \n", pFValue, pFMin, pFMax);
 					break;
 					case 7 :
 					tPvInt64 pIValue, pIMin, pIMax;
-					PvAttrInt64Get(cameraHandle, attributeName, &pIValue);
-					PvAttrRangeInt64(cameraHandle, attributeName, &pIMin, &pIMax);
+					PvAttrInt64Get(deviceHandle, attributeName, &pIValue);
+					PvAttrRangeInt64(deviceHandle, attributeName, &pIMin, &pIMax);
 					printf(", Datatype: Int64, Value: %lld, Min: %lld, Max: %lld \n", pIValue, pIMin, pIMax);
 					break;
 					case 8 :
 					tPvBoolean pBValue;
-					PvAttrBooleanGet(cameraHandle, attributeName, &pBValue);
+					PvAttrBooleanGet(deviceHandle, attributeName, &pBValue);
 					printf(", Datatype: Boolean, Value: %hhd \n", pBValue);
 					break;
 					default :
@@ -661,7 +695,7 @@ namespace ofxPvAPI {
 	}
 	
 	void Camera::resetAttributes() {
-		if (bInitialized) {
+		if (bDeviceActive) {
 			setFrameRate(25); // i'm in Europe and like to use lightbulbs
 			
 			setROIWidth(getROIWidthMax());
@@ -711,7 +745,7 @@ namespace ofxPvAPI {
 		}
 		
 		tPvAttributeInfo pInfo;
-		tPvErr error = PvAttrInfo(cameraHandle, _name.c_str(), &pInfo);
+		tPvErr error = PvAttrInfo(deviceHandle, _name.c_str(), &pInfo);
 		if (error != ePvErrSuccess) {
 			ofLog(OF_LOG_WARNING, "Camera: %lu, Attribute %s Not Found ", deviceID, _name.c_str());
 			return 0;
@@ -746,7 +780,7 @@ namespace ofxPvAPI {
 	
 	float Camera::getNormalizedAttribute(string _name) {
 		tPvAttributeInfo pInfo;
-		tPvErr error = PvAttrInfo(cameraHandle, _name.c_str(), &pInfo);
+		tPvErr error = PvAttrInfo(deviceHandle, _name.c_str(), &pInfo);
 		if (error != ePvErrSuccess) {
 			ofLog(OF_LOG_WARNING, "Camera: %lu, Attribute %s Not Found ", deviceID, _name.c_str());
 			return 0;
@@ -779,7 +813,7 @@ namespace ofxPvAPI {
 	
 	
 	bool Camera::setEnumAttribute(string _name, string _value) {
-		tPvErr error = PvAttrEnumSet(cameraHandle, _name.c_str(), _value.c_str());
+		tPvErr error = PvAttrEnumSet(deviceHandle, _name.c_str(), _value.c_str());
 		
 		if (error == ePvErrSuccess) {
 //			ofLog(OF_LOG_VERBOSE, "Camera: %lu set %s to %s", deviceID, _name.c_str(), _value.c_str());
@@ -794,7 +828,7 @@ namespace ofxPvAPI {
 	string Camera::getEnumAttribute(string _name) {
 		
 		char attribute[128];
-		tPvErr error = PvAttrEnumGet(cameraHandle, _name.c_str(), attribute, sizeof(attribute), NULL);
+		tPvErr error = PvAttrEnumGet(deviceHandle, _name.c_str(), attribute, sizeof(attribute), NULL);
 		
 		if (error != ePvErrSuccess) {
 			ofLog(OF_LOG_ERROR, "Camera: %lu failed to get enumeration attribute %s", deviceID, _name.c_str());
@@ -809,14 +843,14 @@ namespace ofxPvAPI {
 	
 	bool Camera::setIntAttribute(string _name, int _value) {
 		tPvUint32 min, max;
-		PvAttrRangeUint32(cameraHandle, _name.c_str(), &min, &max);
+		PvAttrRangeUint32(deviceHandle, _name.c_str(), &min, &max);
 		
 		if (!ofInRange(_value, min, max)) {
 			ofLog(OF_LOG_NOTICE, "Camera: %lu attribute %s value %i out of range (%lu, %lu), clamping...", deviceID, _name.c_str(), _value, min, max);
 			_value = ofClamp(_value, min, max);
 		}
 		
-		tPvErr error = PvAttrUint32Set(cameraHandle, _name.c_str(), _value);
+		tPvErr error = PvAttrUint32Set(deviceHandle, _name.c_str(), _value);
 		
 		if (error == ePvErrSuccess) {
 //			ofLog(OF_LOG_VERBOSE, "Camera: %lu set attribute %s to %i in range %lu to %lu", deviceID, _name.c_str(), _value, min, max);
@@ -832,7 +866,7 @@ namespace ofxPvAPI {
 	int Camera::getIntAttribute(string _name) {
 		
 		tPvUint32 value;
-		tPvErr error = PvAttrUint32Get(cameraHandle, _name.c_str(), &value);
+		tPvErr error = PvAttrUint32Get(deviceHandle, _name.c_str(), &value);
 		
 		if (error != ePvErrSuccess) {
 			ofLog(OF_LOG_ERROR, "Camera: %lu failed to get attribute %s", deviceID, _name.c_str());
@@ -846,7 +880,7 @@ namespace ofxPvAPI {
 	
 	int Camera::getIntAttributeMax(string _name) {
 		tPvUint32 t_min, t_max;
-		tPvErr error = PvAttrRangeUint32(cameraHandle, _name.c_str(), &t_min, &t_max);
+		tPvErr error = PvAttrRangeUint32(deviceHandle, _name.c_str(), &t_min, &t_max);
 		
 		if (error != ePvErrSuccess) {
 			ofLog(OF_LOG_ERROR, "Camera: %lu failed to get maximum for attribute %s", deviceID, _name.c_str());
@@ -859,7 +893,7 @@ namespace ofxPvAPI {
 	
 	int Camera::getIntAttributeMin(string _name) {
 		tPvUint32 t_min, t_max;
-		tPvErr error = PvAttrRangeUint32(cameraHandle, _name.c_str(), &t_min, &t_max);
+		tPvErr error = PvAttrRangeUint32(deviceHandle, _name.c_str(), &t_min, &t_max);
 		
 		if (error != ePvErrSuccess) {
 			ofLog(OF_LOG_ERROR, "Camera: %lu failed to get minimum for attribute %s", deviceID, _name.c_str());
@@ -873,13 +907,13 @@ namespace ofxPvAPI {
 	
 	bool Camera::setFloatAttribute(string _name, float _value) {
 		tPvFloat32 min, max;
-		PvAttrRangeFloat32(cameraHandle, _name.c_str(), &min, &max);
+		PvAttrRangeFloat32(deviceHandle, _name.c_str(), &min, &max);
 		if (!ofInRange(_value, min, max)) {
 			ofLog(OF_LOG_NOTICE, "Camera: %lu attribute %s value %f out of range (%f, %f), clamping...", deviceID, _name.c_str(), _value, min, max);
 			_value = ofClamp(_value, min, max);
 		}
 		
-		tPvErr error = PvAttrFloat32Set(cameraHandle, _name.c_str(), _value);
+		tPvErr error = PvAttrFloat32Set(deviceHandle, _name.c_str(), _value);
 		
 		if (error == ePvErrSuccess) {
 //			ofLog(OF_LOG_VERBOSE, "Camera: %lu set attribute %s to %f in range %f to %f", deviceID, _name.c_str(), _value, min, max);
@@ -893,7 +927,7 @@ namespace ofxPvAPI {
 	
 	float Camera::getFloatAttribute(string _name) {
 		tPvFloat32 value;
-		tPvErr error = PvAttrFloat32Get(cameraHandle, _name.c_str(), &value);
+		tPvErr error = PvAttrFloat32Get(deviceHandle, _name.c_str(), &value);
 		
 		if (error != ePvErrSuccess) {
 			ofLog(OF_LOG_ERROR, "Camera: %lu failed to get attribute %s", deviceID, _name.c_str());
@@ -907,7 +941,7 @@ namespace ofxPvAPI {
 	
 	float Camera::getFloatAttributeMax(string _name) {
 		tPvFloat32 t_min, t_max;
-		tPvErr error = PvAttrRangeFloat32(cameraHandle, _name.c_str(), &t_min, &t_max);
+		tPvErr error = PvAttrRangeFloat32(deviceHandle, _name.c_str(), &t_min, &t_max);
 		
 		if (error != ePvErrSuccess) {
 			ofLog(OF_LOG_ERROR, "Camera: %lu failed to get maximum for attribute %s", deviceID, _name.c_str());
@@ -921,7 +955,7 @@ namespace ofxPvAPI {
 	
 	float Camera::getFloatAttributeMin(string _name) {
 		tPvFloat32 t_min, t_max;
-		tPvErr error = PvAttrRangeFloat32(cameraHandle, _name.c_str(), &t_min, &t_max);
+		tPvErr error = PvAttrRangeFloat32(deviceHandle, _name.c_str(), &t_min, &t_max);
 		
 		if (error != ePvErrSuccess) {
 			ofLog(OF_LOG_ERROR, "Camera: %lu failed to get minimum for attribute %s", deviceID, _name.c_str());
@@ -998,11 +1032,9 @@ namespace ofxPvAPI {
 		tPvIpSettings ipSettings;
 		PvCameraIpSettingsGet(deviceID, &ipSettings);
 		if (!enable) {
-			clearQueue();
-			//stopAcquisition();
-			stopCapture();
-			closeCamera();
-			bInitialized = false;
+			if (bDeviceActive) {
+				deactivateDevice();
+			}
 			
 			ipSettings.ConfigMode = ePvIpConfigDhcp;
 			
@@ -1011,28 +1043,25 @@ namespace ofxPvAPI {
 			
 			struct in_addr addr, sn, gw;
 			
+			ipSettings.ConfigMode = ePvIpConfigPersistent;
+			
 			if (!inet_pton(AF_INET, persistentIpAdress.c_str(), &addr)) {
 				ofLogWarning("Camera: ") << deviceID << ", IP Adress " << persistentIpAdress << " is not valid";
 				return;
-			}
+			} else { ipSettings.PersistentIpAddr = addr.s_addr; }
 			if (!inet_pton(AF_INET, persistentIpSubnetMask.c_str(), &sn)) {
 				ofLogWarning("Camera: ") << deviceID << ", Subnet Mask " << persistentIpSubnetMask << " is not valid";
 				return;
-			}
-			if (!inet_pton(AF_INET, persistentIpGateway.c_str(), &gw));{
+			} else { ipSettings.PersistentIpSubnet = sn.s_addr; }
+			if (!inet_pton(AF_INET, persistentIpGateway.c_str(), &gw)){
 				ofLogWarning("Camera: ") << deviceID << ", Gatway " << persistentIpGateway << " is not valid";
-			}
-			
-			clearQueue();
-			//stopAcquisition();
-			stopCapture();
-			closeCamera();
-			bInitialized = false;
-			
-			ipSettings.ConfigMode = ePvIpConfigPersistent;
-			ipSettings.PersistentIpAddr = addr.s_addr;
-			ipSettings.PersistentIpSubnet = sn.s_addr;
-			ipSettings.PersistentIpGateway = gw.s_addr;
+			} else { ipSettings.PersistentIpGateway = gw.s_addr; }
+		}
+		
+		bool wasActive = false;
+		if (bDeviceActive) {
+			wasActive = true;
+			deactivateDevice();
 		}
 		
 		tPvErr error;
@@ -1045,9 +1074,9 @@ namespace ofxPvAPI {
 			logError(error);
 		}
 		
-		ofLogNotice("Camera:") << deviceID << " Reinitializing...";
-//		initCamera(deviceID);
-		
+		if (wasActive) {
+			activateDevice();
+		}
 #endif
 	}
 	
@@ -1093,7 +1122,7 @@ namespace ofxPvAPI {
 	
 	
 	bool Camera::setPacketSizeToMax() {
-		tPvErr error = PvCaptureAdjustPacketSize(cameraHandle, getIntAttributeMax("PacketSize"));
+		tPvErr error = PvCaptureAdjustPacketSize(deviceHandle, getIntAttributeMax("PacketSize"));
 		
 		if( error == ePvErrSuccess ){
 			ofLog(OF_LOG_VERBOSE, "Camera: %lu packet size set to %i", deviceID, getIntAttribute("PacketSize"));

@@ -146,7 +146,7 @@ namespace ofxPvAPI {
 		
 		
 		bLoadFromInterface = true;
-		blockListeners = !bInitialized;
+		blockListeners = !bDeviceActive;
 		
 		return true;
 	}
@@ -154,9 +154,9 @@ namespace ofxPvAPI {
 		//------------------------------------------------------------------------
 	void ParamCam::update() {
 		Camera::update();
-		blockListeners = !bInitialized;
+		blockListeners = !bDeviceActive;
 		
-		if (bInitialized) {
+		if (bDeviceActive) {
 			pFps = getFps();
 			pFrameDrop = getFrameDrop();
 			pFrameLatency = getLatency();
@@ -170,13 +170,9 @@ namespace ofxPvAPI {
 				updateParametersFromCam();
 			}
 		}
-		
-//		doAutoConnect.set(getAutoConnect());
-//		if (!bInitialized) {
-//			autoConnectAttempts.set(getAutoConnectAttempts());
-//			autoConnectCounter.set(getAutoConnectCounter());
-//			autoConnectInterval.set(getAutoConnectInterval());
-//		}
+		else {
+			bLoadFromInterface = true;
+		}
 	}
 	
 		//------------------------------------------------------------------------
@@ -402,7 +398,7 @@ namespace ofxPvAPI {
 		//-- FRAMES ----------------------------------------------------------
 	void ParamCam::fixedRateListener(bool &_value)  {
 		
-		if (bInitialized) {
+		if (bDeviceActive) {
 			bool cFixedRate = Camera::getFixedRate();
 			if (_value != cFixedRate) {
 				Camera::setFixedRate(_value);
@@ -414,7 +410,7 @@ namespace ofxPvAPI {
 	}
 	
 	void ParamCam::frameRateListener(float &_value) {
-		if (bInitialized) {
+		if (bDeviceActive) {
 			_value = int(_value + .5);
 			Camera::setFrameRate(_value);
 			
@@ -426,7 +422,7 @@ namespace ofxPvAPI {
 	
 		//-- REGION OF INTEREST ----------------------------------------------
 	void ParamCam::ROIWidthListener(int &_value) {
-		if (bInitialized) {
+		if (bDeviceActive) {
 			Camera::setROIWidth(_value);
 			
 			pROIX.setMax(max(getROIXMax(), 1)); // prevent divide by 0
@@ -440,7 +436,7 @@ namespace ofxPvAPI {
 	}
 	
 	void ParamCam::ROIHeightListener(int &_value) {
-		if (bInitialized) {
+		if (bDeviceActive) {
 			Camera::setROIHeight(_value);
 			
 			pROIY.setMax(max(getROIYMax(), 1)); // prevent divide by 0
@@ -454,7 +450,7 @@ namespace ofxPvAPI {
 	}
 	
 	void ParamCam::ROIXListener(int &_value) {
-		if (bInitialized) {
+		if (bDeviceActive) {
 			Camera::setROIX(_value);
 			
 			pROIWidth.setMax(max(getROIWidthMax(), 1)); // prevent divide by 0
@@ -464,7 +460,7 @@ namespace ofxPvAPI {
 	}
 	
 	void ParamCam::ROIYListener(int &_value) {
-		if (bInitialized) {
+		if (bDeviceActive) {
 			Camera::setROIY(_value);
 			
 			pROIHeight.setMax(max(getROIHeightMax(), 1)); // prevent divide by 0

@@ -104,5 +104,5 @@ void ofApp::keyPressed(int key){
 
 //--------------------------------------------------------------
 void ofApp::exit(){
-    camera.close();
+    camera.destroy();
 }
