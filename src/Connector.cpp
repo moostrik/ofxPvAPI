@@ -23,7 +23,7 @@ namespace ofxPvAPI {
 	
 	void Connector::update(){
 		bWasInitialized = bInitialized;
-		Camera::update();
+		ThreadedCamera::update();
 		if (!bInitialized)
 			autoConnect();
 	}
@@ -56,7 +56,7 @@ namespace ofxPvAPI {
 			ofLogNotice("Connector") << requestedDeviceID << " Trying to (re)connect to camera";
 			listDevices();
 			
-			if (Camera::setup()) {
+			if (ThreadedCamera::setup()) {
 				ofLogVerbose("Connector") << requestedDeviceID << " Connection succeeded";
 				return true;
 			} else {
@@ -68,7 +68,7 @@ namespace ofxPvAPI {
 	
 	void Connector::disconnect() {
 		if (bInitialized) {
-			Camera::close();
+			ThreadedCamera::close();
 			ofLogNotice("Connector") << requestedDeviceID << " Disconnected";
 			connectCounter = 0;
 			connectInterval = 2;

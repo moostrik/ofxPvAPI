@@ -441,7 +441,7 @@ namespace ofxPvAPI {
 		//-- REGION OF INTEREST ----------------------------------------------
 	void ParameterConnector::ROIWidthListener(int &_value) {
 		if (bInitialized) {
-			Camera::setROIWidth(_value);
+			ThreadedCamera::setROIWidth(_value);
 			
 			pROIX.setMax(max(getROIXMax(), 1)); // prevent divide by 0
 			int cRoiX = getROIX();
@@ -455,7 +455,7 @@ namespace ofxPvAPI {
 	
 	void ParameterConnector::ROIHeightListener(int &_value) {
 		if (bInitialized) {
-			Camera::setROIHeight(_value);
+			ThreadedCamera::setROIHeight(_value);
 			
 			pROIY.setMax(max(getROIYMax(), 1)); // prevent divide by 0
 			int cRoiY = getROIY();

@@ -13,24 +13,12 @@
 #include <arpa/inet.h>
 #endif
 
+
 namespace ofxPvAPI {
 	
-	enum ofxPvAPIMessageType {
-		OFX_PVAPI_FRAME,
-		OFX_PVAPI_RESIZE
-	};
-	
-	struct ofxPvAPIMessage {
-		ofxPvAPIMessageType type;
-		tPvFrame*	frame;
-	};
-	
-	
-	class Camera : public ofThread {
+	class Camera {
 		
 		public :
-		int lastIdentifier;
-		
 		Camera();
 		virtual ~Camera();
 		
@@ -59,20 +47,6 @@ namespace ofxPvAPI {
 		void			update();
 		void			close();
 		
-	protected:
-		void 			threadedFunction();
-		
-		void 			enqueue(ofxPvAPIMessage message);
-		void 			dequeue();
-		
-		queue<ofxPvAPIMessage> messageQueue;
-		
-		bool 			T_bResizeFrames; // thread message
-		bool 			T_bChangeRate; // thread message
-		
-		void 			processFrame(tPvFrame* _frame);
-		void 			processResize();
-		
 			//-- ACQUISITION -----------------------------------------------------
 		public:
 		bool			isInitialized() { return bInitialized; }
@@ -96,11 +70,11 @@ namespace ofxPvAPI {
 		void			onFrameDone(tPvFrame* _frame); // for internal use only, cannot be protected due to callback
 		
 		protected:
-		static int			numPvFrames;
-		int					pvCurrentFrameIndex;
-		tPvFrame*			pvFrames;
-		deque<ofPixels*>	ofFrames;
+		static int		numPvFrames;
+		tPvFrame*		pvFrames;
+		deque<tPvFrame*>	capuredFrameQueue;
 		
+		void			resizeFrame();
 		bool			allocateFrames();
 		bool			deallocateFrames();
 		bool			queueFrames();
@@ -145,21 +119,11 @@ namespace ofxPvAPI {
 		bool			setPixelFormat(ofPixelFormat _pixelFormat);
 		ofPixelFormat	getPixelFormat() { return pixelFormat; }
 		
-		void			setFlipH(bool _value)	{ flipH = _value; }
-		void			getFlipH()				{ return flipH; }
-		void			setFlipV(bool _value)	{ flipV = _value; }
-		void			getFlipV()				{ return flipV; }
-		void			setRotate90(int _value)	{ rotate90 = _value % 4; }
-		void			getRotate90()			{ return rotate90; }
-		
 		protected:
 		ofPixels		pixels;
 		ofPixelFormat	pixelFormat;
 		ofPixelFormat	getOfPixelFormat(string _format);
 		string			getPvPixelFormat(ofPixelFormat _format);
-		bool 			flipH;
-		bool 			flipV;
-		int 			rotate90;
 		
 			//-- ATTRIBUTES GENERAL-----------------------------------------------
 		public:

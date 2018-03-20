@@ -1,11 +1,11 @@
 #pragma once
 
 #include "ofMain.h"
-#include "Camera.h"
+#include "ThreadedCamera.h"
 
 namespace ofxPvAPI {
 	
-	class Connector : public Camera {
+	class Connector : public ThreadedCamera {
 	public:
 		
 		Connector() {;}

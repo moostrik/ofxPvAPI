@@ -53,9 +53,9 @@ namespace ofxPvAPI {
 		ofParameter<bool>	pFlipV;
 		ofParameter<int>	pRotate90;
 		
-		void	flipHListener(bool& _value)		{ if(!blockListeners) Camera::setFlipH(_value); }
-		void	flipVListener(bool& _value)		{ if(!blockListeners) Camera::setFlipV(_value); }
-		void	rotate90Listener(int& _value)	{ if(!blockListeners) Camera::setRotate90(_value); }
+		void	flipHListener(bool& _value)		{ if(!blockListeners) ThreadedCamera::setFlipH(_value); }
+		void	flipVListener(bool& _value)		{ if(!blockListeners) ThreadedCamera::setFlipV(_value); }
+		void	rotate90Listener(int& _value)	{ if(!blockListeners) ThreadedCamera::setRotate90(_value); }
 		
 			//-- REGION OF INTEREST ----------------------------------------------
 	public:
