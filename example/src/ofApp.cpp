@@ -6,6 +6,7 @@ void ofApp::setup(){
 	ofSetVerticalSync(true);
 	
 	ofSetLogLevel(OF_LOG_VERBOSE);
+	ofSleepMillis(500); // wait for PvApi initiate and for cams to register
 	camera.listDevices();
 	ofSetLogLevel(OF_LOG_NOTICE);
 	

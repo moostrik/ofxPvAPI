@@ -9,8 +9,8 @@ namespace ofxPvAPI {
 		
 		parameters.clear();
 		string dID = "unknown";
-		if (getRequestedDeviceID() > 0)
-			dID = ofToString(getRequestedDeviceID());
+		if (Camera::getRequestedDeviceID() > 0)
+			dID = ofToString(Camera::getRequestedDeviceID());
 		parameters.setName("camera " + dID);
 		parameters.add(pActivate.set("activate", false));
 		pActivate.addListener(this, &ParamCam::activateListener);
@@ -20,8 +20,6 @@ namespace ofxPvAPI {
 		reset.addListener(this, &ParamCam::resetListener);
 		parameters.add(printAttributes.set("print features", false));
 		printAttributes.addListener(this, &ParamCam::printAttributesListener);
-			//		parameters.add(printIpSettings.set("print IP settings", false));
-			//		printIpSettings.addListener(this, &ParamCam::printIpSettingsListener);
 		parameters.add(resetParametersFromCam.set("load", false));
 		resetParametersFromCam.addListener(this, &ParamCam::resetParametersFromCamListener);
 		
@@ -127,11 +125,19 @@ namespace ofxPvAPI {
 		}
 		
 		ipParameters.setName("IP");
+		ipParameters.add(pSwitchPersistentIP.set("persistent switch", false));
+		pSwitchPersistentIP.addListener(this, &ParamCam::switchPersistentIPListener);
+		
 		ipParameters.add(pIpPersistent.set("persistent", "no"));
-		ipParameters.add(pIpAdress.set("adress", "0.0.0.0"));
-		ipParameters.add(pIpSubnet.set("subnet", "0.0.0.0"));
-		ipParameters.add(pIpGateway.set("gateway", "0.0.0.0"));
-		parameters.add(ipParameters);		
+		ipParameters.add(pCurrentIpAdress.set("adress", "0.0.0.0"));
+		ipParameters.add(pCurrentIpSubnetMask.set("subnet", "0.0.0.0"));
+		ipParameters.add(pCurrentIpGateway.set("gateway", "0.0.0.0"));
+		ipPersistentParameters.setName("persistent info");
+		ipPersistentParameters.add(pPersistentIpAdress.set("adress", "0.0.0.0"));
+		ipPersistentParameters.add(pPersistentIpSubnetMask.set("subnet", "0.0.0.0"));
+		ipPersistentParameters.add(pPersistentIpGateway.set("gateway", "0.0.0.0"));
+		ipParameters.add(ipPersistentParameters);
+		parameters.add(ipParameters);
 		
 		bLoadFromInterface = true;
 		blockListeners = !isActive();
@@ -230,9 +236,12 @@ namespace ofxPvAPI {
 		else
 			pIpPersistent.set("no");
 		
-		pIpAdress.set(getIpAdress());
-		pIpSubnet.set(getIpSubnet());
-		pIpGateway.set(getIpGateway());
+		pCurrentIpAdress.set(getCurrentIpAdress());
+		pCurrentIpSubnetMask.set(getCurrentIpSubnetMask());
+		pCurrentIpGateway.set(getCurrentIpGateway());
+		pPersistentIpAdress.set(getPersistentIpAdress());
+		pPersistentIpSubnetMask.set(getPersistentIpSubnetMask());
+		pPersistentIpGateway.set(getPersistentIpGateway());
 		
 		blockListeners = false;
 		
@@ -279,6 +288,15 @@ namespace ofxPvAPI {
 			setAutoWhiteBalanceRate(pAutoWhiteBalanceRate.get());
 			setAutoWhiteBalanceAdjustTol(pAutoWhiteBalanceAdjustTol.get());
 		}
+		
+		blockListeners = false;
+		pCurrentIpAdress.set(getCurrentIpAdress());
+		pCurrentIpSubnetMask.set(getCurrentIpSubnetMask());
+		pCurrentIpGateway.set(getCurrentIpGateway());
+		pPersistentIpAdress.set(getPersistentIpAdress());
+		pPersistentIpSubnetMask.set(getPersistentIpSubnetMask());
+		pPersistentIpGateway.set(getPersistentIpGateway());
+		blockListeners = true;
 		
 		setParametersRange();
 	}
@@ -461,6 +479,41 @@ namespace ofxPvAPI {
 			int cRoiYHeight= getROIHeight();
 			if (pROIHeight != cRoiYHeight) pROIHeight.set(cRoiYHeight);
 		}
+	}
+	
+		//-- IP SETTINGS -----------------------------------------------------
+	void ParamCam::setIpPersistent(bool _value)	{
+		Camera::setIpPersistent(_value); pIpPersistent.set(_value? "yes" : "no");
+		pCurrentIpAdress.set(Camera::getCurrentIpAdress());
+		pCurrentIpSubnetMask.set(Camera::getCurrentIpSubnetMask());
+		pCurrentIpAdress.set(Camera::getCurrentIpGateway());
+		
+	}
+	
+	void ParamCam::setPersistentIpAdress(string _value)	{
+		Camera::setPersistentIpAdress(_value);
+		pPersistentIpAdress.set(_value);
+		
+	}
+	
+	void ParamCam::setPersistentIpSubnetMask(string _value) {
+		Camera::setPersistentIpSubnetMask(_value);
+		pPersistentIpSubnetMask.set(_value);
+		
+	}
+	
+	void ParamCam::setPersistentIpGateway(string _value) {
+		Camera::setPersistentIpGateway(_value);
+		pPersistentIpGateway.set(_value);
+		
+	}
+	
+	
+	void ParamCam::switchPersistentIPListener(bool &_value) {
+		if(!blockListeners && _value) {
+			Camera::setIpPersistent(!Camera::getIpPersistent());
+		}
+		_value = false;
 	}
 	
 	

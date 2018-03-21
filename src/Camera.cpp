@@ -17,7 +17,7 @@ namespace ofxPvAPI {
 	requestedDeviceID(0),
 	persistentIpAdress(""),
 	persistentIpGateway(""),
-	persistentIpSubnetMask("0.0.0.0"){
+	persistentIpSubnetMask(""){
 		
 		if (!bPvApiInitiated) PvApiInitialize() ;
 		allocateFrames();
@@ -49,7 +49,7 @@ namespace ofxPvAPI {
 		else {
 			tPvErr error = PvInitialize();
 			if( error == ePvErrSuccess ) {
-				ofSleepMillis(500); // wait for cams to register
+//				ofSleepMillis(500); // wait for cams to register
 				ofLog(OF_LOG_NOTICE, "Camera: PvAPI initialized");
 				
 			} else {
@@ -93,18 +93,7 @@ namespace ofxPvAPI {
 	}
 	
 	void Camera::update() {
-		if (bWaitForDeviceToBecomeAvailable && lastWaitTime + waitInterval < ofGetElapsedTimeMillis()) {
-			if (isDeviceAvailable(requestedDeviceID)) {
-				bWaitForDeviceToBecomeAvailable = false;
-				ofLog(OF_LOG_NOTICE,"Camera: %lu available", deviceID);
-				activate();
-			}
-			else {
-				lastWaitTime = ofGetElapsedTimeMillis();
-				ofLog(OF_LOG_NOTICE,"Camera: %lu still waiting...", deviceID);
-			}
-		}
-		
+		waitOnAvailable();
 		
 		bIsFrameNew = false;
 		
@@ -275,16 +264,12 @@ namespace ofxPvAPI {
 	}
 	
 	void Camera::requestDeviceByID(int _deviceID) {
-		if (bDeviceActive)
-		ofLog(OF_LOG_ERROR, "Camera: %lu: setDeviceID(): can't set ID while grabber is running", deviceID);
+		if (bDeviceActive) {
+			ofLog(OF_LOG_ERROR, "Camera: %lu: can not set ID while device is active", deviceID);
+		}
 		else {
 			requestedDeviceID = _deviceID;
 		}
-	}
-
-	
-	int Camera::getDeviceID() {
-		return deviceID;
 	}
 	
 	
@@ -330,12 +315,14 @@ namespace ofxPvAPI {
 	
 	void Camera::deactivate() {
 		
-		bDeviceActive = false;
-		numActiveDevices--;
 		clearQueue();
 //		stopAcquisition(); // why ommit?
 		stopCapture();
 		closeCamera();
+		
+		bDeviceActive = false;
+		numActiveDevices--;
+		cout << "unregister" << endl;
 		
 		ofLog(OF_LOG_NOTICE,"Camera: %lu deactivated", deviceID);
 	}
@@ -352,6 +339,7 @@ namespace ofxPvAPI {
 	
 	void Camera::plugCamera(unsigned long _cameraUid) {
 		
+		cout << "plug " << _cameraUid << endl;
 		if (requestedDeviceID == 0  && numActiveDevices == 0) {
 			ofLog(OF_LOG_NOTICE, "Camera: no camera ID specified, defaulting to camera %lu", _cameraUid);
 			requestedDeviceID = _cameraUid;
@@ -370,7 +358,28 @@ namespace ofxPvAPI {
 	void Camera::unplugCamera(unsigned long cameraUid) {
 		if (cameraUid == deviceID) {
 			ofLog(OF_LOG_NOTICE, "Camera: %lu unplugged", requestedDeviceID);
-			deactivate();
+			if (bDeviceActive) {
+				cout << "unregister" << endl;
+				bDeviceActive = false;
+				numActiveDevices--;
+			}
+		}
+	}
+	
+	void Camera::waitOnAvailable() {
+		
+		if (bWaitForDeviceToBecomeAvailable && lastWaitTime + waitInterval < ofGetElapsedTimeMillis()) {
+			if (!isDeviceFound(requestedDeviceID)) {
+				bWaitForDeviceToBecomeAvailable = false;
+			}
+			if (isDeviceAvailable(requestedDeviceID)) {
+				ofLog(OF_LOG_NOTICE,"Camera: %lu available", deviceID);
+				activate();
+				bWaitForDeviceToBecomeAvailable = false;
+			}
+			
+			lastWaitTime = ofGetElapsedTimeMillis();
+			ofLog(OF_LOG_NOTICE,"Camera: %lu still waiting...", deviceID);
 		}
 	}
 	
@@ -459,6 +468,19 @@ namespace ofxPvAPI {
 			return true;
 		} else {
 			ofLog(OF_LOG_ERROR, "Camera: %lu can not abort continuous acquisition", deviceID);
+			logError(error);
+			return false;
+		}
+	}
+	
+	bool Camera::setPacketSizeToMax() {
+		tPvErr error = PvCaptureAdjustPacketSize(deviceHandle, getIntAttributeMax("PacketSize"));
+		
+		if( error == ePvErrSuccess ){
+			ofLog(OF_LOG_VERBOSE, "Camera: %lu packet size set to %i", deviceID, getIntAttribute("PacketSize"));
+			return true;
+		} else {
+			ofLog(OF_LOG_ERROR, "Camera: %lu packet is not set", deviceID);
 			logError(error);
 			return false;
 		}
@@ -1039,24 +1061,6 @@ namespace ofxPvAPI {
 		printf("Persistent Ip Gateway: %s \n", IPLongToString(ipSettings.PersistentIpGateway).c_str());
 	}
 	
-	string Camera::getIpAdress() {
-		tPvIpSettings ipSettings;
-		PvCameraIpSettingsGet(deviceID, &ipSettings);
-		return IPLongToString(ipSettings.CurrentIpAddress);
-	}
-	
-	string Camera::getIpSubnet() {
-		tPvIpSettings ipSettings;
-		PvCameraIpSettingsGet(deviceID, &ipSettings);
-		return IPLongToString(ipSettings.CurrentIpSubnet);
-	}
-	
-	string Camera::getIpGateway() {
-		tPvIpSettings ipSettings;
-		PvCameraIpSettingsGet(deviceID, &ipSettings);
-		return IPLongToString(ipSettings.CurrentIpGateway);
-	}
-	
 	bool Camera::getIpPersistent() {
 		tPvIpSettings ipSettings;
 		tPvErr error;
@@ -1066,12 +1070,11 @@ namespace ofxPvAPI {
 			return false;
 		}
 		if (ipSettings.ConfigMode == ePvIpConfigPersistent)
-		return true;
+			return true;
 		return false;
 	}
 	
-	
-	void Camera::setPersistentIp(bool enable) {
+	void Camera::setIpPersistent(bool enable) {
 		
 #ifdef _WIN32
 		ofLogWarning("setPersistentIp not supported for windows");
@@ -1080,35 +1083,38 @@ namespace ofxPvAPI {
 		tPvIpSettings ipSettings;
 		PvCameraIpSettingsGet(deviceID, &ipSettings);
 		if (!enable) {
-			if (bDeviceActive) {
-				deactivate();
-			}
-			
 			ipSettings.ConfigMode = ePvIpConfigDhcp;
-			
-		}
-		else {
-			
-			struct in_addr addr, sn, gw;
-			
+		} else {
 			ipSettings.ConfigMode = ePvIpConfigPersistent;
 			
-			if (!inet_pton(AF_INET, persistentIpAdress.c_str(), &addr)) {
-				ofLogWarning("Camera: ") << deviceID << ", IP Adress " << persistentIpAdress << " is not valid";
-				return;
-			} else { ipSettings.PersistentIpAddr = addr.s_addr; }
-			if (!inet_pton(AF_INET, persistentIpSubnetMask.c_str(), &sn)) {
-				ofLogWarning("Camera: ") << deviceID << ", Subnet Mask " << persistentIpSubnetMask << " is not valid";
-				return;
-			} else { ipSettings.PersistentIpSubnet = sn.s_addr; }
-			if (!inet_pton(AF_INET, persistentIpGateway.c_str(), &gw)){
-				ofLogWarning("Camera: ") << deviceID << ", Gatway " << persistentIpGateway << " is not valid";
-			} else { ipSettings.PersistentIpGateway = gw.s_addr; }
+			struct in_addr addr, sn, gw;
+			if (persistentIpAdress != "" ) {
+				if (persistentIpAdress != "" && !inet_pton(AF_INET, persistentIpAdress.c_str(), &addr)) {
+					ofLogWarning("Camera: ") << deviceID << ", failed to change IP settings: IP " << persistentIpAdress << " is not a valid adress, ";
+					return;
+				} else {
+					ipSettings.PersistentIpAddr = addr.s_addr;
+				}
+			}
+			if (persistentIpSubnetMask != "" ) {
+				if (!inet_pton(AF_INET, persistentIpSubnetMask.c_str(), &sn)) {
+					ofLogWarning("Camera: ") << deviceID << ", failed to change IP settings: Subnet Mask " << persistentIpSubnetMask << " is not a valid adress";
+					return;
+				} else {
+					ipSettings.PersistentIpSubnet = sn.s_addr;
+				}
+			}
+			if (persistentIpGateway  != "" ) {
+				if (!inet_pton(AF_INET, persistentIpGateway.c_str(), &gw)){
+					ofLogWarning("Camera: ") << deviceID << ", failed to change IP settings: Gateway " << persistentIpGateway << " is not a valid adress";
+					return;
+				} else {
+					ipSettings.PersistentIpGateway = gw.s_addr;
+				}
+			}
 		}
 		
-		bool wasActive = false;
 		if (bDeviceActive) {
-			wasActive = true;
 			deactivate();
 		}
 		
@@ -1121,12 +1127,47 @@ namespace ofxPvAPI {
 			ofLogNotice("Camera:") << deviceID << " Failed to Change Camera IP Settings";
 			logError(error);
 		}
-		
-		if (wasActive) {
-			activate();
-		}
 #endif
 	}
+	
+	
+	string Camera::getCurrentIpAdress() {
+		tPvIpSettings ipSettings;
+		PvCameraIpSettingsGet(deviceID, &ipSettings);
+		return IPLongToString(ipSettings.CurrentIpAddress);
+	}
+	
+	string Camera::getCurrentIpSubnetMask() {
+		tPvIpSettings ipSettings;
+		PvCameraIpSettingsGet(deviceID, &ipSettings);
+		return IPLongToString(ipSettings.CurrentIpSubnet);
+	}
+	
+	string Camera::getCurrentIpGateway() {
+		tPvIpSettings ipSettings;
+		PvCameraIpSettingsGet(deviceID, &ipSettings);
+		return IPLongToString(ipSettings.CurrentIpGateway);
+	}
+	
+	
+	string Camera::getPersistentIpAdress() {
+		tPvIpSettings ipSettings;
+		PvCameraIpSettingsGet(deviceID, &ipSettings);
+		return IPLongToString(ipSettings.PersistentIpAddr);
+	}
+	
+	string Camera::getPersistentIpSubnetMask() {
+		tPvIpSettings ipSettings;
+		PvCameraIpSettingsGet(deviceID, &ipSettings);
+		return IPLongToString(ipSettings.PersistentIpSubnet);
+	}
+	
+	string Camera::getPersistentIpGateway() {
+		tPvIpSettings ipSettings;
+		PvCameraIpSettingsGet(deviceID, &ipSettings);
+		return IPLongToString(ipSettings.PersistentIpGateway);
+	}
+	
 	
 	void Camera::setPersistentIpAdress(string _IpAdress) {
 #ifdef _WIN32
@@ -1169,21 +1210,6 @@ namespace ofxPvAPI {
 	}
 	
 	
-	bool Camera::setPacketSizeToMax() {
-		tPvErr error = PvCaptureAdjustPacketSize(deviceHandle, getIntAttributeMax("PacketSize"));
-		
-		if( error == ePvErrSuccess ){
-			ofLog(OF_LOG_VERBOSE, "Camera: %lu packet size set to %i", deviceID, getIntAttribute("PacketSize"));
-			return true;
-		} else {
-			ofLog(OF_LOG_ERROR, "Camera: %lu packet is not set", deviceID);
-			logError(error);
-			return false;
-		}
-		
-	}
-	
-	
 	//----------------------------------------------------------------------------
 	//-- ERROR LOGGING------------------------------------------------------------
 	
@@ -1212,9 +1238,6 @@ namespace ofxPvAPI {
 			break;
 			case ePvErrUnplugged:
 			ofLog(OF_LOG_WARNING, "Camera: %lu was unplugged", deviceID);
-			
-//				unplugCamera(deviceID); // should not close, but should close cam
-			
 			break;
 			case ePvErrInvalidSetup:
 			ofLog(OF_LOG_ERROR, "Camera: %lu Setup is invalid (an attribute is invalid)", deviceID);

@@ -21,14 +21,16 @@ namespace ofxPvAPI {
 			//-- GENERAL ---------------------------------------------------------
 	protected:
 		ofParameter<bool>	printAttributes;
-		ofParameter<bool>	printIpSettings;
 		ofParameter<bool>	reset;
 		ofParameter<bool>	resetParametersFromCam;
 		ofParameter<bool>	pActivate;
 		ofParameter<bool>	pDeactivate;
 		
-		void	activateListener(bool& _value) { if (_value) { _value = false; activate();} }
-		void	deactivateListener(bool& _value) { if (_value) { _value = false; deactivate();} }
+		void	printAttributesListener(bool & _value)			{ if(!blockListeners && _value) listAttributes(); _value = false; }
+		void	resetListener(bool & _value)					{ if(!blockListeners && _value) { resetAttributes(); setAllParametersFromCam(); } _value = false; }
+		void	resetParametersFromCamListener(bool & _value)	{ if(!blockListeners && _value) setAllParametersFromCam(); _value = false; }
+		void	activateListener(bool& _value) { if (_value) 	{ activate(); _value = false; } }
+		void	deactivateListener(bool& _value) { if (_value) 	{ deactivate(); _value = false; } }
 		
 		
 			//-- FRAMES ----------------------------------------------------------
@@ -188,44 +190,27 @@ namespace ofxPvAPI {
 		
 			//-- IP SETTINGS -----------------------------------------------------
 	public:
-		void	setPersistentIp(bool _value)				{ Camera::setPersistentIp(_value); pIpPersistent.set(_value? "yes" : "no"); }
-		void	setPersistentIpAdress(string _value)		{ Camera::setPersistentIpAdress(_value); pIpAdress.set(_value); }
-		void	setPersistentIpSubnetMask(string _value)	{ Camera::setPersistentIpSubnetMask(_value); pIpSubnet.set(_value); }
-		void	setPersistentIpGateway(string _value)		{ Camera::setPersistentIpGateway(_value); pIpGateway.set(_value); }
+		void	setIpPersistent(bool _value); //				{ Camera::setIpPersistent(_value); pIpPersistent.set(_value? "yes" : "no"); }
+		void	setPersistentIpAdress(string _value); //		{ Camera::setPersistentIpAdress(_value); pIpAdress.set(_value); }
+		void	setPersistentIpSubnetMask(string _value); //	{ Camera::setPersistentIpSubnetMask(_value); pIpSubnet.set(_value); }
+		void	setPersistentIpGateway(string _value); //		{ Camera::setPersistentIpGateway(_value); pIpGateway.set(_value); }
 		
 	protected:
 		ofParameterGroup	ipParameters;
+		ofParameterGroup	ipPersistentParameters;
+		ofParameter<bool>	pSwitchPersistentIP;
 		ofParameter<string>	pIpPersistent;
-		ofParameter<string>	pIpAdress;
-		ofParameter<string>	pIpSubnet;
-		ofParameter<string>	pIpGateway;
+		ofParameter<string>	pCurrentIpAdress;
+		ofParameter<string>	pCurrentIpSubnetMask;
+		ofParameter<string>	pCurrentIpGateway;
+		ofParameter<string>	pPersistentIpAdress;
+		ofParameter<string>	pPersistentIpSubnetMask;
+		ofParameter<string>	pPersistentIpGateway;
+		
+		void	switchPersistentIPListener(bool & _value);
 		
 		
-			//-- CONNECTION ------------------------------------------------------
-		
-//		ofParameter<bool>	doConnect;
-//		ofParameter<bool>	doDisconnect;
-//		ofParameter<bool>	doAutoConnect;
-//		ofParameter<int>	autoConnectAttempts;
-//		ofParameter<int>	autoConnectCounter;
-//		ofParameter<float>	autoConnectInterval;
-		
-	private:
-//		ofParameterGroup	connectParameters;
-//		ofParameterGroup	autoConnectParameters;
-		
-		void	printAttributesListener(bool & _value)		{ if(!blockListeners && _value) listAttributes(); _value = false; }
-		void	printIpSettingsListener(bool & _value)		{ if(!blockListeners && _value) listIpSettings(); _value = false; }
-		void	resetListener(bool & _value)				{ if(!blockListeners && _value) { resetAttributes(); setAllParametersFromCam(); } _value = false; }
-		void	resetParametersFromCamListener(bool & _value){if(!blockListeners && _value) setAllParametersFromCam(); _value = false; }
-		
-		
-		
-//		void	doConnectListener(bool& _value)				{ if(_value) connect(); _value = false; }
-//		void	doDisconnectListener(bool& _value)			{ if(_value) disconnect(); doAutoConnect.set(false); _value = false; }
-//		void	doAutoConnectListener(bool& _value)			{ setAutoConnect(_value); }
-//		void	autoConnectAttemptsListener(int& _value)	{ if(!blockListeners) setAutoConnectAttempts(_value); }
-		
+		//-- GENERAL -----------------------------------------------------
 		
 		void	updateParametersFromCam();
 		void	setAllParametersFromCam();
@@ -236,12 +221,9 @@ namespace ofxPvAPI {
 		void	setParameterInItsOwnRange(ofParameter<float> &_parameter);
 		
 		bool	bLoadFromInterface;
-
 		bool	blockListeners;
 		
 		void 	inRange(ofParameter<int>& _parameter, int& _value);
-		
 		void 	inRange(ofParameter<float>& _parameter, float& _value);
-		
 	};
 }

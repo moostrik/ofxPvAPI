@@ -35,7 +35,7 @@ namespace ofxPvAPI {
 	public:
 		vector<ofVideoDevice> listDevices();
 		
-		int 			getDeviceID();
+		int 			getDeviceID() { return deviceID; }
 		
 		void			setDeviceID(int _deviceID) { requestDeviceByID(_deviceID); }
 		void			requestDeviceByID(int _deviceID);
@@ -54,7 +54,7 @@ namespace ofxPvAPI {
 		//-- DEVICE ----------------------------------------------------------
 	public:
 		bool			isActive() { return bDeviceActive; }
-		void			activate(); 			// this is taken care of by setup(), but you might want to (de)activate manually
+		void			activate();  // this is taken care of by setup(), but you might want to (de)activate manually
 		void			deactivate();
 		
 	private:
@@ -76,9 +76,12 @@ namespace ofxPvAPI {
 		bool			stopAcquisition();
 		bool			abortAcquisition();
 		
+		bool			setPacketSizeToMax();
+		
 		bool			bWaitForDeviceToBecomeAvailable;
 		int				waitInterval;
 		uint64_t		lastWaitTime;
+		void			waitOnAvailable();
 		
 		//-- PV FRAMES -------------------------------------------------------
 	private:
@@ -326,15 +329,26 @@ namespace ofxPvAPI {
 		
 			//-- IP SETTINGS -----------------------------------------------------
 	public:
-		void	setPersistentIp(bool enable);
+		void	listIpSettings();
+		
+		void	setIpPersistent(bool enable);
+		bool	getIpPersistent();
+		
+		string	getIpAdress() { return getCurrentIpAdress(); }
+		string	getSubnetMask() { return getCurrentIpSubnetMask(); }
+		string	getIpGateway() { return getCurrentIpGateway(); }
+		
+		string	getCurrentIpAdress();
+		string	getCurrentIpSubnetMask();
+		string	getCurrentIpGateway();
+		
+		string	getPersistentIpAdress();
+		string	getPersistentIpSubnetMask();
+		string	getPersistentIpGateway();
+		
 		void	setPersistentIpAdress(string _IpAdress);
 		void	setPersistentIpSubnetMask(string _IpSubnet);
 		void	setPersistentIpGateway(string _IpGateway);
-		string	getIpAdress();
-		string	getIpSubnet();
-		string	getIpGateway();
-		bool	getIpPersistent();
-		void	listIpSettings();
 		
 	private:
 		string			persistentIpAdress;
@@ -342,7 +356,6 @@ namespace ofxPvAPI {
 		string			persistentIpGateway;
 		unsigned long	IPStringToLong(string _IpAdress);
 		string			IPLongToString(unsigned long  _IpAdress);
-		bool			setPacketSizeToMax();
 		
 			//-- ERROR LOGGING ---------------------------------------------------
 	private:
