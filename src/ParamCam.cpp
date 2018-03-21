@@ -12,6 +12,10 @@ namespace ofxPvAPI {
 		if (requestedDeviceID != -1)
 			dID = ofToString(requestedDeviceID);
 		parameters.setName("camera " + dID);
+		parameters.add(pActivate.set("activate", false));
+		pActivate.addListener(this, &ParamCam::activateListener);
+		parameters.add(pDeactivate.set("deactivate", false));
+		pDeactivate.addListener(this, &ParamCam::deactivateListener);
 		parameters.add(reset.set("reset", false));
 		reset.addListener(this, &ParamCam::resetListener);
 		parameters.add(printAttributes.set("print features", false));
@@ -127,23 +131,7 @@ namespace ofxPvAPI {
 		ipParameters.add(pIpAdress.set("adress", "0.0.0.0"));
 		ipParameters.add(pIpSubnet.set("subnet", "0.0.0.0"));
 		ipParameters.add(pIpGateway.set("gateway", "0.0.0.0"));
-		parameters.add(ipParameters);
-		
-//		connectParameters.setName("connector");
-//		connectParameters.add(doConnect.set("connect", false));
-//		doConnect.addListener(this, &ParamCam::doConnectListener);
-//		connectParameters.add(doDisconnect.set("disconnect", false));
-//		doDisconnect.addListener(this, &ParamCam::doDisconnectListener);
-//		autoConnectParameters.setName("auto connector");
-//		autoConnectParameters.add(doAutoConnect.set("auto connect", false));
-//		doAutoConnect.addListener(this, &ParamCam::doAutoConnectListener);
-//		autoConnectParameters.add(autoConnectAttempts.set("max attempts", 100, 0, 100));
-//		autoConnectAttempts.addListener(this, &ParamCam::autoConnectAttemptsListener);
-//		autoConnectParameters.add(autoConnectCounter.set("attempts made", 0, 0, 100));
-//		autoConnectParameters.add(autoConnectInterval.set("interval", 0, 0, 60));
-//		connectParameters.add(autoConnectParameters);
-//		parameters.add(connectParameters);
-		
+		parameters.add(ipParameters);		
 		
 		bLoadFromInterface = true;
 		blockListeners = !bDeviceActive;
@@ -195,11 +183,12 @@ namespace ofxPvAPI {
 	void ParamCam::setAllParametersFromCam() {
 		blockListeners = true;
 		
-		pFrameRate.set(getFrameRate());
-		pROIWidth.set(getROIWidth());
 		pROIHeight.set(getROIHeight());
+		pROIWidth.set(getROIWidth());
 		pROIX.set(getROIX());
 		pROIY.set(getROIY());
+		
+		pFrameRate.set(getFrameRate());
 		
 		pExposure.set(getExposure());
 		
@@ -252,12 +241,12 @@ namespace ofxPvAPI {
 	
 	void ParamCam::setAllParametersFromInterface() {
 		
-		setFrameRate(pFrameRate.get());
-		
+		setROIHeight(pROIHeight.get()); // Height before width, because it affects max framerate
 		setROIWidth(pROIWidth.get());
-		setROIHeight(pROIHeight.get());
 		setROIX(pROIX.get());
 		setROIY(pROIY.get());
+		
+		setFrameRate(pFrameRate.get());
 		
 		setExposure(pExposure.get());
 		setAutoExposure(pAutoExposure.get());
@@ -269,6 +258,7 @@ namespace ofxPvAPI {
 		setAutoExposureOutliers(pAutoExposureOutliers.get());
 		
 		setGain(pGain.get());
+		
 		if (getPixelFormat() == OF_PIXELS_RGB) {
 			setGamma(pGamma.get());
 			setHue(pHue.get());
@@ -431,7 +421,9 @@ namespace ofxPvAPI {
 			
 			pFrameRate.setMax(floor(getFrameRateMax()));
 			float cFrameRate = getFrameRate();
-			if (pFrameRate != cFrameRate) pFrameRate.set(cFrameRate);
+			if (pFrameRate != cFrameRate) {
+				pFrameRate.set(cFrameRate);
+			}
 		}
 	}
 	
@@ -445,7 +437,9 @@ namespace ofxPvAPI {
 			
 			pFrameRate.setMax(floor(getFrameRateMax()));
 			float cFrameRate = getFrameRate();
-			if (pFrameRate != cFrameRate) pFrameRate.set(cFrameRate);
+			if (pFrameRate != cFrameRate) {
+				pFrameRate.set(cFrameRate);
+			}
 		}
 	}
 	

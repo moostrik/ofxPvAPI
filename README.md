@@ -18,8 +18,7 @@ previous versions tested on Windows 7
 - [x] fix slowdown of setAllParametersFromCam in parameterConnector
 - [x] update parameterConnector to intercept the attributes
 
-- [ ] refactor (de) allocation
-- [ ] fix parameters after connection lost and found
+- [ ] fix fps after connection lost and found
 
 - [ ] better naming of classes
 - [ ] test with color camera
@@ -59,7 +58,7 @@ previous versions tested on Windows 7
 *	Turn off the Firewall!
 *	When setting persistentIP to false, unplug and replug the the camera.
 *	When setting persistentIP to true make sure you know what you are doing.
-*	The default pixel format is mono, deal with it.
+*	The default pixel format is mono.
 *	According to the driver attribute document the autoGain should work together with the autoExposure for best lightness result. In my experiments using them simultanious gives weird results.
 *	The example has no initial settings.XML file, save (right upper corner of the ofxGui) to create one.
 *	The cameras don't work great on wifi, but on low resolutions they might work.

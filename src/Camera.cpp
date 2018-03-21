@@ -5,6 +5,9 @@ namespace ofxPvAPI {
 	
 	Camera::Camera() :
 	bDeviceActive(false),
+	bWaitForDeviceToBecomeAvailable(false),
+	waitInterval(2000),
+	lastWaitTime(0),
 	bIsFrameNew(false),
 	fps(0),
 	frameDrop(0),
@@ -17,20 +20,17 @@ namespace ofxPvAPI {
 	persistentIpSubnetMask("0.0.0.0"){
 		
 		if (!bPvApiInitiated) PvApiInitialize() ;
-		
-		// to allocate?
-		pvFrames = new tPvFrame[numPvFrames];
-		if (pvFrames) { memset(pvFrames,0,sizeof(tPvFrame) * numPvFrames); }
-		
-		for (int i=0; i<numPvFrames; i++) {
-			pvFrames[i].Context[0] = this;
-			pvFrames[i].Context[1] = new int(i);
-			pvFrames[i].Context[2] = new float(0);
-		}
+		allocateFrames();
 	}
 	
 	Camera::~Camera(){
-		destroy();
+		
+		if( bDeviceActive ) {
+			deactivateDevice();
+		}
+		
+		deallocateFrames();
+		
 		if (numActiveDevices == 0 && bPvApiInitiated)
 		PvApiUnInitialize();
 	}
@@ -49,7 +49,7 @@ namespace ofxPvAPI {
 		else {
 			tPvErr error = PvInitialize();
 			if( error == ePvErrSuccess ) {
-				ofSleepMillis(500); // wait for cams to register
+//				ofSleepMillis(500); // wait for cams to register
 				ofLog(OF_LOG_NOTICE, "Camera: PvAPI initialized");
 				
 			} else {
@@ -83,9 +83,13 @@ namespace ofxPvAPI {
 				ofLog(OF_LOG_NOTICE, "Camera: no camera ID specified, defaulting to camera %lu", deviceID);
 			}
 		}
-		if (isDeviceAvailable(requestedDeviceID)) {
+		if (isDeviceFound(requestedDeviceID)) {
 			deviceID = requestedDeviceID;
 			activateDevice();
+//			if (isDeviceAvailable(requestedDeviceID)) {
+//				activateDevice();
+//			}
+//			else { bWaitForDeviceToBecomeAvailable = true; }
 		}
 		
 		PvLinkCallbackRegister(plugCallBack, ePvLinkAdd, this);
@@ -93,6 +97,18 @@ namespace ofxPvAPI {
 	}
 	
 	void Camera::update() {
+		if (bWaitForDeviceToBecomeAvailable && lastWaitTime + waitInterval < ofGetElapsedTimeMillis()) {
+			if (isDeviceAvailable(requestedDeviceID)) {
+				bWaitForDeviceToBecomeAvailable = false;
+				ofLog(OF_LOG_NOTICE,"Camera: %lu available", deviceID);
+				activateDevice();
+			}
+			else {
+				lastWaitTime = ofGetElapsedTimeMillis();
+				ofLog(OF_LOG_NOTICE,"Camera: %lu still waiting...", deviceID);
+			}
+		}
+		
 		
 		bIsFrameNew = false;
 		
@@ -112,7 +128,8 @@ namespace ofxPvAPI {
 					bIsFrameNew = true;
 				}
 				else {
-					ofLogWarning("Camera") << " croocked frame";
+					logError(frame.Status);
+					ofLogNotice("Camera") << "crooked frame";
 				}
 				
 				fpsTimes.push_back(time);
@@ -152,19 +169,6 @@ namespace ofxPvAPI {
 			frameMinLatency = min(frameMinLatency, framesLatencies[i]);
 		}
 		frameLatency = (tL / framesLatencies.size());
-	}
-	
-	void Camera::destroy(){
-		
-		if( bDeviceActive ) {
-			deactivateDevice();
-			
-			for (int i=0; i<numPvFrames; i++) {
-				delete (char*)pvFrames[i].ImageBuffer;
-			}
-			
-			ofLog(OF_LOG_NOTICE, "Camera: %lu destroyed", deviceID);
-		}
 	}
 	
 	
@@ -208,6 +212,20 @@ namespace ofxPvAPI {
 		return devices;
 	}
 	
+	bool Camera::isDeviceFound(int _deviceID) {
+		vector<ofVideoDevice> deviceList = listDevices();
+		bool requestedDeviceFound = false;
+		for (int i=0; i<deviceList.size(); i++) {
+			if (requestedDeviceID == deviceList[i].id) {
+				requestedDeviceFound = true;
+				ofLog(OF_LOG_VERBOSE, "Camera: %lu found", requestedDeviceID);
+			} else {
+				ofLog(OF_LOG_NOTICE, "Camera: %lu not found", requestedDeviceID);
+			}
+		}
+		return requestedDeviceFound;
+	}
+	
 	bool Camera::isDeviceAvailable(int _deviceID) {
 		vector<ofVideoDevice> deviceList = listDevices();
 		bool requestedDeviceFound = false;
@@ -219,8 +237,10 @@ namespace ofxPvAPI {
 					requestedDeviceAvailable = true;
 					ofLog(OF_LOG_VERBOSE, "Camera: %lu found and available", requestedDeviceID);
 				} else {
-					ofLog(OF_LOG_NOTICE, "Camera: %lu found, but not available", requestedDeviceID);
+					ofLog(OF_LOG_VERBOSE, "Camera: %lu found, but not available", requestedDeviceID);
 				}
+			}else {
+				ofLog(OF_LOG_VERBOSE, "Camera: %lu not found, hence not available", requestedDeviceID);
 			}
 		}
 		return requestedDeviceFound && requestedDeviceAvailable;
@@ -275,23 +295,42 @@ namespace ofxPvAPI {
 	
 	void Camera::activateDevice() {
 		
-		openCamera();
-		setPacketSizeToMax(); // first?
-		allocateFrames();
-		startCapture();
+		if (bDeviceActive) {
+			ofLog(OF_LOG_WARNING,"Camera: %lu already active", deviceID);
+			return;
+		}
+		
+		if (!isDeviceAvailable(deviceID)) {
+			bWaitForDeviceToBecomeAvailable = true;
+			lastWaitTime = ofGetElapsedTimeMillis();
+			ofLog(OF_LOG_NOTICE,"Camera: %lu not available, waiting...", deviceID);
+			return;
+		}
+		
+		if (!openCamera()) {
+			return;
+		}
+		if (!setEnumAttribute("PixelFormat", getPvPixelFormat(pixelFormat))) {
+			ofLog(OF_LOG_NOTICE,"Camera: %lu PixelFormat not supported", deviceID);
+			closeCamera();
+			return;
+		}
+		
+		setPacketSizeToMax();
+		setupFrames();
+		
 		if (fixedRate) { setEnumAttribute("FrameStartTriggerMode","FixedRate"); }
 		else { setEnumAttribute("FrameStartTriggerMode","Software"); }
 		setEnumAttribute("AcquisitionMode", "Continuous");
-		setEnumAttribute("PixelFormat", getPvPixelFormat(pixelFormat));
+		
+		startCapture();
 		startAcquisition();
+		queueFrames();
 		
 		numActiveDevices++;
 		bDeviceActive = true;
-		queueFrames();
 		
-		ofLog(OF_LOG_NOTICE,"Camera: %lu active", deviceID);
-		
-		return true;
+		ofLog(OF_LOG_NOTICE,"Camera: %lu activated", deviceID);
 	}
 	
 	void Camera::deactivateDevice() {
@@ -327,7 +366,7 @@ namespace ofxPvAPI {
 			return;
 		}
 		
-		ofLog(OF_LOG_NOTICE, "Camera: %lu connected", requestedDeviceID);
+		ofLog(OF_LOG_NOTICE, "Camera: %lu plugged in", requestedDeviceID);
 		deviceID = _cameraUid;
 		
 		activateDevice();
@@ -335,7 +374,7 @@ namespace ofxPvAPI {
 	
 	void Camera::unplugCamera(unsigned long cameraUid) {
 		if (cameraUid == deviceID) {
-			ofLog(OF_LOG_NOTICE, "Camera: %lu lost", requestedDeviceID);
+			ofLog(OF_LOG_NOTICE, "Camera: %lu unplugged", requestedDeviceID);
 			deactivateDevice();
 		}
 	}
@@ -438,8 +477,25 @@ namespace ofxPvAPI {
 	
 	int Camera::numPvFrames = 4;
 	
+	void Camera::allocateFrames() {
+		pvFrames = new tPvFrame[numPvFrames];
+		if (pvFrames) { memset(pvFrames,0,sizeof(tPvFrame) * numPvFrames); }
+		
+		for (int i=0; i<numPvFrames; i++) {
+			pvFrames[i].Context[0] = this;
+			pvFrames[i].Context[1] = new int(i);
+			pvFrames[i].Context[2] = new float(0);
+		}
+	}
 	
-	bool Camera::allocateFrames() {
+	void Camera::deallocateFrames() {
+		for (int i=0; i<numPvFrames; i++) {
+			delete (char*)pvFrames[i].ImageBuffer;
+		}
+		delete[] pvFrames;
+	}
+	
+	bool Camera::setupFrames() {
 		
 		unsigned long frameSize = 0;
 		tPvErr error = PvAttrUint32Get( deviceHandle, "TotalBytesPerFrame", &frameSize );
@@ -454,7 +510,6 @@ namespace ofxPvAPI {
 				pvFrames[i].ImageBufferSize = frameSize;
 				pvFrames[i].Width = width;
 				pvFrames[i].Height = height;
-//				bPvFrameNew[i] = false;
 			}
 			
 		} else {
@@ -465,17 +520,15 @@ namespace ofxPvAPI {
 		return true;
 	}
 	
-	bool Camera::deallocateFrames() {
-		//		for (int i=0; i<2; i++) {
-		//			delete (char*)pvFrames[i].ImageBuffer;
-		//			pvFrames[i].ImageBuffer = new char[frameSize];
-		//			pvFrames[i].ImageBufferSize = frameSize;
-		//			pvFrames[i].Width = width;
-		//			pvFrames[i].Height = height;
-		//			bPvFrameNew[i] = false;
-		//		}
+	void Camera::resizeFrames() {
+		clearQueue();
+		stopAcquisition();		// stop Aq and Cap to make width and height register correctly
+		stopCapture();
+		setupFrames();
+		startCapture();
+		startAcquisition();
+		queueFrames();
 	}
-	
 	
 	bool Camera::queueFrames(){
 		for (int i=0; i<numPvFrames; i++) {
@@ -592,7 +645,7 @@ namespace ofxPvAPI {
 		if (getIntAttribute("Width") != _value) {
 			setIntAttribute("Width", _value);
 			if(getROIX() > getROIXMax()) { setROIX(getROIXMax()); }
-			resizeFrame();
+			resizeFrames();
 		}
 	}
 	
@@ -600,7 +653,7 @@ namespace ofxPvAPI {
 		if (getIntAttribute("Height") != _value) {
 			setIntAttribute("Height", _value);
 			if(getROIY() > getROIYMax()) { setROIY(getROIYMax()); }
-			resizeFrame();
+			resizeFrames();
 		}
 	}
 	
@@ -620,16 +673,6 @@ namespace ofxPvAPI {
 		setIntAttribute("RegionY", _value);
 		
 		//		regionY = (float)getROIY() / getROIYMax();
-	}
-	
-	void Camera::resizeFrame() {
-		clearQueue();
-		stopAcquisition();		// stop Aq and Cap to make width and height register correctly
-		stopCapture();
-		allocateFrames();
-		startCapture();
-		startAcquisition();
-		queueFrames();
 	}
 	
 	
@@ -708,27 +751,27 @@ namespace ofxPvAPI {
 	
 	void Camera::resetAttributes() {
 		if (bDeviceActive) {
-			setFrameRate(25); // i'm in Europe and like to use lightbulbs
+			setFrameRate(50); // i'm in Europe and like to use lightbulbs
 			
 			setROIWidth(getROIWidthMax());
 			setROIHeight(getROIHeightMax());
 			setROIX(getROIXMin());
 			setROIY(getROIYMin());
 			
-			setAutoExposureTarget(33); // 33% white
-			setAutoExposureRate(10);
-			setAutoExposureAdjustTol(5);
+			setAutoExposureTarget(20); // 20% white
+			setAutoExposureRate(getAutoExposureRateMax());
+			setAutoExposureAdjustTol(getAutoExposureAdjustTolMin());
 			setAutoExposureOutliers(getAutoExposureOutliersMin());
 			setAutoExposureRangeFromFrameRate();
 			setAutoExposureOnce(true);
 			
-			setGain(getGainMin()); // should this be 0 or 1?
+			setGain(getGainMin());
 			
 			if(getPixelFormat() == OF_PIXELS_RGB) {
 				setAutoGain(false);
 				setAutoGainTarget(getAutoGainTargetMin());
-				setAutoGainRate(10);
-				setAutoGainAdjustTol(5);
+				setAutoGainRate(getAutoGainRateMax());
+				setAutoGainAdjustTol(getAutoGainAdjustTolMin());
 				setAutoGainOutliers(getAutoGainOutliersMin());
 				setAutoGainMinimum(getAutoGainMinimumMin());
 				setAutoGainMaximum(getAutoGainMaximumMax());
@@ -1202,7 +1245,7 @@ namespace ofxPvAPI {
 			ofLog(OF_LOG_WARNING, "Camera: %lu The data for the frame was lost", deviceID);
 			break;
 			case ePvErrDataMissing:
-			ofLog(OF_LOG_NOTICE, "Camera: %lu Some data in the frame is missing", deviceID);
+			ofLog(OF_LOG_VERBOSE, "Camera: %lu Some data in the frame is missing", deviceID);
 			break;
 			case ePvErrTimeout:
 			ofLog(OF_LOG_ERROR, "Camera: %lu Timeout during wait", deviceID);

@@ -33,7 +33,6 @@ namespace ofxPvAPI {
 		public:
 		bool			setup();
 		void			update();
-		void			destroy();
 		
 		
 			//-- DEVICE ----------------------------------------------------------
@@ -43,10 +42,14 @@ namespace ofxPvAPI {
 		void			requestDeviceByID(int _deviceID);
 		int 			getDeviceID();
 		int				getDeviceIDFromIpAdress(string _IpAdress);
+		bool			isDeviceFound(int _deviceID);
 		bool			isDeviceAvailable(int _deviceID);
 		int				getFirstDeviceAvailable();
 		
 		bool			isActive() { return bDeviceActive; }
+		
+		void			activateDevice(); // use id?
+		void			deactivateDevice();
 		
 		protected:
 		static int		numActiveDevices;
@@ -54,9 +57,9 @@ namespace ofxPvAPI {
 		unsigned long	requestedDeviceID;
 		tPvHandle		deviceHandle;
 		bool 			bDeviceActive;
-		
-		void			activateDevice(); // use id?
-		void			deactivateDevice();
+		bool			bWaitForDeviceToBecomeAvailable;
+		int				waitInterval;
+		uint64_t		lastWaitTime;
 		
 		static void 	plugCallBack(void* Context, tPvInterface Interface, tPvLinkEvent Event, unsigned long UniqueId);
 		void			plugCamera(unsigned long cameraUid);
@@ -82,9 +85,10 @@ namespace ofxPvAPI {
 		tPvFrame*		pvFrames;
 		deque<tPvFrame*>	capuredFrameQueue;
 		
-		void			resizeFrame();
-		bool			allocateFrames();
-		bool			deallocateFrames();
+		void 			allocateFrames();
+		void 			deallocateFrames();
+		bool			setupFrames();
+		void			resizeFrames();
 		bool			queueFrames();
 		bool			clearQueue();
 		bool			triggerFrame();

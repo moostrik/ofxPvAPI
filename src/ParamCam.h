@@ -17,17 +17,24 @@ namespace ofxPvAPI {
 		
 		ofParameterGroup	parameters;
 		
+		
+			//-- GENERAL ---------------------------------------------------------
+	protected:
 		ofParameter<bool>	printAttributes;
 		ofParameter<bool>	printIpSettings;
 		ofParameter<bool>	reset;
 		ofParameter<bool>	resetParametersFromCam;
+		ofParameter<bool>	pActivate;
+		ofParameter<bool>	pDeactivate;
+		
+		void	activateListener(bool& _value) { if (_value) { _value = false; activateDevice();} }
+		void	deactivateListener(bool& _value) { if (_value) { _value = false; deactivateDevice();} }
 		
 		
 			//-- FRAMES ----------------------------------------------------------
 	public:
 		void	setFixedRate(bool _value)	{ pFixedRate.set(_value); }
 		void	setFrameRate(float _value)	{ inRange(pFrameRate, _value); pFrameRate.set(_value); }
-		
 		
 	protected:
 		ofParameterGroup	frameRateParameters;
