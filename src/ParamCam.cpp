@@ -290,6 +290,7 @@ namespace ofxPvAPI {
 		}
 		
 		blockListeners = false;
+		pIpPersistent.set(getIpPersistent()? "yes" : "no");
 		pCurrentIpAdress.set(getCurrentIpAdress());
 		pCurrentIpSubnetMask.set(getCurrentIpSubnetMask());
 		pCurrentIpGateway.set(getCurrentIpGateway());
@@ -412,7 +413,8 @@ namespace ofxPvAPI {
 				Camera::setFixedRate(_value);
 			
 				pExposure.setMax(getExposureMaxForCurrentFrameRate());
-				if (pExposure != getExposure()) pExposure.set(getExposure());
+				int cExposure = Camera::getExposure();
+				if (pExposure != cExposure) { pExposure.set(cExposure); }
 			}
 		}
 	}
@@ -424,7 +426,7 @@ namespace ofxPvAPI {
 			
 			pExposure.setMax(getExposureMaxForCurrentFrameRate());
 			int cExposure = Camera::getExposure();
-			if (pExposure != cExposure) pExposure.set(cExposure);
+			if (pExposure != cExposure) { pExposure.set(cExposure); }
 		}
 	}
 	
@@ -439,9 +441,7 @@ namespace ofxPvAPI {
 			
 			pFrameRate.setMax(floor(getFrameRateMax()));
 			float cFrameRate = getFrameRate();
-			if (pFrameRate != cFrameRate) {
-				pFrameRate.set(cFrameRate);
-			}
+			if (pFrameRate != cFrameRate) { setFrameRate(pFrameRate.get()); }
 		}
 	}
 	
@@ -455,9 +455,7 @@ namespace ofxPvAPI {
 			
 			pFrameRate.setMax(floor(getFrameRateMax()));
 			float cFrameRate = getFrameRate();
-			if (pFrameRate != cFrameRate) {
-				pFrameRate.set(cFrameRate);
-			}
+			if (pFrameRate != cFrameRate) { setFrameRate(pFrameRate.get()); }
 		}
 	}
 	
@@ -467,7 +465,7 @@ namespace ofxPvAPI {
 			
 			pROIWidth.setMax(max(getROIWidthMax(), 1)); // prevent divide by 0
 			int cRoiYWidth = getROIWidth();
-			if (pROIWidth != cRoiYWidth) pROIWidth.set(cRoiYWidth);
+			if (pROIWidth != cRoiYWidth) { pROIWidth.set(cRoiYWidth); }
 		}
 	}
 	
@@ -477,7 +475,7 @@ namespace ofxPvAPI {
 			
 			pROIHeight.setMax(max(getROIHeightMax(), 1)); // prevent divide by 0
 			int cRoiYHeight= getROIHeight();
-			if (pROIHeight != cRoiYHeight) pROIHeight.set(cRoiYHeight);
+			if (pROIHeight != cRoiYHeight) { pROIHeight.set(cRoiYHeight); }
 		}
 	}
 	

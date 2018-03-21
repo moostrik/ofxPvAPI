@@ -280,6 +280,11 @@ namespace ofxPvAPI {
 			return;
 		}
 		
+		if (!isDeviceFound(deviceID)) {
+			ofLog(OF_LOG_NOTICE,"Camera: %lu not found", deviceID);
+			return;
+		}
+		
 		if (!isDeviceAvailable(deviceID)) {
 			bWaitForDeviceToBecomeAvailable = true;
 			lastWaitTime = ofGetElapsedTimeMillis();
@@ -315,14 +320,12 @@ namespace ofxPvAPI {
 	
 	void Camera::deactivate() {
 		
+		bDeviceActive = false;
+		numActiveDevices--;
 		clearQueue();
 //		stopAcquisition(); // why ommit?
 		stopCapture();
 		closeCamera();
-		
-		bDeviceActive = false;
-		numActiveDevices--;
-		cout << "unregister" << endl;
 		
 		ofLog(OF_LOG_NOTICE,"Camera: %lu deactivated", deviceID);
 	}
@@ -359,9 +362,7 @@ namespace ofxPvAPI {
 		if (cameraUid == deviceID) {
 			ofLog(OF_LOG_NOTICE, "Camera: %lu unplugged", requestedDeviceID);
 			if (bDeviceActive) {
-				cout << "unregister" << endl;
-				bDeviceActive = false;
-				numActiveDevices--;
+				deactivate();
 			}
 		}
 	}
@@ -369,13 +370,16 @@ namespace ofxPvAPI {
 	void Camera::waitOnAvailable() {
 		
 		if (bWaitForDeviceToBecomeAvailable && lastWaitTime + waitInterval < ofGetElapsedTimeMillis()) {
-			if (!isDeviceFound(requestedDeviceID)) {
+			if (!isDeviceFound(deviceID)) {
 				bWaitForDeviceToBecomeAvailable = false;
+				ofLog(OF_LOG_NOTICE,"Camera: %lu waiting, but not longer found", deviceID);
+				return;
 			}
-			if (isDeviceAvailable(requestedDeviceID)) {
+			if (isDeviceAvailable(deviceID)) {
 				ofLog(OF_LOG_NOTICE,"Camera: %lu available", deviceID);
 				activate();
 				bWaitForDeviceToBecomeAvailable = false;
+				return;
 			}
 			
 			lastWaitTime = ofGetElapsedTimeMillis();
