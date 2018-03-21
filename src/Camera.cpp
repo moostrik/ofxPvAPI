@@ -11,7 +11,7 @@ namespace ofxPvAPI {
 	bIsFrameNew(false),
 	fps(0),
 	frameDrop(0),
-	fixedRate(0),
+	bTriggered(0),
 	pixelFormat(OF_PIXELS_MONO),
 	deviceID(0),
 	requestedDeviceID(0),
@@ -98,9 +98,9 @@ namespace ofxPvAPI {
 		bIsFrameNew = false;
 		
 		if (bDeviceActive) {
-			if (!fixedRate) { triggerFrame(); }
+			if (bTriggered) { triggerFrame(); }
 			if ( capuredFrameQueue.size() > 0) {
-				size_t frameoffset = (fixedRate)? 1 : 0;
+				size_t frameoffset = (bTriggered)? 0 : 1;
 				frameoffset = min(capuredFrameQueue.size(), frameoffset);
 				tPvFrame& frame = *capuredFrameQueue[frameoffset];
 				
@@ -128,31 +128,31 @@ namespace ofxPvAPI {
 				}
 				framesDropped.push_back(df);
 			}
-		}
 		
-		float timeWindow = ofGetElapsedTimef() - (1 - (1.0 / max(fps, 1) / 3.0));
-		
-		while (fpsTimes.size() > 0 && fpsTimes.at(0) < timeWindow) {
-			fpsTimes.pop_front();
-			framesDropped.pop_front();
-			framesLatencies.pop_front();
+			float timeWindow = ofGetElapsedTimef() - (1 - (1.0 / max(fps, 1) / 3.0));
+			
+			while (fpsTimes.size() > 0 && fpsTimes.at(0) < timeWindow) {
+				fpsTimes.pop_front();
+				framesDropped.pop_front();
+				framesLatencies.pop_front();
+			}
+			fps = fpsTimes.size();
+			
+			frameDrop = 0;
+			for (int i=0; i<framesDropped.size(); i++) {
+				frameDrop += framesDropped[i];
+			}
+			
+			frameMaxLatency = 0;
+			frameMinLatency = 10000;
+			float tL = 0;
+			for (int i=0; i<framesLatencies.size(); i++) {
+				tL += framesLatencies[i];
+				frameMaxLatency = max(frameMaxLatency, framesLatencies[i]);
+				frameMinLatency = min(frameMinLatency, framesLatencies[i]);
+			}
+			frameLatency = (tL / framesLatencies.size());
 		}
-		fps = fpsTimes.size();
-		
-		frameDrop = 0;
-		for (int i=0; i<framesDropped.size(); i++) {
-			frameDrop += framesDropped[i];
-		}
-		
-		frameMaxLatency = 0;
-		frameMinLatency = 10000;
-		float tL = 0;
-		for (int i=0; i<framesLatencies.size(); i++) {
-			tL += framesLatencies[i];
-			frameMaxLatency = max(frameMaxLatency, framesLatencies[i]);
-			frameMinLatency = min(frameMinLatency, framesLatencies[i]);
-		}
-		frameLatency = (tL / framesLatencies.size());
 	}
 	
 	
@@ -304,8 +304,8 @@ namespace ofxPvAPI {
 		setPacketSizeToMax();
 		setupFrames();
 		
-		if (fixedRate) { setEnumAttribute("FrameStartTriggerMode","FixedRate"); }
-		else { setEnumAttribute("FrameStartTriggerMode","Software"); }
+		if (bTriggered) { setEnumAttribute("FrameStartTriggerMode","Software"); }
+		else { setEnumAttribute("FrameStartTriggerMode","FixedRate"); }
 		setEnumAttribute("AcquisitionMode", "Continuous");
 		
 		startCapture();
@@ -326,6 +326,16 @@ namespace ofxPvAPI {
 //		stopAcquisition(); // why ommit?
 		stopCapture();
 		closeCamera();
+		
+		fps = 0;
+		frameDrop = 0;
+		frameLatency = 0;
+		frameMinLatency = 0;
+		frameMaxLatency = 0;		
+		
+		fpsTimes.clear();
+		framesDropped.clear();
+		framesLatencies.clear();
 		
 		ofLog(OF_LOG_NOTICE,"Camera: %lu deactivated", deviceID);
 	}
@@ -610,10 +620,12 @@ namespace ofxPvAPI {
 	//----------------------------------------------------------------------------
 	//-- FRAMES ------------------------------------------------------------------
 	
-	void Camera::setFixedRate(bool _value) {
-		fixedRate = _value;
-		if (fixedRate) { setEnumAttribute("FrameStartTriggerMode","FixedRate"); }
-		else { setEnumAttribute("FrameStartTriggerMode","Software"); }
+	void Camera::setTriggered(bool _value) {
+		bTriggered = _value;
+		if (bTriggered) { setEnumAttribute("FrameStartTriggerMode","Software"); }
+		else { setEnumAttribute("FrameStartTriggerMode","FixedRate"); }
+		setExposure(min(getExposure(), getExposureMaxForCurrentFrameRate()));
+		setAutoExposureRangeFromFrameRate();
 	}
 	
 	void Camera::setFrameRate(float rate) {

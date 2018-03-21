@@ -29,8 +29,8 @@ namespace ofxPvAPI {
 		frameRateParameters.add(pFrameLatency.set("avg latency (ms)", 0, 0, 60));
 		frameRateParameters.add(pFrameMaxLatency.set("max latency (ms)", 0, 0, 60));
 		frameRateParameters.add(pFrameMinLatency.set("min latency (ms)", 0, 0, 60));
-		frameRateParameters.add(pFixedRate.set("fixed (or trigger)", false));
-		pFixedRate.addListener(this, &ParamCam::fixedRateListener);
+		frameRateParameters.add(pTriggered.set("trigger mode", false));
+		pTriggered.addListener(this, &ParamCam::triggeredListener);
 		frameRateParameters.add(pFrameRate.set("frame rate", 30, 2, 60));
 		pFrameRate.addListener(this, &ParamCam::frameRateListener);
 		parameters.add(frameRateParameters);
@@ -396,25 +396,39 @@ namespace ofxPvAPI {
 	void ParamCam::setParameterInItsOwnRange(ofParameter<int> &_parameter) {
 		if (_parameter.get() < _parameter.getMin()) { _parameter.set(_parameter.getMin()); }
 		else if (_parameter.get() > _parameter.getMax()) {_parameter.set(_parameter.getMax()); }
+		else {
+			bool bl = blockListeners;
+			blockListeners = true;
+			_parameter.set(_parameter.get()); // setParameterInItsOwnRange
+			blockListeners = bl;
+		}
 	}
 	
 	void ParamCam::setParameterInItsOwnRange(ofParameter<float> &_parameter) {
 		if (_parameter.get() < _parameter.getMin()) _parameter.set(_parameter.getMin());
 		else if (_parameter.get() > _parameter.getMax()) _parameter.set(_parameter.getMax());
+		else {
+			bool bl = blockListeners;
+			blockListeners = true;
+			_parameter.set(_parameter.get()); // setParameterInItsOwnRange
+			blockListeners = bl;
+		}
 	}
 	
 	
 		//-- FRAMES ----------------------------------------------------------
-	void ParamCam::fixedRateListener(bool &_value)  {
-		
+	void ParamCam::triggeredListener(bool &_value)  {
 		if (isActive()) {
-			bool cFixedRate = Camera::getFixedRate();
-			if (_value != cFixedRate) {
-				Camera::setFixedRate(_value);
+			bool bT = Camera::getTriggered();
+			if (_value != bT) {
+				Camera::setTriggered(_value);
 			
 				pExposure.setMax(getExposureMaxForCurrentFrameRate());
-				int cExposure = Camera::getExposure();
-				if (pExposure != cExposure) { pExposure.set(cExposure); }
+				pAutoExposureMaximum.setMax(Camera::getAutoExposureMaximum());
+				blockListeners = true;
+				pExposure.set(Camera::getExposure());
+				pAutoExposureMaximum.set(Camera::getAutoExposureMaximum());
+				blockListeners = false;
 			}
 		}
 	}
@@ -425,8 +439,11 @@ namespace ofxPvAPI {
 			Camera::setFrameRate(_value);
 			
 			pExposure.setMax(getExposureMaxForCurrentFrameRate());
-			int cExposure = Camera::getExposure();
-			if (pExposure != cExposure) { pExposure.set(cExposure); }
+			pAutoExposureMaximum.setMax(Camera::getAutoExposureMaximum());
+			blockListeners = true;
+			pExposure.set(Camera::getExposure());
+			pAutoExposureMaximum.set(Camera::getAutoExposureMaximum());
+			blockListeners = false;
 		}
 	}
 	
@@ -436,12 +453,11 @@ namespace ofxPvAPI {
 			Camera::setROIWidth(_value);
 			
 			pROIX.setMax(max(getROIXMax(), 1)); // prevent divide by 0
-			int cRoiX = getROIX();
-			if (pROIX != cRoiX) pROIX.set(cRoiX);
+			setParameterInItsOwnRange(pROIX);
 			
 			pFrameRate.setMax(floor(getFrameRateMax()));
-			float cFrameRate = getFrameRate();
-			if (pFrameRate != cFrameRate) { setFrameRate(pFrameRate.get()); }
+			setParameterInItsOwnRange(pFrameRate);
+			Camera::setFrameRate(pFrameRate.get());
 		}
 	}
 	
@@ -450,12 +466,11 @@ namespace ofxPvAPI {
 			Camera::setROIHeight(_value);
 			
 			pROIY.setMax(max(getROIYMax(), 1)); // prevent divide by 0
-			int cRoiY = getROIY();
-			if (pROIY != cRoiY) pROIY.set(cRoiY);
+			setParameterInItsOwnRange(pROIY);
 			
 			pFrameRate.setMax(floor(getFrameRateMax()));
-			float cFrameRate = getFrameRate();
-			if (pFrameRate != cFrameRate) { setFrameRate(pFrameRate.get()); }
+			setParameterInItsOwnRange(pFrameRate);
+			Camera::setFrameRate(pFrameRate.get());
 		}
 	}
 	
@@ -464,8 +479,7 @@ namespace ofxPvAPI {
 			Camera::setROIX(_value);
 			
 			pROIWidth.setMax(max(getROIWidthMax(), 1)); // prevent divide by 0
-			int cRoiYWidth = getROIWidth();
-			if (pROIWidth != cRoiYWidth) { pROIWidth.set(cRoiYWidth); }
+			setParameterInItsOwnRange(pROIWidth);
 		}
 	}
 	
@@ -474,8 +488,7 @@ namespace ofxPvAPI {
 			Camera::setROIY(_value);
 			
 			pROIHeight.setMax(max(getROIHeightMax(), 1)); // prevent divide by 0
-			int cRoiYHeight= getROIHeight();
-			if (pROIHeight != cRoiYHeight) { pROIHeight.set(cRoiYHeight); }
+			setParameterInItsOwnRange(pROIHeight);
 		}
 	}
 	

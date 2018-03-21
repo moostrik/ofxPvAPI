@@ -35,7 +35,7 @@ namespace ofxPvAPI {
 		
 			//-- FRAMES ----------------------------------------------------------
 	public:
-		void	setFixedRate(bool _value)	{ pFixedRate.set(_value); }
+		void	setTriggered(bool _value)	{ pTriggered.set(_value); }
 		void	setFrameRate(float _value)	{ inRange(pFrameRate, _value); pFrameRate.set(_value); }
 		
 	protected:
@@ -45,11 +45,11 @@ namespace ofxPvAPI {
 		ofParameter<int>	pFrameLatency;
 		ofParameter<int>	pFrameMaxLatency;
 		ofParameter<int>	pFrameMinLatency;
-		ofParameter<bool>	pFixedRate;
 		ofParameter<float>	pFrameRate;
+		ofParameter<bool>	pTriggered;
 		
 		void	frameRateListener(float& _value);
-		void	fixedRateListener(bool& _value);
+		void	triggeredListener(bool& _value);
 		
 		
 			//-- REGION OF INTEREST ----------------------------------------------
@@ -225,5 +225,8 @@ namespace ofxPvAPI {
 		
 		void 	inRange(ofParameter<int>& _parameter, int& _value);
 		void 	inRange(ofParameter<float>& _parameter, float& _value);
+//		void 	update(ofParameter<bool>& _parameter) 	{ bool bl = blockListeners; blockListeners = true; _parameter.set(_parameter.get());  blockListeners = bl; }
+//		void 	update(ofParameter<int>& _parameter)	{ bool bl = blockListeners; blockListeners = true; _parameter.set(_parameter.get());  blockListeners = bl; }
+//		void 	update(ofParameter<float>& _parameter)  { bool bl = blockListeners; blockListeners = true; _parameter.set(_parameter.get());  blockListeners = bl; }
 	};
 }

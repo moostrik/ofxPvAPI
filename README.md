@@ -1,7 +1,6 @@
 # README #
 
-Based on a previously private repository for openframeworks 8.4 that was based on ofxLibdc
-The static libPvAPI.a will not compile with OF 0.9.x. Fortunately the  libPvAPI.dylib does work when properly added to the target.
+Based on  libPvAPI.dylib (as the libPvAPI.a won't compile with of 0.9)
 The PvApi.h must be slightly modified
 
 Tested with the Prosilica GC750 and the MAKO G-223B  (both monochrome) on OSX 10.13
@@ -10,16 +9,7 @@ previous versions tested on Windows 7
 
 # TODO #
 
-- [x] fix tearing
-- [x] figure out how to include libPvAPI.dylib in app
-- [x] make triggered
-- [x] add callback for discovery (remove connector)
-- [x] better init and close
-- [x] fix slowdown of setAllParametersFromCam in parameterConnector
-- [x] update parameterConnector to intercept the attributes
-
-- [ ] fix fps after connection lost and found
-
+- [ ] refactor parameterConnector
 - [ ] better naming of classes
 - [ ] test with color camera
 - [ ] test windows

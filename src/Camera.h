@@ -111,12 +111,12 @@ namespace ofxPvAPI {
 		int 			getLatency() 			{ return frameLatency; }
 		int 			getMaxLatency() 		{ return frameMaxLatency; }
 		int 			getMinLatency() 		{ return frameMinLatency; }
-		float			getFixedRate()			{ return fixedRate; }
 		float			getFrameRate()			{ return getFloatAttribute("FrameRate"); }
 		float			getFrameRateMax()		{ return getFloatAttributeMax("FrameRate"); }
 		float			getFrameRateMin()		{ return getFloatAttributeMin("FrameRate"); }
+		float			getTriggered()			{ return bTriggered; }
 		
-		void			setFixedRate(bool _value);
+		void			setTriggered(bool _value);
 		void			setFrameRate(float rate);
 		
 	private:
@@ -129,7 +129,7 @@ namespace ofxPvAPI {
 		int 			frameMaxLatency;
 		int 			frameMinLatency;
 		deque<int> 		framesLatencies;
-		bool			fixedRate;
+		bool			bTriggered;
 		
 		//-- PIXELS --------------------------------------------------------------
 	public:
@@ -197,7 +197,7 @@ namespace ofxPvAPI {
 		bool	getAutoExposure()					{ return (getEnumAttribute("ExposureMode") == "Auto")? true: false; }
 		bool	getAutoExposureOnce()				{ return (getEnumAttribute("ExposureMode") == "AutoOnce")? true: false; }
 		
-		int 	getExposureMaxForCurrentFrameRate() { return fixedRate? 1000000 / getFrameRate() : 200000 / getFrameRate(); }
+		int 	getExposureMaxForCurrentFrameRate() { return bTriggered? 200000 / getFrameRate() : 1000000 / getFrameRate(); }
 		void	setAutoExposureRangeFromFrameRate()	{ setAutoExposureMaximum(getExposureMaxForCurrentFrameRate()); setAutoExposureMinimum(getAutoExposureMinimumMin());}
 		
 		void	setExposure(int _value)				{ setIntAttribute("ExposureValue", _value); }
