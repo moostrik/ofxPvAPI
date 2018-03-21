@@ -18,56 +18,54 @@ namespace ofxPvAPI {
 	
 	class Camera {
 		
-		public :
+	public :
 		Camera();
 		virtual ~Camera();
 		
-			//-- API -------------------------------------------------------------
-		protected:
+		bool			setup();
+		void			update();
+		
+		//-- API -------------------------------------------------------------
+	private:
 		void			PvApiInitialize();
 		void			PvApiUnInitialize();
 		static bool		bPvApiInitiated;
 		
-		
-			//-- OF --------------------------------------------------------------
-		public:
-		bool			setup();
-		void			update();
-		
-		
-			//-- DEVICE ----------------------------------------------------------
-		public:
+		//-- LIST & ID -------------------------------------------------------
+	public:
 		vector<ofVideoDevice> listDevices();
+		
+		int 			getDeviceID();
+		
 		void			setDeviceID(int _deviceID) { requestDeviceByID(_deviceID); }
 		void			requestDeviceByID(int _deviceID);
-		int 			getDeviceID();
+		int				getRequestedDeviceID() { return requestedDeviceID; }
+		
 		int				getDeviceIDFromIpAdress(string _IpAdress);
+		int				getFirstAvailableDeviceID();
+		
 		bool			isDeviceFound(int _deviceID);
 		bool			isDeviceAvailable(int _deviceID);
-		int				getFirstDeviceAvailable();
 		
-		bool			isActive() { return bDeviceActive; }
-		
-		void			activateDevice(); // use id?
-		void			deactivateDevice();
-		
-		protected:
-		static int		numActiveDevices;
+	private:
 		unsigned long	deviceID;
 		unsigned long	requestedDeviceID;
+		
+		//-- DEVICE ----------------------------------------------------------
+	public:
+		bool			isActive() { return bDeviceActive; }
+		void			activate(); 			// this is taken care of by setup(), but you might want to (de)activate manually
+		void			deactivate();
+		
+	private:
 		tPvHandle		deviceHandle;
 		bool 			bDeviceActive;
-		bool			bWaitForDeviceToBecomeAvailable;
-		int				waitInterval;
-		uint64_t		lastWaitTime;
+		static int		numActiveDevices;
 		
 		static void 	plugCallBack(void* Context, tPvInterface Interface, tPvLinkEvent Event, unsigned long UniqueId);
 		void			plugCamera(unsigned long cameraUid);
 		void			unplugCamera(unsigned long cameraUid);
 		
-		
-			//-- ACQUISITION -----------------------------------------------------
-		protected:
 		bool			openCamera();
 		bool			closeCamera();
 		
@@ -78,9 +76,12 @@ namespace ofxPvAPI {
 		bool			stopAcquisition();
 		bool			abortAcquisition();
 		
+		bool			bWaitForDeviceToBecomeAvailable;
+		int				waitInterval;
+		uint64_t		lastWaitTime;
 		
 		//-- PV FRAMES -------------------------------------------------------
-		protected:
+	private:
 		static int		numPvFrames;
 		tPvFrame*		pvFrames;
 		deque<tPvFrame*>	capuredFrameQueue;
@@ -89,15 +90,17 @@ namespace ofxPvAPI {
 		void 			deallocateFrames();
 		bool			setupFrames();
 		void			resizeFrames();
+		
 		bool			queueFrames();
 		bool			clearQueue();
+		
 		bool			triggerFrame();
 		
 		static void 	frameCallBack(tPvFrame* pFrame);
 		void			receiveFrame(tPvFrame* _frame);
 		
 		//-- FRAMES --------------------------------------------------------------
-		public:
+	public:
 		bool 			isFrameNew()			{ return bIsFrameNew; }
 		
 		int 			getFps() 				{ return fps; }
@@ -113,7 +116,7 @@ namespace ofxPvAPI {
 		void			setFixedRate(bool _value);
 		void			setFrameRate(float rate);
 		
-		protected:
+	private:
 		bool			bIsFrameNew;
 		deque<float> 	fpsTimes;
 		int 			fps;
@@ -126,27 +129,27 @@ namespace ofxPvAPI {
 		bool			fixedRate;
 		
 		//-- PIXELS --------------------------------------------------------------
-		public:
+	public:
 		ofPixels&		getPixels()	{ return pixels; }
 		float			getWidth()	{ return (pixels.isAllocated())? pixels.getWidth() : 0; } 	// pixels, not ROI
 		float			getHeight()	{ return (pixels.isAllocated())? pixels.getHeight() : 0; }	// pixels, not ROI
 		
-		bool			setPixelFormat(ofPixelFormat _pixelFormat);
+		bool			setPixelFormat(ofPixelFormat _pixelFormat); // for now only before setup
 		ofPixelFormat	getPixelFormat() { return pixelFormat; }
 		
-		protected:
+	private:
 		ofPixels		pixels;
 		ofPixelFormat	pixelFormat;
 		ofPixelFormat	getOfPixelFormat(string _format);
 		string			getPvPixelFormat(ofPixelFormat _format);
 		
 			//-- ATTRIBUTES GENERAL-----------------------------------------------
-		public:
+	public:
 		void	videoSettings() { listAttributes();}
 		void	listAttributes();
 		void	resetAttributes();
 		
-		protected:
+	private:
 		bool	setNormalizedAttribute(string _name, float _value);
 		float	getNormalizedAttribute(string _name);
 		
@@ -164,7 +167,7 @@ namespace ofxPvAPI {
 		string	getEnumAttribute(string _name);
 		
 			//-- REGION OF INTEREST ----------------------------------------------
-		public:
+	public:
 		void	setROIWidth(int _value);
 		void	setROIHeight(int _value);
 		void	setROIX(int _value);
@@ -184,17 +187,14 @@ namespace ofxPvAPI {
 		int		getROIYMin()		{ return getIntAttributeMin("RegionY"); }
 		int		getROIYMax()		{ return getIntAttributeMax("RegionY"); }
 		
-		protected:
-			//		float			regionX;
-			//		float			regionY;
-		
 			//-- EXPOSURE --------------------------------------------------------
-		public:
+	public:
 		void	setAutoExposure(bool state)			{ setEnumAttribute("ExposureMode", (state == true)? "Auto": "Manual"); }
 		void	setAutoExposureOnce(bool state)		{ setEnumAttribute("ExposureMode", (state == true)? "AutoOnce": "Manual"); }
 		bool	getAutoExposure()					{ return (getEnumAttribute("ExposureMode") == "Auto")? true: false; }
 		bool	getAutoExposureOnce()				{ return (getEnumAttribute("ExposureMode") == "AutoOnce")? true: false; }
 		
+		int 	getExposureMaxForCurrentFrameRate() { return fixedRate? 1000000 / getFrameRate() : 200000 / getFrameRate(); }
 		void	setAutoExposureRangeFromFrameRate()	{ setAutoExposureMaximum(getExposureMaxForCurrentFrameRate()); setAutoExposureMinimum(getAutoExposureMinimumMin());}
 		
 		void	setExposure(int _value)				{ setIntAttribute("ExposureValue", _value); }
@@ -222,7 +222,6 @@ namespace ofxPvAPI {
 		void	setAutoExposureMinimum(int _value)	{ setIntAttribute("ExposureAutoMin", _value); }
 		void 	setAutoExposureMaximum(int _value)	{ setIntAttribute("ExposureAutoMax", _value); }
 		
-		
 		int		getExposure()					{ return getIntAttribute("ExposureValue"); }
 		int		getAutoExposureAdjustTol()		{ return getIntAttribute("ExposureAutoAdjustTol"); }
 		int		getAutoExposureMinimum()		{ return getIntAttribute("ExposureAutoMin"); }
@@ -246,7 +245,6 @@ namespace ofxPvAPI {
 		int		getAutoExposureTargetMin()		{ return getIntAttributeMin("ExposureAutoTarget"); }
 		int		getAutoExposureTargetMax()		{ return getIntAttributeMax("ExposureAutoTarget"); }
 		
-		int 	getExposureMaxForCurrentFrameRate() { return fixedRate? 1000000 / getFrameRate() : 200000 / getFrameRate(); }
 		
 			//-- GAIN ------------------------------------------------------------
 		void 	setAutoGain(bool state)			{ setEnumAttribute("GainMode", (state == true)? "Auto": "Manual"); }
@@ -327,7 +325,7 @@ namespace ofxPvAPI {
 		int 	getAutoWhiteBalanceRateMax()	{ return getIntAttributeMax("WhitebalAutoRate"); }
 		
 			//-- IP SETTINGS -----------------------------------------------------
-		public:
+	public:
 		void	setPersistentIp(bool enable);
 		void	setPersistentIpAdress(string _IpAdress);
 		void	setPersistentIpSubnetMask(string _IpSubnet);
@@ -338,7 +336,7 @@ namespace ofxPvAPI {
 		bool	getIpPersistent();
 		void	listIpSettings();
 		
-		protected:
+	private:
 		string			persistentIpAdress;
 		string			persistentIpSubnetMask;
 		string			persistentIpGateway;
@@ -347,6 +345,7 @@ namespace ofxPvAPI {
 		bool			setPacketSizeToMax();
 		
 			//-- ERROR LOGGING ---------------------------------------------------
+	private:
 		void			logError(tPvErr _msg);
 		
 	};

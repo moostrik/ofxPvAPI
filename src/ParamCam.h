@@ -27,8 +27,8 @@ namespace ofxPvAPI {
 		ofParameter<bool>	pActivate;
 		ofParameter<bool>	pDeactivate;
 		
-		void	activateListener(bool& _value) { if (_value) { _value = false; activateDevice();} }
-		void	deactivateListener(bool& _value) { if (_value) { _value = false; deactivateDevice();} }
+		void	activateListener(bool& _value) { if (_value) { _value = false; activate();} }
+		void	deactivateListener(bool& _value) { if (_value) { _value = false; deactivate();} }
 		
 		
 			//-- FRAMES ----------------------------------------------------------

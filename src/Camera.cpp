@@ -26,7 +26,7 @@ namespace ofxPvAPI {
 	Camera::~Camera(){
 		
 		if( bDeviceActive ) {
-			deactivateDevice();
+			deactivate();
 		}
 		
 		deallocateFrames();
@@ -49,7 +49,7 @@ namespace ofxPvAPI {
 		else {
 			tPvErr error = PvInitialize();
 			if( error == ePvErrSuccess ) {
-//				ofSleepMillis(500); // wait for cams to register
+				ofSleepMillis(500); // wait for cams to register
 				ofLog(OF_LOG_NOTICE, "Camera: PvAPI initialized");
 				
 			} else {
@@ -77,7 +77,7 @@ namespace ofxPvAPI {
 	bool Camera::setup() {
 		
 		if (requestedDeviceID == 0 && numActiveDevices == 0) { // default first camera only
-			requestedDeviceID = getFirstDeviceAvailable();
+			requestedDeviceID = getFirstAvailableDeviceID();
 			if (requestedDeviceID != 0) {
 				deviceID = requestedDeviceID;
 				ofLog(OF_LOG_NOTICE, "Camera: no camera ID specified, defaulting to camera %lu", deviceID);
@@ -85,11 +85,7 @@ namespace ofxPvAPI {
 		}
 		if (isDeviceFound(requestedDeviceID)) {
 			deviceID = requestedDeviceID;
-			activateDevice();
-//			if (isDeviceAvailable(requestedDeviceID)) {
-//				activateDevice();
-//			}
-//			else { bWaitForDeviceToBecomeAvailable = true; }
+			activate();
 		}
 		
 		PvLinkCallbackRegister(plugCallBack, ePvLinkAdd, this);
@@ -101,7 +97,7 @@ namespace ofxPvAPI {
 			if (isDeviceAvailable(requestedDeviceID)) {
 				bWaitForDeviceToBecomeAvailable = false;
 				ofLog(OF_LOG_NOTICE,"Camera: %lu available", deviceID);
-				activateDevice();
+				activate();
 			}
 			else {
 				lastWaitTime = ofGetElapsedTimeMillis();
@@ -129,7 +125,6 @@ namespace ofxPvAPI {
 				}
 				else {
 					logError(frame.Status);
-					ofLogNotice("Camera") << "crooked frame";
 				}
 				
 				fpsTimes.push_back(time);
@@ -246,7 +241,7 @@ namespace ofxPvAPI {
 		return requestedDeviceFound && requestedDeviceAvailable;
 	}
 	
-	int Camera::getFirstDeviceAvailable() {
+	int Camera::getFirstAvailableDeviceID() {
 		vector<ofVideoDevice> deviceList = listDevices();
 		for (int i=0; i<deviceList.size(); i++) {
 			if (deviceList[i].bAvailable) {
@@ -293,7 +288,7 @@ namespace ofxPvAPI {
 	}
 	
 	
-	void Camera::activateDevice() {
+	void Camera::activate() {
 		
 		if (bDeviceActive) {
 			ofLog(OF_LOG_WARNING,"Camera: %lu already active", deviceID);
@@ -333,7 +328,7 @@ namespace ofxPvAPI {
 		ofLog(OF_LOG_NOTICE,"Camera: %lu activated", deviceID);
 	}
 	
-	void Camera::deactivateDevice() {
+	void Camera::deactivate() {
 		
 		bDeviceActive = false;
 		numActiveDevices--;
@@ -369,18 +364,16 @@ namespace ofxPvAPI {
 		ofLog(OF_LOG_NOTICE, "Camera: %lu plugged in", requestedDeviceID);
 		deviceID = _cameraUid;
 		
-		activateDevice();
+		activate();
 	}
 	
 	void Camera::unplugCamera(unsigned long cameraUid) {
 		if (cameraUid == deviceID) {
 			ofLog(OF_LOG_NOTICE, "Camera: %lu unplugged", requestedDeviceID);
-			deactivateDevice();
+			deactivate();
 		}
 	}
 	
-	//----------------------------------------------------------------------------
-	//-- ACQUISITION -------------------------------------------------------------
 	
 	bool Camera::openCamera() {
 		tPvErr error = PvCameraOpen( deviceID, ePvAccessMaster, &deviceHandle );
@@ -751,12 +744,12 @@ namespace ofxPvAPI {
 	
 	void Camera::resetAttributes() {
 		if (bDeviceActive) {
-			setFrameRate(50); // i'm in Europe and like to use lightbulbs
+			setFrameRate(60);
 			
-			setROIWidth(getROIWidthMax());
-			setROIHeight(getROIHeightMax());
-			setROIX(getROIXMin());
-			setROIY(getROIYMin());
+			setROIWidth(min(getROIWidthMax(), 640));
+			setROIHeight(min(getROIWidthMax(), 480));
+			setROIX(getROIXMax() / 2);
+			setROIY(getROIYMax() / 2);
 			
 			setAutoExposureTarget(20); // 20% white
 			setAutoExposureRate(getAutoExposureRateMax());
@@ -1088,7 +1081,7 @@ namespace ofxPvAPI {
 		PvCameraIpSettingsGet(deviceID, &ipSettings);
 		if (!enable) {
 			if (bDeviceActive) {
-				deactivateDevice();
+				deactivate();
 			}
 			
 			ipSettings.ConfigMode = ePvIpConfigDhcp;
@@ -1116,7 +1109,7 @@ namespace ofxPvAPI {
 		bool wasActive = false;
 		if (bDeviceActive) {
 			wasActive = true;
-			deactivateDevice();
+			deactivate();
 		}
 		
 		tPvErr error;
@@ -1130,7 +1123,7 @@ namespace ofxPvAPI {
 		}
 		
 		if (wasActive) {
-			activateDevice();
+			activate();
 		}
 #endif
 	}
