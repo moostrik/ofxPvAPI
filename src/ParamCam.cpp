@@ -20,8 +20,6 @@ namespace ofxPvAPI {
 		reset.addListener(this, &ParamCam::resetListener);
 		parameters.add(printAttributes.set("print features", false));
 		printAttributes.addListener(this, &ParamCam::printAttributesListener);
-		parameters.add(resetParametersFromCam.set("load", false));
-		resetParametersFromCam.addListener(this, &ParamCam::resetParametersFromCamListener);
 		
 		frameRateParameters.setName("framerate");
 		frameRateParameters.add(pFps.set("fps", 0, 0, 60));
@@ -125,18 +123,18 @@ namespace ofxPvAPI {
 		}
 		
 		ipParameters.setName("IP");
-		ipParameters.add(pSwitchPersistentIP.set("persistent switch", false));
-		pSwitchPersistentIP.addListener(this, &ParamCam::switchPersistentIPListener);
+//		ipParameters.add(pSwitchPersistentIP.set("persistent switch", false));
+//		pSwitchPersistentIP.addListener(this, &ParamCam::switchPersistentIPListener);
 		
 		ipParameters.add(pIpPersistent.set("persistent", "no"));
 		ipParameters.add(pCurrentIpAdress.set("adress", "0.0.0.0"));
 		ipParameters.add(pCurrentIpSubnetMask.set("subnet", "0.0.0.0"));
 		ipParameters.add(pCurrentIpGateway.set("gateway", "0.0.0.0"));
-		ipPersistentParameters.setName("persistent info");
-		ipPersistentParameters.add(pPersistentIpAdress.set("adress", "0.0.0.0"));
-		ipPersistentParameters.add(pPersistentIpSubnetMask.set("subnet", "0.0.0.0"));
-		ipPersistentParameters.add(pPersistentIpGateway.set("gateway", "0.0.0.0"));
-		ipParameters.add(ipPersistentParameters);
+//		ipPersistentParameters.setName("persistent info");
+//		ipPersistentParameters.add(pPersistentIpAdress.set("adress", "0.0.0.0"));
+//		ipPersistentParameters.add(pPersistentIpSubnetMask.set("subnet", "0.0.0.0"));
+//		ipPersistentParameters.add(pPersistentIpGateway.set("gateway", "0.0.0.0"));
+//		ipParameters.add(ipPersistentParameters);
 		parameters.add(ipParameters);
 		
 		bLoadFromInterface = true;
@@ -426,6 +424,7 @@ namespace ofxPvAPI {
 				pExposure.setMax(getExposureMaxForCurrentFrameRate());
 				pAutoExposureMaximum.setMax(Camera::getAutoExposureMaximum());
 				blockListeners = true;
+				pFrameRate.set(Camera::getFrameRate());
 				pExposure.set(Camera::getExposure());
 				pAutoExposureMaximum.set(Camera::getAutoExposureMaximum());
 				blockListeners = false;

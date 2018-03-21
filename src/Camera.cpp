@@ -622,8 +622,13 @@ namespace ofxPvAPI {
 	
 	void Camera::setTriggered(bool _value) {
 		bTriggered = _value;
-		if (bTriggered) { setEnumAttribute("FrameStartTriggerMode","Software"); }
-		else { setEnumAttribute("FrameStartTriggerMode","FixedRate"); }
+		if (bTriggered) {
+			setEnumAttribute("FrameStartTriggerMode","Software");
+			setFrameRate(ofGetTargetFrameRate());
+		}
+		else {
+			setEnumAttribute("FrameStartTriggerMode","FixedRate");
+		}
 		setExposure(min(getExposure(), getExposureMaxForCurrentFrameRate()));
 		setAutoExposureRangeFromFrameRate();
 	}

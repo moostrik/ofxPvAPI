@@ -22,13 +22,11 @@ namespace ofxPvAPI {
 	protected:
 		ofParameter<bool>	printAttributes;
 		ofParameter<bool>	reset;
-		ofParameter<bool>	resetParametersFromCam;
 		ofParameter<bool>	pActivate;
 		ofParameter<bool>	pDeactivate;
 		
 		void	printAttributesListener(bool & _value)			{ if(!blockListeners && _value) listAttributes(); _value = false; }
 		void	resetListener(bool & _value)					{ if(!blockListeners && _value) { resetAttributes(); setAllParametersFromCam(); } _value = false; }
-		void	resetParametersFromCamListener(bool & _value)	{ if(!blockListeners && _value) setAllParametersFromCam(); _value = false; }
 		void	activateListener(bool& _value) { if (_value) 	{ activate(); _value = false; } }
 		void	deactivateListener(bool& _value) { if (_value) 	{ deactivate(); _value = false; } }
 		
@@ -225,8 +223,5 @@ namespace ofxPvAPI {
 		
 		void 	inRange(ofParameter<int>& _parameter, int& _value);
 		void 	inRange(ofParameter<float>& _parameter, float& _value);
-//		void 	update(ofParameter<bool>& _parameter) 	{ bool bl = blockListeners; blockListeners = true; _parameter.set(_parameter.get());  blockListeners = bl; }
-//		void 	update(ofParameter<int>& _parameter)	{ bool bl = blockListeners; blockListeners = true; _parameter.set(_parameter.get());  blockListeners = bl; }
-//		void 	update(ofParameter<float>& _parameter)  { bool bl = blockListeners; blockListeners = true; _parameter.set(_parameter.get());  blockListeners = bl; }
 	};
 }
