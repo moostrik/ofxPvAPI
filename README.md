@@ -3,17 +3,15 @@
 Based on  libPvAPI.dylib (as the libPvAPI.a won't compile with of 0.9)
 The PvApi.h must be slightly modified
 
-Tested with the Prosilica GC750 and the MAKO G-223B  (both monochrome) on OSX 10.13
+Tested with the Prosilica GC750 and the MAKO G-223B  (monochrome) and the MAKO G125C (color) on OSX 10.13
 previous versions tested on Windows 7
 
 
 # TODO #
 
 - [ ] refactor parameterConnector
-- [ ] test with color camera
 - [ ] test windows
 - [ ] make linux
-- [ ] learn proper C++
 
 
 # FOR MAC #

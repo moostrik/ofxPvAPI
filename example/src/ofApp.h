@@ -17,6 +17,7 @@ public:
 		
 	ofxPanel gui;
 	ofParameter<int> fps;
+	ofParameter<bool> drawNewFrameOnly;
 	
 	void keyPressed(int key);
 };

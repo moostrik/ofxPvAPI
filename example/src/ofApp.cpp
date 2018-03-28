@@ -26,6 +26,7 @@ void ofApp::setup(){
 	
 	gui.setup("settings");
 	gui.add(fps.set("FPS", 0, 0, 100));
+	gui.add(drawNewFrameOnly.set("draw new frame only", false));
 	gui.add(camera.parameters);
 	gui.loadFromFile("settings.xml");
 	
@@ -56,7 +57,7 @@ void ofApp::update(){
 void ofApp::draw(){
 	ofClear(128);
 	
-	if (camera.isFrameNew()) {
+	if (!(!camera.isFrameNew() && drawNewFrameOnly)) {
 		camera.getTexture().draw(gui.getWidth() + gui.getPosition().x + 10, gui.getPosition().y);
 	}
 	
