@@ -19,9 +19,9 @@
  	ofxProsilica::TexPC adds a texture to the ParamCam also it adds the
  	flip and rotate functionality
 *///--------------------------------------------------------------------
-#include "TexPC.h"
+#include "ParamCamTex.h"
 
 /*	--------------------------------------------------------------------
 	 ofxProsilica::WarpTexPC adds warp functionality to the TexPC
 *///--------------------------------------------------------------------
-#include "WarpTexPC.h"
+#include "ParamCamWarp.h"

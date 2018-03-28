@@ -38,6 +38,7 @@ namespace ofxPvAPI {
 		
 	protected:
 		ofParameterGroup	frameRateParameters;
+		ofParameterGroup	latencyParameters;
 		ofParameter<int>	pFps;
 		ofParameter<int>	pFrameDrop;
 		ofParameter<int>	pFrameLatency;

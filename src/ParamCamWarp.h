@@ -1,15 +1,15 @@
 #pragma once
 
 #include "ofMain.h"
-#include "TexPC.h"
+#include "ParamCamTex.h"
 
 namespace ofxPvAPI {
 	
-	class WarpTexPC : public TexPC {
+	class ParamCamWarp : public ParamCamTex {
 	public:
 		
-		WarpTexPC() {}
-		virtual ~WarpTexPC() {;}
+		ParamCamWarp() {}
+		virtual ~ParamCamWarp() {;}
 		
 		bool	setup();
 		void	update();

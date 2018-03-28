@@ -8,11 +8,11 @@
 
 namespace ofxPvAPI {
 	
-	class TexPC : public ParamCam{
+	class ParamCamTex : public ParamCam{
 	public:
 		
-		TexPC() {}
-		virtual ~TexPC() {;}
+		ParamCamTex() {}
+		virtual ~ParamCamTex() {;}
 		
 		bool	setup();
 		void	update();

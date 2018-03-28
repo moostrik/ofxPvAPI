@@ -1,17 +1,17 @@
 //
-//  TexPC.cpp
+//  ParamCamTex.cpp
 //  plCam
 //
 //  Created by PLPLPL.PL on 08/01/16.
 //
 //
 
-#include "TexPC.h"
+#include "ParamCamTex.h"
 
 
 namespace ofxPvAPI {
 	
-	bool TexPC::setup(){
+	bool ParamCamTex::setup(){
 		ParamCam::setup();
 		
 		internalTexture.allocate(640, 480, GL_R8);
@@ -39,7 +39,7 @@ namespace ofxPvAPI {
 	}
 	
 	//--------------------------------------------------------------
-	void TexPC::update() {
+	void ParamCamTex::update() {
 		ParamCam::update();
 		
 		if (ParamCam::isFrameNew()){
@@ -166,7 +166,7 @@ namespace ofxPvAPI {
 	}
 	
 	//--------------------------------------------------------------
-	ofPixels& TexPC::getPixels() {
+	ofPixels& ParamCamTex::getPixels() {
 		if (!pixelsSet) {
 			ofTextureData& texData = this->getTexture().getTextureData();
 			
@@ -192,7 +192,7 @@ namespace ofxPvAPI {
 	}
 
 	//--------------------------------------------------------------
-	void TexPC::createRed2LumShader() {
+	void ParamCamTex::createRed2LumShader() {
 		string vertexShader, fragmentShader;
 		vertexShader = GLSL_150(
 								uniform mat4 textureMatrix;

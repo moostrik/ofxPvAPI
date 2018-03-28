@@ -9,8 +9,7 @@ namespace ofxPvAPI {
 		
 		parameters.clear();
 		string dID = "unknown";
-		if (Camera::getRequestedDeviceID() > 0)
-			dID = ofToString(Camera::getRequestedDeviceID());
+		if (Camera::getRequestedDeviceID() > 0) { dID = ofToString(Camera::getRequestedDeviceID()); }
 		parameters.setName("camera " + dID);
 		parameters.add(pActivate.set("activate", false));
 		pActivate.addListener(this, &ParamCam::activateListener);
@@ -22,14 +21,16 @@ namespace ofxPvAPI {
 		printAttributes.addListener(this, &ParamCam::printAttributesListener);
 		
 		frameRateParameters.setName("framerate");
-		frameRateParameters.add(pFps.set("fps", 0, 0, 60));
+		frameRateParameters.add(pFrameRate.set("frame rate", 60, 0, 60));
+		frameRateParameters.add(pFps.set("fps (actual rate)", 0, 0, 60));
 		frameRateParameters.add(pFrameDrop.set("drops per second", 0, 0, 60));
-		frameRateParameters.add(pFrameLatency.set("avg latency (ms)", 0, 0, 60));
-		frameRateParameters.add(pFrameMaxLatency.set("max latency (ms)", 0, 0, 60));
-		frameRateParameters.add(pFrameMinLatency.set("min latency (ms)", 0, 0, 60));
 		frameRateParameters.add(pTriggered.set("trigger mode", false));
+		latencyParameters.setName("latency (ms)");
+		latencyParameters.add(pFrameLatency.set("avgerage", 0, 0, 60));
+		latencyParameters.add(pFrameMaxLatency.set("min", 0, 0, 60));
+		latencyParameters.add(pFrameMinLatency.set("max", 0, 0, 60));
+		frameRateParameters.add(latencyParameters);
 		pTriggered.addListener(this, &ParamCam::triggeredListener);
-		frameRateParameters.add(pFrameRate.set("frame rate", 30, 2, 60));
 		pFrameRate.addListener(this, &ParamCam::frameRateListener);
 		parameters.add(frameRateParameters);
 		
@@ -164,6 +165,13 @@ namespace ofxPvAPI {
 		}
 		else {
 			bLoadFromInterface = true;
+		}
+		
+		if (pTriggered) {
+			bool bl = blockListeners;
+			blockListeners = true;
+			pFrameRate = ofGetTargetFrameRate();
+			blockListeners = bl;
 		}
 	}
 	
@@ -306,6 +314,9 @@ namespace ofxPvAPI {
 		pFrameRate.setMin(ceil(getFrameRateMin()));
 		pFrameRate.setMax(floor(getFrameRateMax()));
 		setParameterInItsOwnRange(pFrameRate);
+		pFps.setMin(ceil(getFrameRateMin()));
+		pFps.setMax(floor(getFrameRateMax()));
+		setParameterInItsOwnRange(pFps);
 		
 		pROIWidth.setMin(getROIWidthMin());
 		pROIWidth.setMax(getROIWidthMax());
@@ -457,6 +468,8 @@ namespace ofxPvAPI {
 			pFrameRate.setMax(floor(getFrameRateMax()));
 			setParameterInItsOwnRange(pFrameRate);
 			Camera::setFrameRate(pFrameRate.get());
+			pFps.setMax(floor(getFrameRateMax()));
+			setParameterInItsOwnRange(pFps);
 		}
 	}
 	
@@ -470,6 +483,8 @@ namespace ofxPvAPI {
 			pFrameRate.setMax(floor(getFrameRateMax()));
 			setParameterInItsOwnRange(pFrameRate);
 			Camera::setFrameRate(pFrameRate.get());
+			pFps.setMax(floor(getFrameRateMax()));
+			setParameterInItsOwnRange(pFps);
 		}
 	}
 	

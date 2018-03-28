@@ -1,20 +1,20 @@
 //
-//  TexPC.cpp
+//  ParamCamTex.cpp
 //  plCam
 //
 //  Created by PLPLPL.PL on 08/01/16.
 //
 //
 
-#include "WarpTexPC.h"
+#include "ParamCamWarp.h"
 
 
 namespace ofxPvAPI {
 	
-	bool WarpTexPC::setup(){
-		TexPC::setup();
+	bool ParamCamWarp::setup(){
+		ParamCamTex::setup();
 		
-		warpFbo.allocate(TexPC::getWidth(), TexPC::getHeight(), GL_RGB);
+		warpFbo.allocate(ParamCamTex::getWidth(), ParamCamTex::getHeight(), GL_RGB);
 		warpFbo.begin();
 		ofClear(0);
 		warpFbo.end();
@@ -37,7 +37,7 @@ namespace ofxPvAPI {
 		warpParameters.add(warpPoints[2].set("p2", p2, ofVec2f(0,0), ofVec2f(1,1)));
 		warpParameters.add(warpPoints[3].set("p3", p3, ofVec2f(0,0), ofVec2f(1,1)));
 //		warpParameters.add(warpPoints[4].set("power H V", ofVec2f(1,1), ofVec2f(.5,.5), ofVec2f(2,2)));
-		for (int i=0; i<5; i++) { warpPoints[i].addListener(this, &WarpTexPC::warpPointListener); }
+		for (int i=0; i<5; i++) { warpPoints[i].addListener(this, &ParamCamWarp::warpPointListener); }
 		
 		parameters.add(warpParameters);
 		
@@ -45,10 +45,10 @@ namespace ofxPvAPI {
 	}
 	
 	//--------------------------------------------------------------
-	void WarpTexPC::update() {
-		TexPC::update();
+	void ParamCamWarp::update() {
+		ParamCamTex::update();
 		
-		if (TexPC::isFrameNew() || warpUpdated){
+		if (ParamCamTex::isFrameNew() || warpUpdated){
 			warpUpdated = false;
 			
 			ofVec2f p0 = warpParameters.get<ofVec2f>("p0");
@@ -59,8 +59,8 @@ namespace ofxPvAPI {
 			vector<ofPoint> verts = {p0, p1, p3, p2, p0};
 			warpLine = ofPolyline(verts);
 			
-			float w = max(fabs(p1.x - p0.x), fabs(p3.x - p2.x)) * TexPC::getWidth();
-			float h = max(fabs(p2.y - p0.y), fabs(p3.y - p1.y)) * TexPC::getHeight();
+			float w = max(fabs(p1.x - p0.x), fabs(p3.x - p2.x)) * ParamCamTex::getWidth();
+			float h = max(fabs(p2.y - p0.y), fabs(p3.y - p1.y)) * ParamCamTex::getHeight();
 			
 			warpPlane.set(w, h, 16, 16);
 			
@@ -71,7 +71,7 @@ namespace ofxPvAPI {
 			warpFbo.begin();
 			ofClear(0);
 			invWarpShader.begin();
-			TexPC::getTexture().bind();
+			ParamCamTex::getTexture().bind();
 			invWarpShader.setUniform2f("inputDimensions", this->getWidth(), this->getHeight());
 			invWarpShader.setUniform2f("upper_left", p0.x, p0.y);
 			invWarpShader.setUniform2f("upper_right", p1.x, p1.y);
@@ -84,7 +84,7 @@ namespace ofxPvAPI {
 			warpPlane.draw();
 			ofPopMatrix();
 			
-			TexPC::getTexture().unbind();
+			ParamCamTex::getTexture().unbind();
 			invWarpShader.end();
 			warpFbo.end();
 			
@@ -93,7 +93,7 @@ namespace ofxPvAPI {
 	}
 	
 	//--------------------------------------------------------------
-	ofPixels& WarpTexPC::getPixels() {
+	ofPixels& ParamCamWarp::getPixels() {
 		if (!pixelsSet) {
 			ofTextureData& texData = this->getTexture().getTextureData();
 			
@@ -119,13 +119,13 @@ namespace ofxPvAPI {
 	}
 	
 	//--------------------------------------------------------------
-	void WarpTexPC::createWarpShader() {
+	void ParamCamWarp::createWarpShader() {
 		if (ofIsGLProgrammableRenderer()) { createWS3(); }
 		else {  createWS2(); }
 	}
 	
 	//--------------------------------------------------------------
-	void WarpTexPC::createWS2() {
+	void ParamCamWarp::createWS2() {
 		string fragmentShader, vertexShader;
 		vertexShader = GLSL_120(
 								varying vec2 texCoordVarying;
@@ -175,7 +175,7 @@ namespace ofxPvAPI {
 	}
 	
 	//--------------------------------------------------------------
-	void WarpTexPC::createWS3() {
+	void ParamCamWarp::createWS3() {
 		string vertexShader, fragmentShader;
 		vertexShader = GLSL_150(
 								uniform mat4 textureMatrix;

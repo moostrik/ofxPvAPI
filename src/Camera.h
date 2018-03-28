@@ -16,6 +16,11 @@
 
 namespace ofxPvAPI {
 	
+	struct timedInt {
+		float time = 0;
+		int value = 0;
+	};
+	
 	class Camera {
 		
 	public :
@@ -108,28 +113,31 @@ namespace ofxPvAPI {
 		
 		int 			getFps() 				{ return fps; }
 		int 			getFrameDrop() 			{ return frameDrop; }
-		int 			getLatency() 			{ return frameLatency; }
-		int 			getMaxLatency() 		{ return frameMaxLatency; }
-		int 			getMinLatency() 		{ return frameMinLatency; }
 		float			getFrameRate()			{ return getFloatAttribute("FrameRate"); }
 		float			getFrameRateMax()		{ return getFloatAttributeMax("FrameRate"); }
 		float			getFrameRateMin()		{ return getFloatAttributeMin("FrameRate"); }
 		float			getTriggered()			{ return bTriggered; }
+		
+		// this latency is the time between receiving a completed frame and setting the pixels in update();
+		int 			getLatency() 			{ return frameLatency; }	// of the latest frame
+		int 			getAvgLatency() 		{ return frameAvgLatency; } // in the last second
+		int 			getMaxLatency() 		{ return frameMaxLatency; }	// in the last second
+		int 			getMinLatency() 		{ return frameMinLatency; }	// in the last second
 		
 		void			setTriggered(bool _value);
 		void			setFrameRate(float rate);
 		
 	private:
 		bool			bIsFrameNew;
-		deque<float> 	fpsTimes;
 		int 			fps;
 		int 			frameDrop;
-		deque<int> 		framesDropped;
+		deque<timedInt> framesDropped;
+		bool			bTriggered;
 		int 			frameLatency;
+		int 			frameAvgLatency;
 		int 			frameMaxLatency;
 		int 			frameMinLatency;
-		deque<int> 		framesLatencies;
-		bool			bTriggered;
+		deque<timedInt> frameRateAndLatencies;
 		
 		//-- PIXELS --------------------------------------------------------------
 	public:

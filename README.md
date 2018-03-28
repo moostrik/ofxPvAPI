@@ -10,7 +10,6 @@ previous versions tested on Windows 7
 # TODO #
 
 - [ ] refactor parameterConnector
-- [ ] better naming of classes
 - [ ] test with color camera
 - [ ] test windows
 - [ ] make linux

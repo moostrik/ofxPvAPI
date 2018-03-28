@@ -13,15 +13,10 @@ public:
     void draw();
     void exit();
 	
-	ofxPvAPI::ParamCam	camera;
+	ofxPvAPI::ParamCamWarp	camera;
 		
 	ofxPanel gui;
 	ofParameter<int> fps;
-	ofParameter<bool> fullScreen;
-	ofParameter<bool> drawPixels;
-	void fullScreenLisner(bool &_value) { ofSetFullscreen(_value); }
-	
-	ofTexture tex;
 	
 	void keyPressed(int key);
 };

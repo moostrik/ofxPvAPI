@@ -12,6 +12,10 @@ namespace ofxPvAPI {
 	fps(0),
 	frameDrop(0),
 	bTriggered(0),
+	frameLatency(0),
+	frameAvgLatency(0),
+	frameMaxLatency(0),
+	frameMinLatency(0),
 	pixelFormat(OF_PIXELS_MONO),
 	deviceID(0),
 	requestedDeviceID(0),
@@ -103,55 +107,53 @@ namespace ofxPvAPI {
 				size_t frameoffset = (bTriggered)? 0 : 1;
 				frameoffset = min(capuredFrameQueue.size(), frameoffset);
 				tPvFrame& frame = *capuredFrameQueue[frameoffset];
-				
 				float time = ofGetElapsedTimef();
-				float frameTime = time; // init with current time
-				
 				if (frame.Status == ePvErrSuccess) {
 					pixels.setFromExternalPixels((unsigned char *)frame.ImageBuffer, frame.Width, frame.Height, pixelFormat);
-					frameTime = *(float*)frame.Context[2];
 					bIsFrameNew = true;
+					
+					float frameTime = *(float*)frame.Context[2];
+					timedInt timedLatency;
+					timedLatency.time = time;
+					frameLatency = (time - frameTime) * 1000;
+					timedLatency.value = frameLatency;
+					frameRateAndLatencies.push_back(timedLatency);
 				}
 				else {
 					logError(frame.Status);
 				}
-				
-				fpsTimes.push_back(time);
-				framesLatencies.push_back((time - frameTime) * 1000);
-				
 				capuredFrameQueue.pop_back();
 				
-				int df = 0;
+				timedInt timedDrops;
+				timedDrops.time = time;
 				while (capuredFrameQueue.size() > frameoffset) {
 					capuredFrameQueue.pop_back();
-					df++;
+					timedDrops.value++;
 				}
-				framesDropped.push_back(df);
+				framesDropped.push_back(timedDrops);
 			}
 		
-			float timeWindow = ofGetElapsedTimef() - (1 - (1.0 / max(fps, 1) / 3.0));
+			float magicTimeWindow = ofGetElapsedTimef() - (1 - (1.0 / max(fps, 1) / 3.0)); // a little less as one
 			
-			while (fpsTimes.size() > 0 && fpsTimes.at(0) < timeWindow) {
-				fpsTimes.pop_front();
-				framesDropped.pop_front();
-				framesLatencies.pop_front();
+			while (frameRateAndLatencies.size() > 0 && frameRateAndLatencies[0].time < magicTimeWindow) {
+				frameRateAndLatencies.pop_front();
 			}
-			fps = fpsTimes.size();
-			
-			frameDrop = 0;
-			for (int i=0; i<framesDropped.size(); i++) {
-				frameDrop += framesDropped[i];
-			}
+			fps = frameRateAndLatencies.size();
 			
 			frameMaxLatency = 0;
 			frameMinLatency = 10000;
 			float tL = 0;
-			for (int i=0; i<framesLatencies.size(); i++) {
-				tL += framesLatencies[i];
-				frameMaxLatency = max(frameMaxLatency, framesLatencies[i]);
-				frameMinLatency = min(frameMinLatency, framesLatencies[i]);
+			for (int i=0; i<frameRateAndLatencies.size(); i++) {
+				tL += frameRateAndLatencies[i].value;
+				frameMaxLatency = max(frameMaxLatency, frameRateAndLatencies[i].value);
+				frameMinLatency = min(frameMinLatency, frameRateAndLatencies[i].value);
 			}
-			frameLatency = (tL / framesLatencies.size());
+			frameAvgLatency = (tL / frameRateAndLatencies.size());
+			
+			while (framesDropped.size() > 0 && framesDropped[0].time < magicTimeWindow) { framesDropped.pop_front(); }
+			frameDrop = 0;
+			for (int i=0; i<framesDropped.size(); i++) { frameDrop += framesDropped[i].value; }
+			
 		}
 	}
 	
@@ -330,12 +332,12 @@ namespace ofxPvAPI {
 		fps = 0;
 		frameDrop = 0;
 		frameLatency = 0;
+		frameAvgLatency = 0;
 		frameMinLatency = 0;
 		frameMaxLatency = 0;		
 		
-		fpsTimes.clear();
 		framesDropped.clear();
-		framesLatencies.clear();
+		frameRateAndLatencies.clear();
 		
 		ofLog(OF_LOG_NOTICE,"Camera: %lu deactivated", deviceID);
 	}
