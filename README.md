@@ -52,7 +52,8 @@ previous versions tested on Windows 7
 *	The example has no initial settings.XML file, save (right upper corner of the ofxGui) to create one.
 *	The cameras don't work great on wifi, but on low resolutions they might work.
 *	Sometimes it helps to turn of the Wifi
-* 	It is recommended to set the MTU to Jumbo / 9000 (System Preferences -> Network -> Ethernet -> Advanced -> Hardware -> Configure Manually -> MTU), but in my experience it also works without.
+*	It is recommended to set the MTU to Jumbo / 9000 (System Preferences -> Network -> Ethernet -> Advanced -> Hardware -> Configure Manually -> MTU), but in my experience it also works without.
+*	Weird install_name_tool bug: Set app deployment target > 10.7
 
 
 # FOR WINDOWS #
