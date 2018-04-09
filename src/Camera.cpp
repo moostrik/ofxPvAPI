@@ -1084,39 +1084,36 @@ namespace ofxPvAPI {
 		printf("Persistent Ip Gateway: %s \n", IPLongToString(ipSettings.PersistentIpGateway).c_str());
 	}
 	
-	bool Camera::getIpPersistent() {
-		tPvIpSettings ipSettings;
-		tPvErr error;
-		error = PvCameraIpSettingsGet(deviceID, &ipSettings);
-		if (error != ePvErrSuccess ){
-			logError(error);
-			return false;
-		}
-		if (ipSettings.ConfigMode == ePvIpConfigPersistent)
-			return true;
-		return false;
-	}
 	
-	void Camera::setIpPersistent(bool enable) {
-		
+	void Camera::updateIpSettings() {
 #ifdef _WIN32
 		ofLogWarning("setPersistentIp not supported for windows");
 		return;
 #else
-		tPvIpSettings ipSettings;
-		PvCameraIpSettingsGet(deviceID, &ipSettings);
-		if (!enable) {
-			ipSettings.ConfigMode = ePvIpConfigDhcp;
-		} else {
-			ipSettings.ConfigMode = ePvIpConfigPersistent;
+		if (bDeviceActive) {
+			bool hasChanged = false;
+			tPvIpSettings ipSettings;
+			PvCameraIpSettingsGet(deviceID, &ipSettings);
+			
+			if (persistentIpEnable && ipSettings.ConfigMode != ePvIpConfigPersistent) {
+				ipSettings.ConfigMode = ePvIpConfigPersistent;
+				hasChanged = true;
+			}
+			else if (!persistentIpEnable && ipSettings.ConfigMode != ePvIpConfigDhcp) {
+				ipSettings.ConfigMode = ePvIpConfigDhcp;
+				hasChanged = true;
+			}
 			
 			struct in_addr addr, sn, gw;
 			if (persistentIpAdress != "" ) {
-				if (persistentIpAdress != "" && !inet_pton(AF_INET, persistentIpAdress.c_str(), &addr)) {
+				if (!inet_pton(AF_INET, persistentIpAdress.c_str(), &addr)) {
 					ofLogWarning("Camera: ") << deviceID << ", failed to change IP settings: IP " << persistentIpAdress << " is not a valid adress, ";
 					return;
 				} else {
-					ipSettings.PersistentIpAddr = addr.s_addr;
+					if (ipSettings.PersistentIpAddr != addr.s_addr) {
+						ipSettings.PersistentIpAddr = addr.s_addr;
+						hasChanged = true;
+					}
 				}
 			}
 			if (persistentIpSubnetMask != "" ) {
@@ -1124,7 +1121,10 @@ namespace ofxPvAPI {
 					ofLogWarning("Camera: ") << deviceID << ", failed to change IP settings: Subnet Mask " << persistentIpSubnetMask << " is not a valid adress";
 					return;
 				} else {
-					ipSettings.PersistentIpSubnet = sn.s_addr;
+					if(ipSettings.PersistentIpSubnet != sn.s_addr ) {
+						ipSettings.PersistentIpSubnet = sn.s_addr;
+						hasChanged = true;
+					}
 				}
 			}
 			if (persistentIpGateway  != "" ) {
@@ -1132,27 +1132,54 @@ namespace ofxPvAPI {
 					ofLogWarning("Camera: ") << deviceID << ", failed to change IP settings: Gateway " << persistentIpGateway << " is not a valid adress";
 					return;
 				} else {
-					ipSettings.PersistentIpGateway = gw.s_addr;
+					if (ipSettings.PersistentIpGateway != gw.s_addr) {
+						ipSettings.PersistentIpGateway = gw.s_addr;
+						hasChanged = true;
+					}
 				}
 			}
-		}
-		
-		if (bDeviceActive) {
-			deactivate();
-		}
-		
-		tPvErr error;
-		error = PvCameraIpSettingsChange(deviceID, &ipSettings);
-		if (error == ePvErrSuccess) {
-			ofLogNotice("Camera:") << deviceID << " Camera IP Settings Changed";
-		}
-		else {
-			ofLogNotice("Camera:") << deviceID << " Failed to Change Camera IP Settings";
-			logError(error);
+			
+			if (hasChanged) {
+				deactivate();
+				
+				tPvErr error;
+				error = PvCameraIpSettingsChange(deviceID, &ipSettings);
+				if (error == ePvErrSuccess) {
+					ofLogNotice("Camera:") << deviceID << " Camera IP Settings Changed";
+				}
+				else {
+					ofLogNotice("Camera:") << deviceID << " Failed to Change Camera IP Settings";
+					logError(error);
+				}
+				
+				activate();
+			}
 		}
 #endif
 	}
 	
+	void Camera::setIpPersistent(bool _enable) {
+		persistentIpEnable = _enable;
+	}
+	
+	void Camera::setPersistentIpAdress(string _IpAdress) {
+		persistentIpAdress = _IpAdress;
+	}
+	
+	void Camera::setPersistentIpSubnetMask(string _IpSubnet) {
+		persistentIpSubnetMask = _IpSubnet;
+	}
+	
+	void Camera::setPersistentIpGateway(string _IpGateway) {
+		persistentIpGateway = _IpGateway;
+	}
+	
+	
+	bool Camera::getIpPersistent() {
+		tPvIpSettings ipSettings;
+		PvCameraIpSettingsGet(deviceID, &ipSettings);
+		return (ipSettings.ConfigMode == ePvIpConfigPersistent);
+	}
 	
 	string Camera::getCurrentIpAdress() {
 		tPvIpSettings ipSettings;
@@ -1189,31 +1216,6 @@ namespace ofxPvAPI {
 		tPvIpSettings ipSettings;
 		PvCameraIpSettingsGet(deviceID, &ipSettings);
 		return IPLongToString(ipSettings.PersistentIpGateway);
-	}
-	
-	
-	void Camera::setPersistentIpAdress(string _IpAdress) {
-#ifdef _WIN32
-		ofLogWarning("setPersistentIpAdress not supported for windows");
-		return;
-#endif
-		persistentIpAdress = _IpAdress;
-	}
-	
-	void Camera::setPersistentIpSubnetMask(string _IpSubnet) {
-#ifdef _WIN32
-		ofLogWarning("setPersistentIpSubnetMask not supported for windows");
-		return;
-#endif
-		persistentIpSubnetMask = _IpSubnet;
-	}
-	
-	void Camera::setPersistentIpGateway(string _IpGateway) {
-#ifdef _WIN32
-		ofLogWarning("setPersistentIpGateway not supported for windows");
-		return;
-#endif
-		persistentIpGateway = _IpGateway;
 	}
 	
 	

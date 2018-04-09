@@ -15,12 +15,20 @@ void ofApp::setup(){
 	
 	//	when deviceID is not provided the camera defaults to first in list (if detected on setup)
 	//  select camera by deviceID
-	camera.setDeviceID(6022891);
+//	camera.setDeviceID(6022891);
+	
 	//	select camera by IP
 //	camera.setDeviceID(camera.getDeviceIDFromIpAdress("10.0.0.50"));
 	
 	//	set to color, default is mono (OF_PIXELS_MONO)
 //	camera.setPixelFormat(OF_PIXELS_RGB);
+	
+	//	enable ip settings;
+//	camera.enableIPSettings();
+	//	use "I", "S" and "G" to set these values:
+	persistentIP = "10.0.0.30";
+	persistentSubnet = "255.255.0.0";
+	persistentGateway = "10.0.0.1";
 	
 	camera.setup();
 	
@@ -68,11 +76,14 @@ void ofApp::draw(){
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
 	switch (key) {
-		case ' ':
-//			camera.setPersistentIpAdress("10.0.0.50");
-//			camera.setPersistentIpSubnetMask("255.255.0.0");
-//			camera.setPersistentIpGateway("10.0.0.60");
-//			camera.setPersistentIp(true);
+		case 'I':
+			camera.setPersistentIpAdress(persistentIP);
+			break;
+		case 'S':
+			camera.setPersistentIpSubnetMask(persistentSubnet);
+			break;
+		case 'G':
+			camera.setPersistentIpGateway(persistentGateway);
 			break;
 			
 		default:

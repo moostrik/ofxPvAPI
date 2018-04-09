@@ -52,7 +52,7 @@ namespace ofxPvAPI {
 		bool			isDeviceFound(int _deviceID);
 		bool			isDeviceAvailable(int _deviceID);
 		
-	private:
+	protected:
 		unsigned long	deviceID;
 		unsigned long	requestedDeviceID;
 		
@@ -339,12 +339,16 @@ namespace ofxPvAPI {
 	public:
 		void	listIpSettings();
 		
-		void	setIpPersistent(bool enable);
-		bool	getIpPersistent();
+		void	updateIpSettings();
+		void	setIpPersistent(bool _enable);					// activate with updateIpSettings();
+		void	setPersistentIpAdress(string _IpAdress);		// activate with updateIpSettings();
+		void	setPersistentIpSubnetMask(string _IpSubnet);	// activate with updateIpSettings();
+		void	setPersistentIpGateway(string _IpGateway);		// activate with updateIpSettings();
 		
 		string	getIpAdress() { return getCurrentIpAdress(); }
 		string	getSubnetMask() { return getCurrentIpSubnetMask(); }
 		string	getIpGateway() { return getCurrentIpGateway(); }
+		bool	getIpPersistent();
 		
 		string	getCurrentIpAdress();
 		string	getCurrentIpSubnetMask();
@@ -354,14 +358,12 @@ namespace ofxPvAPI {
 		string	getPersistentIpSubnetMask();
 		string	getPersistentIpGateway();
 		
-		void	setPersistentIpAdress(string _IpAdress);
-		void	setPersistentIpSubnetMask(string _IpSubnet);
-		void	setPersistentIpGateway(string _IpGateway);
-		
 	private:
+		bool			persistentIpEnable;
 		string			persistentIpAdress;
 		string			persistentIpSubnetMask;
 		string			persistentIpGateway;
+		
 		unsigned long	IPStringToLong(string _IpAdress);
 		string			IPLongToString(unsigned long  _IpAdress);
 		

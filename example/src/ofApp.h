@@ -20,4 +20,9 @@ public:
 	ofParameter<bool> drawNewFrameOnly;
 	
 	void keyPressed(int key);
+	
+	void setIPSettings();
+	string persistentIP;
+	string persistentSubnet;
+	string persistentGateway;
 };

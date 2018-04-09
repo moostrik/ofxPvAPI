@@ -9,7 +9,7 @@ namespace ofxPvAPI {
 	
 	public:
 		
-		ParamCam() {;}
+		ParamCam() : bIpParametersEnabled(false) {;}
 		virtual ~ParamCam() {;}
 		
 		void	setup();
@@ -189,24 +189,32 @@ namespace ofxPvAPI {
 		
 			//-- IP SETTINGS -----------------------------------------------------
 	public:
-		void	setIpPersistent(bool _value); //				{ Camera::setIpPersistent(_value); pIpPersistent.set(_value? "yes" : "no"); }
-		void	setPersistentIpAdress(string _value); //		{ Camera::setPersistentIpAdress(_value); pIpAdress.set(_value); }
-		void	setPersistentIpSubnetMask(string _value); //	{ Camera::setPersistentIpSubnetMask(_value); pIpSubnet.set(_value); }
-		void	setPersistentIpGateway(string _value); //		{ Camera::setPersistentIpGateway(_value); pIpGateway.set(_value); }
+		void 	enableIPSettings();
+		bool	getIPSettingsEnabled() { return bIpParametersEnabled; }
+		
+		void	setIpPersistent(bool _value) { pPersistentIpSwitch.set(_value); }
+		void	setPersistentIpAdress(string _value);
+		void	setPersistentIpSubnetMask(string _value);
+		void	setPersistentIpGateway(string _value);
 		
 	protected:
+		
 		ofParameterGroup	ipParameters;
-		ofParameterGroup	ipPersistentParameters;
-		ofParameter<bool>	pSwitchPersistentIP;
-		ofParameter<string>	pIpPersistent;
+		ofParameter<string>	pCurrentIpPersistent;
 		ofParameter<string>	pCurrentIpAdress;
 		ofParameter<string>	pCurrentIpSubnetMask;
 		ofParameter<string>	pCurrentIpGateway;
+		
+		bool				bIpParametersEnabled;
+		ofParameterGroup	ipPersistentParameters;
+		ofParameter<bool>	pPersistentIpSwitch;
 		ofParameter<string>	pPersistentIpAdress;
 		ofParameter<string>	pPersistentIpSubnetMask;
 		ofParameter<string>	pPersistentIpGateway;
+		ofParameter<bool>	pPersistentIpUpdate;
 		
-		void	switchPersistentIPListener(bool & _value);
+		void	pPersistentIpSwitchListener(bool & _value);
+		void	pPersistentIpUpdateListener(bool & _value);
 		
 		
 		//-- GENERAL -----------------------------------------------------

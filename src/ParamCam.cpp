@@ -124,18 +124,22 @@ namespace ofxPvAPI {
 		}
 		
 		ipParameters.setName("IP");
-//		ipParameters.add(pSwitchPersistentIP.set("persistent switch", false));
-//		pSwitchPersistentIP.addListener(this, &ParamCam::switchPersistentIPListener);
 		
-		ipParameters.add(pIpPersistent.set("persistent", "no"));
+		ipParameters.add(pCurrentIpPersistent.set("persistent", "no"));
 		ipParameters.add(pCurrentIpAdress.set("adress", "0.0.0.0"));
 		ipParameters.add(pCurrentIpSubnetMask.set("subnet", "0.0.0.0"));
 		ipParameters.add(pCurrentIpGateway.set("gateway", "0.0.0.0"));
-//		ipPersistentParameters.setName("persistent info");
-//		ipPersistentParameters.add(pPersistentIpAdress.set("adress", "0.0.0.0"));
-//		ipPersistentParameters.add(pPersistentIpSubnetMask.set("subnet", "0.0.0.0"));
-//		ipPersistentParameters.add(pPersistentIpGateway.set("gateway", "0.0.0.0"));
-//		ipParameters.add(ipPersistentParameters);
+		if (bIpParametersEnabled) {
+			ipPersistentParameters.setName("persistent info");
+			ipPersistentParameters.add(pPersistentIpSwitch.set("persistent (or DHCP)", false));
+			pPersistentIpSwitch.addListener(this, &ParamCam::pPersistentIpSwitchListener);
+			ipPersistentParameters.add(pPersistentIpAdress.set("adress", "0.0.0.0"));
+			ipPersistentParameters.add(pPersistentIpSubnetMask.set("subnet", "0.0.0.0"));
+			ipPersistentParameters.add(pPersistentIpGateway.set("gateway", "0.0.0.0"));
+			ipPersistentParameters.add(pPersistentIpUpdate.set("update", false));
+			pPersistentIpUpdate.addListener(this, &ParamCam::pPersistentIpUpdateListener);
+			ipParameters.add(ipPersistentParameters);
+		}
 		parameters.add(ipParameters);
 		
 		bLoadFromInterface = true;
@@ -237,14 +241,14 @@ namespace ofxPvAPI {
 			pAutoWhiteBalanceAdjustTol.set(getAutoWhiteBalanceAdjustTol());
 		}
 		
-		if (getIpPersistent())
-			pIpPersistent.set("yes");
-		else
-			pIpPersistent.set("no");
+		if (getIpPersistent()) { pCurrentIpPersistent.set("yes"); }
+		else { pCurrentIpPersistent.set("no"); }
 		
 		pCurrentIpAdress.set(getCurrentIpAdress());
 		pCurrentIpSubnetMask.set(getCurrentIpSubnetMask());
 		pCurrentIpGateway.set(getCurrentIpGateway());
+		
+		pPersistentIpSwitch.set(getIpPersistent());
 		pPersistentIpAdress.set(getPersistentIpAdress());
 		pPersistentIpSubnetMask.set(getPersistentIpSubnetMask());
 		pPersistentIpGateway.set(getPersistentIpGateway());
@@ -296,10 +300,11 @@ namespace ofxPvAPI {
 		}
 		
 		blockListeners = false;
-		pIpPersistent.set(getIpPersistent()? "yes" : "no");
+		pCurrentIpPersistent.set(getIpPersistent()? "yes" : "no");
 		pCurrentIpAdress.set(getCurrentIpAdress());
 		pCurrentIpSubnetMask.set(getCurrentIpSubnetMask());
 		pCurrentIpGateway.set(getCurrentIpGateway());
+		pPersistentIpSwitch.set(getIpPersistent());
 		pPersistentIpAdress.set(getPersistentIpAdress());
 		pPersistentIpSubnetMask.set(getPersistentIpSubnetMask());
 		pPersistentIpGateway.set(getPersistentIpGateway());
@@ -507,36 +512,58 @@ namespace ofxPvAPI {
 	}
 	
 		//-- IP SETTINGS -----------------------------------------------------
-	void ParamCam::setIpPersistent(bool _value)	{
-		Camera::setIpPersistent(_value); pIpPersistent.set(_value? "yes" : "no");
-		pCurrentIpAdress.set(Camera::getCurrentIpAdress());
-		pCurrentIpSubnetMask.set(Camera::getCurrentIpSubnetMask());
-		pCurrentIpAdress.set(Camera::getCurrentIpGateway());
+	void ParamCam::enableIPSettings() {
+		if (isActive()) {
+			ofLog(OF_LOG_ERROR, "Camera: %lu: enableIPSettings(): can't enable IP settings while device is active", deviceID);
+			return;
+		}
 		
+		bIpParametersEnabled = true;
+	}
+	
+	void ParamCam::pPersistentIpSwitchListener(bool & _value)	{
+		if (bIpParametersEnabled) {
+			if(!blockListeners) { Camera::setIpPersistent(_value); }
+		}
+		else {
+			ofLog(OF_LOG_WARNING, "Camera: %lu: setIpPersistent(): IP parameters not enabled", deviceID);
+		}
 	}
 	
 	void ParamCam::setPersistentIpAdress(string _value)	{
-		Camera::setPersistentIpAdress(_value);
-		pPersistentIpAdress.set(_value);
-		
+		if (bIpParametersEnabled) {
+			Camera::setPersistentIpAdress(_value);
+			pPersistentIpAdress.set(_value);
+		}
+		else {
+			ofLog(OF_LOG_WARNING, "Camera: %lu: setPersistentIpAdress(): IP parameters not enabled", deviceID);
+		}
 	}
 	
 	void ParamCam::setPersistentIpSubnetMask(string _value) {
-		Camera::setPersistentIpSubnetMask(_value);
-		pPersistentIpSubnetMask.set(_value);
-		
+		if (bIpParametersEnabled) {
+			Camera::setPersistentIpSubnetMask(_value);
+			pPersistentIpSubnetMask.set(_value);
+		}
+		else {
+			ofLog(OF_LOG_WARNING, "Camera: %lu: setPersistentIpSubnetMask(): IP parameters not enabled", deviceID);
+		}
 	}
 	
 	void ParamCam::setPersistentIpGateway(string _value) {
-		Camera::setPersistentIpGateway(_value);
-		pPersistentIpGateway.set(_value);
-		
+		if (bIpParametersEnabled) {
+			Camera::setPersistentIpGateway(_value);
+			pPersistentIpGateway.set(_value);
+		}
+		else {
+			ofLog(OF_LOG_WARNING, "Camera: %lu: setPersistentIpGateway(): IP parameters not enabled", deviceID);
+		}
 	}
 	
 	
-	void ParamCam::switchPersistentIPListener(bool &_value) {
+	void ParamCam::pPersistentIpUpdateListener(bool &_value) {
 		if(!blockListeners && _value) {
-			Camera::setIpPersistent(!Camera::getIpPersistent());
+			Camera::updateIpSettings();
 		}
 		_value = false;
 	}
