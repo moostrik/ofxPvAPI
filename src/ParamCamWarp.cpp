@@ -1,5 +1,5 @@
 //
-//  ParamCamTex.cpp
+//  ParamCamExt.cpp
 //  plCam
 //
 //  Created by PLPLPL.PL on 08/01/16.
@@ -12,9 +12,9 @@
 namespace ofxPvAPI {
 	
 	bool ParamCamWarp::setup(){
-		ParamCamTex::setup();
+		ParamCamExt::setup();
 		
-		warpFbo.allocate(ParamCamTex::getWidth(), ParamCamTex::getHeight(), GL_RGB);
+		warpFbo.allocate(ParamCamExt::getWidth(), ParamCamExt::getHeight(), GL_RGB);
 		warpFbo.begin();
 		ofClear(0);
 		warpFbo.end();
@@ -46,9 +46,9 @@ namespace ofxPvAPI {
 	
 	//--------------------------------------------------------------
 	void ParamCamWarp::update() {
-		ParamCamTex::update();
+		ParamCamExt::update();
 		
-		if (ParamCamTex::isFrameNew() || warpUpdated){
+		if (ParamCamExt::isFrameNew() || warpUpdated){
 			warpUpdated = false;
 			
 			ofVec2f p0 = warpParameters.get<ofVec2f>("p0");
@@ -59,8 +59,8 @@ namespace ofxPvAPI {
 			vector<ofPoint> verts = {p0, p1, p3, p2, p0};
 			warpLine = ofPolyline(verts);
 			
-			float w = max(fabs(p1.x - p0.x), fabs(p3.x - p2.x)) * ParamCamTex::getWidth();
-			float h = max(fabs(p2.y - p0.y), fabs(p3.y - p1.y)) * ParamCamTex::getHeight();
+			float w = max(fabs(p1.x - p0.x), fabs(p3.x - p2.x)) * ParamCamExt::getWidth();
+			float h = max(fabs(p2.y - p0.y), fabs(p3.y - p1.y)) * ParamCamExt::getHeight();
 			
 			warpPlane.set(w, h, 16, 16);
 			
@@ -71,7 +71,7 @@ namespace ofxPvAPI {
 			warpFbo.begin();
 			ofClear(0);
 			invWarpShader.begin();
-			ParamCamTex::getTexture().bind();
+			ParamCamExt::getTexture().bind();
 			invWarpShader.setUniform2f("inputDimensions", this->getWidth(), this->getHeight());
 			invWarpShader.setUniform2f("upper_left", p0.x, p0.y);
 			invWarpShader.setUniform2f("upper_right", p1.x, p1.y);
@@ -84,7 +84,7 @@ namespace ofxPvAPI {
 			warpPlane.draw();
 			ofPopMatrix();
 			
-			ParamCamTex::getTexture().unbind();
+			ParamCamExt::getTexture().unbind();
 			invWarpShader.end();
 			warpFbo.end();
 			

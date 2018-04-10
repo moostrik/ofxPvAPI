@@ -1,11 +1,15 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ParamCamTex.h"
+#include "ParamCamExt.h"
+
+#ifdef _GL_WARPER
+#include "ofxGLWarper.h"
+#endif
 
 namespace ofxPvAPI {
 	
-	class ParamCamWarp : public ParamCamTex {
+	class ParamCamWarp : public ParamCamExt {
 	public:
 		
 		ParamCamWarp() {}
