@@ -61,7 +61,7 @@ namespace ofxPvAPI {
 		pAutoExposureAdjustTol.addListener(this, &ParamCam::autoExposureAdjustTolListener);
 		autoExposureParameters.add(pAutoExposureOutliers.set("outliers bp", 0, 0, 1000));
 		pAutoExposureOutliers.addListener(this, &ParamCam::autoExposureOutliersListener);
-		autoExposureParameters.add(pAutoExposureMinimum.set("minimium μs", 30, 30, 1000000));
+		autoExposureParameters.add(pAutoExposureMinimum.set("minimium μs", 30, 0, 1000000));
 		pAutoExposureMinimum.addListener(this, &ParamCam::autoExposureMinimumListener);
 		autoExposureParameters.add(pAutoExposureMaximum.set("maximum μs", 40000, 30, 1000000));
 		pAutoExposureMaximum.addListener(this, &ParamCam::autoExposureMaximumListener);
