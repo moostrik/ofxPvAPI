@@ -29,6 +29,7 @@ namespace ofxPvAPI {
 		
 		bool			setup();
 		void			update();
+		void			close() { if(bDeviceActive) { deactivate(); } }
 		
 		//-- API -------------------------------------------------------------
 	private:
@@ -95,8 +96,7 @@ namespace ofxPvAPI {
 		tPvFrame*		pvFrames;
 		deque<tPvFrame*>	capuredFrameQueue;
 		
-//		bool			setupFrames();
-		void 			allocateFrames();//int _width, int _height);
+		void 			allocateFrames();
 		void 			deallocateFrames();
 		void			resizeFrames();
 		
@@ -154,6 +154,14 @@ namespace ofxPvAPI {
 		ofPixelFormat	pixelFormat;
 		ofPixelFormat	getOfPixelFormat(string _format);
 		string			getPvPixelFormat(ofPixelFormat _format);
+		
+		//-- TEXTURE -------------------------------------------------------------
+	public:
+		ofTexture&		getTexture();
+		
+	private:
+		bool			bTextureSet;
+		ofTexture		texture;
 		
 			//-- ATTRIBUTES GENERAL-----------------------------------------------
 	public:

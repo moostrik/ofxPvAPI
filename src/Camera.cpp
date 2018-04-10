@@ -10,6 +10,7 @@ namespace ofxPvAPI {
 	waitInterval(2000),
 	lastWaitTime(0),
 	bIsFrameNew(false),
+	bTextureSet(false),
 	fps(0),
 	frameDrop(0),
 	bTriggered(0),
@@ -105,6 +106,7 @@ namespace ofxPvAPI {
 				if (frame.Status == ePvErrSuccess) {
 					pixels.setFromExternalPixels((unsigned char *)frame.ImageBuffer, frame.Width, frame.Height, pixelFormat);
 					bIsFrameNew = true;
+					bTextureSet = false;
 					
 					float frameTime = *(float*)frame.Context[2];
 					timedInt timedLatency;
@@ -315,6 +317,7 @@ namespace ofxPvAPI {
 	}
 	
 	void Camera::deactivate() {
+		
 		if (bDeviceActive) {
 			bDeviceActive = false;
 			clearQueue();
@@ -324,6 +327,10 @@ namespace ofxPvAPI {
 			
 			deallocateFrames();
 			numActiveDevices--;
+			
+			if (texture.isAllocated()) {
+				texture.clear();
+			}
 			
 			fps = 0;
 			frameDrop = 0;
@@ -673,6 +680,33 @@ namespace ofxPvAPI {
 		
 	}
 	
+	
+	//----------------------------------------------------------------------------
+	//-- TEXTURE -----------------------------------------------------------------
+	
+	ofTexture& Camera::getTexture() {
+		if (bDeviceActive) {
+			int w = getWidth();
+			int h = getHeight();
+			if (isFrameNew() && !bTextureSet) {
+//				cout << w << endl;
+				
+				
+				int glFormat = ofGetGLInternalFormatFromPixelFormat(getPixelFormat());
+				if (texture.isAllocated()) {
+					if (texture.getWidth() != w || texture.getHeight() != h || texture.getTextureData().glInternalFormat != glFormat) {
+						texture.clear();
+					}
+				}
+				if (!texture.isAllocated()) {
+					texture.allocate(w, h, glFormat);
+				}
+				texture.loadData(getPixels());
+				bTextureSet = true;
+			}
+		}
+		return texture;
+	}
 	
 	//----------------------------------------------------------------------------
 	//-- ATTRIBUTES (ROI) --------------------------------------------------------

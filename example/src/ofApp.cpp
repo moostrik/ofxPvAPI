@@ -15,13 +15,13 @@ void ofApp::setup(){
 	
 	//	when deviceID is not provided the camera defaults to first in list (if detected on setup)
 	//  select camera by deviceID
-//	camera.setDeviceID(6022891);
+	camera.setDeviceID(6002494);
 	
 	//	select camera by IP
 //	camera.setDeviceID(camera.getDeviceIDFromIpAdress("10.0.0.50"));
 	
 	//	set to color, default is mono (OF_PIXELS_MONO)
-//	camera.setPixelFormat(OF_PIXELS_RGB);
+	camera.setPixelFormat(OF_PIXELS_RGB);
 	
 	//	enable ip settings;
 //	camera.enableIPSettings();
