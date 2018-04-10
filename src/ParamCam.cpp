@@ -35,9 +35,9 @@ namespace ofxPvAPI {
 		parameters.add(frameRateParameters);
 		
 		roiParameters.setName("region of interest");
-		roiParameters.add(pROIWidth.set("width", 640, 1, 640));
+		roiParameters.add(pROIWidth.set("width", 640, 1, 2048));
 		pROIWidth.addListener(this, &ParamCam::ROIWidthListener);
-		roiParameters.add(pROIHeight.set("height", 480, 1, 480));
+		roiParameters.add(pROIHeight.set("height", 480, 1, 2048));
 		pROIHeight.addListener(this, &ParamCam::ROIHeightListener);
 		roiParameters.add(pROIX.set("x", 0, 0, 1));
 		pROIX.addListener(this, &ParamCam::ROIXListener);
@@ -59,7 +59,7 @@ namespace ofxPvAPI {
 		pAutoExposureRate.addListener(this, &ParamCam::autoExposureRateListener);
 		autoExposureParameters.add(pAutoExposureAdjustTol.set("tolerance pct", 5, 0, 50));
 		pAutoExposureAdjustTol.addListener(this, &ParamCam::autoExposureAdjustTolListener);
-		autoExposureParameters.add(pAutoExposureOutliers.set("outliers 0.01pct", 0, 0, 1000));
+		autoExposureParameters.add(pAutoExposureOutliers.set("outliers bp", 0, 0, 1000));
 		pAutoExposureOutliers.addListener(this, &ParamCam::autoExposureOutliersListener);
 		autoExposureParameters.add(pAutoExposureMinimum.set("minimium μs", 30, 30, 1000000));
 		pAutoExposureMinimum.addListener(this, &ParamCam::autoExposureMinimumListener);
@@ -87,7 +87,7 @@ namespace ofxPvAPI {
 			pAutoGainRate.addListener(this, &ParamCam::autoGainRateListener);
 			autoGainParameters.add(pAutoGainAdjustTol.set("tolerance pct", 5, 0, 50));
 			pAutoGainAdjustTol.addListener(this, &ParamCam::autoGainAdjustTolListener);
-			autoGainParameters.add(pAutoGainOutliers.set("outliers 0.01pct", 0, 0, 1000));
+			autoGainParameters.add(pAutoGainOutliers.set("outliers bp", 0, 0, 1000));
 			pAutoGainOutliers.addListener(this, &ParamCam::autoGainOutliersListener);
 			autoGainParameters.add(pAutoGainMinimum.set("minimum dB", 0, 0, 30));
 			pAutoGainMinimum.addListener(this, &ParamCam::autoGainMinimumListener);
@@ -108,7 +108,7 @@ namespace ofxPvAPI {
 			pAutoWhiteBalanceOnce.addListener(this, &ParamCam::autoWhiteBalanceOnceListener);
 			autoWhiteBalanceParameters.add(pAutoWhiteBalanceRate.set("rate pct", 100, 1, 100));
 			pAutoWhiteBalanceRate.addListener(this, &ParamCam::autoWhiteBalanceRateListener);
-			autoWhiteBalanceParameters.add(pAutoWhiteBalanceAdjustTol.set("ajust tolerance pct", 1, 1, 100));
+			autoWhiteBalanceParameters.add(pAutoWhiteBalanceAdjustTol.set("tolerance pct", 5, 0, 50));
 			pAutoWhiteBalanceAdjustTol.addListener(this, &ParamCam::autoWhiteBalanceAdjustTolListener);
 			whiteBalanceParameters.add(autoWhiteBalanceParameters);
 			parameters.add(whiteBalanceParameters);

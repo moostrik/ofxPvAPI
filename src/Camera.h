@@ -91,12 +91,13 @@ namespace ofxPvAPI {
 		//-- PV FRAMES -------------------------------------------------------
 	private:
 		static int		numPvFrames;
+		bool			bFramesAllocated;
 		tPvFrame*		pvFrames;
 		deque<tPvFrame*>	capuredFrameQueue;
 		
-		void 			allocateFrames();
+//		bool			setupFrames();
+		void 			allocateFrames();//int _width, int _height);
 		void 			deallocateFrames();
-		bool			setupFrames();
 		void			resizeFrames();
 		
 		bool			queueFrames();
