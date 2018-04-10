@@ -688,10 +688,7 @@ namespace ofxPvAPI {
 		if (bDeviceActive) {
 			int w = getWidth();
 			int h = getHeight();
-			if (isFrameNew() && !bTextureSet) {
-//				cout << w << endl;
-				
-				
+			if (isFrameNew() && !bTextureSet) {				
 				int glFormat = ofGetGLInternalFormatFromPixelFormat(getPixelFormat());
 				if (texture.isAllocated()) {
 					if (texture.getWidth() != w || texture.getHeight() != h || texture.getTextureData().glInternalFormat != glFormat) {

@@ -16,12 +16,11 @@
 #include "ParamCam.h"
 
 /*	--------------------------------------------------------------------
- 	ofxProsilica::TexPC adds a texture to the ParamCam also it adds the
- 	flip and rotate functionality
+ 	ofxProsilica::ParamCamExt adds extended functionality such as flip,
+ 	rotate90, warp and redToRGB.
+ 	note: these functions are performed on the texture. getPixels()
+ 	gets it's pixels from the texture and is not optimized.
+ 
 *///--------------------------------------------------------------------
-#include "ParamCamTex.h"
+#include "ParamCamExt.h"
 
-/*	--------------------------------------------------------------------
-	 ofxProsilica::WarpTexPC adds warp functionality to the TexPC
-*///--------------------------------------------------------------------
-#include "ParamCamWarp.h"

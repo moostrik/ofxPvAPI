@@ -1,20 +1,19 @@
 //
-//  ParamCamTex.cpp
+//  ParamCamExt.cpp
 //  plCam
 //
 //  Created by PLPLPL.PL on 08/01/16.
 //
 //
 
-#include "ParamCamTex.h"
+#include "ParamCamExt.h"
 
 
 namespace ofxPvAPI {
 	
-	bool ParamCamTex::setup(){
+	bool ParamCamExt::setup(){
 		ParamCam::setup();
 		
-		internalTexture.allocate(640, 480, GL_R8);
 		// bug in OF won't allow for ofFbo's to be re-allocated with different internal format so default to RGB
 		flipFbo.allocate(640, 480, GL_RGB);
 		flipFbo.begin();
@@ -39,19 +38,13 @@ namespace ofxPvAPI {
 	}
 	
 	//--------------------------------------------------------------
-	void ParamCamTex::update() {
+	void ParamCamExt::update() {
 		ParamCam::update();
 		
 		if (ParamCam::isFrameNew()){
 			int w = ParamCam::getWidth();
 			int h = ParamCam::getHeight();
 			int glFormat = ofGetGLInternalFormatFromPixelFormat(getPixelFormat());
-			if (internalTexture.getWidth() != w || internalTexture.getHeight() != h || internalTexture.getTextureData().glInternalFormat != glFormat) {
-				internalTexture.clear();
-				internalTexture.allocate(w, h, glFormat);
-			}
-			
-			internalTexture.loadData(ParamCam::getPixels());
 			
 			int dstWidth = w;
 			int dstHeight = h;
@@ -146,18 +139,18 @@ namespace ofxPvAPI {
 				flipFbo.begin();
 				ofClear(0);
 				red2lumShader.begin();
-				internalTexture.bind();
+				Camera::getTexture().bind();
 				quad.draw();
-				internalTexture.unbind();
+				Camera::getTexture().unbind();
 				red2lumShader.end();
 				flipFbo.end();
 			}
 			else {
 				flipFbo.begin();
 				ofClear(0);
-				internalTexture.bind();
+				Camera::getTexture().bind();
 				quad.draw();
-				internalTexture.unbind();
+				Camera::getTexture().unbind();
 				flipFbo.end();
 			}
 			
@@ -166,7 +159,7 @@ namespace ofxPvAPI {
 	}
 	
 	//--------------------------------------------------------------
-	ofPixels& ParamCamTex::getPixels() {
+	ofPixels& ParamCamExt::getPixels() {
 		if (!pixelsSet) {
 			ofTextureData& texData = this->getTexture().getTextureData();
 			
@@ -192,7 +185,7 @@ namespace ofxPvAPI {
 	}
 
 	//--------------------------------------------------------------
-	void ParamCamTex::createRed2LumShader() {
+	void ParamCamExt::createRed2LumShader() {
 		string vertexShader, fragmentShader;
 		vertexShader = GLSL_150(
 								uniform mat4 textureMatrix;

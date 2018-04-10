@@ -159,7 +159,7 @@ namespace ofxPvAPI {
 	public:
 		ofTexture&		getTexture();
 		
-	private:
+	protected:
 		bool			bTextureSet;
 		ofTexture		texture;
 		

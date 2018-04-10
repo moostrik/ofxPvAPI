@@ -8,11 +8,11 @@
 
 namespace ofxPvAPI {
 	
-	class ParamCamTex : public ParamCam{
+	class ParamCamExt : public ParamCam{
 	public:
 		
-		ParamCamTex() {}
-		virtual ~ParamCamTex() {;}
+		ParamCamExt() {}
+		virtual ~ParamCamExt() {;}
 		
 		bool	setup();
 		void	update();
@@ -31,7 +31,6 @@ namespace ofxPvAPI {
 		ofParameter<bool>   flipV;
 		ofParameter<bool>   rotate90;
 	
-		ofTexture 	internalTexture;
 		ofFbo 		flipFbo;
 		ofMesh		quad;
 		ofShader 	red2lumShader;
