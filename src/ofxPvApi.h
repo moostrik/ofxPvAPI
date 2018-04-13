@@ -17,7 +17,7 @@
 
 /*	--------------------------------------------------------------------
  	ofxProsilica::ParamCamExt adds extended functionality such as flip,
- 	rotate90, warp and redToRGB.
+ 	rotate90, redToRGB and homography warp
  	note: these functions are performed on the texture. getPixels()
  	gets it's pixels from the texture and is not optimized.
  

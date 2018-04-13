@@ -25,19 +25,35 @@ namespace ofxPvAPI {
 		ofTexture& 	getTexture()	{ return flipFbo.getTexture(); }
 		ofPixels&   getPixels();
 		
-	private:		
+	private:
 		ofParameterGroup	flipParameters;
-		ofParameter<bool>   flipH;
-		ofParameter<bool>   flipV;
-		ofParameter<bool>   rotate90;
-	
+		ofParameter<bool>	flipH;
+		ofParameter<bool>	flipV;
+		ofParameter<bool>	rotate90;
+				
 		ofFbo 		flipFbo;
-		ofMesh		quad;
+		ofMesh		flipQuad;
+		
+		void		updateFlip();
+		
 		ofShader 	red2lumShader;
 		void 		createRed2LumShader();
 		
 		ofPixels	pixels;
 		ofPixels	pixelsRGB;
 		bool		pixelsSet;
+		
+		// Homography Functions adapted from Arturo Castro :
+		// http://www.openframeworks.cc/forum/viewtopic.php?p=22611
+		
+		ofParameterGroup	homographyParameters;
+		ofParameter<ofVec2f>* pHomographyPoints;
+		void				pHomographyPointListener(ofVec2f& _value) { updateHomography(); }
+		
+		void				updateHomography();
+		ofMatrix4x4			homography;
+		ofMatrix4x4			findHomography(ofVec2f* src, ofVec2f* dst);
+		void				gaussian_elimination(float *input, int n);
 	};
 }
+
