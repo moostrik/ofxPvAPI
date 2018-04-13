@@ -3,7 +3,6 @@
 
 namespace ofxPvAPI {
 	
-		//------------------------------------------------------------------------
 	void ParamCam::setup() {
 		Camera::setup();		
 		
@@ -148,7 +147,6 @@ namespace ofxPvAPI {
 		return true;
 	}
 	
-		//------------------------------------------------------------------------
 	void ParamCam::update() {
 		Camera::update();
 		blockListeners = !isActive();
@@ -179,7 +177,9 @@ namespace ofxPvAPI {
 		}
 	}
 	
-		//------------------------------------------------------------------------
+	
+	//----------------------------------------------------------------------------
+	
 	void ParamCam::updateParametersFromCam() {
 		blockListeners = true;
 		if (pAutoExposure.get() || pAutoExposureOnce.get()) {
@@ -195,7 +195,9 @@ namespace ofxPvAPI {
 		blockListeners = false;
 	}
 	
-		//------------------------------------------------------------------------
+	
+	//----------------------------------------------------------------------------
+	
 	void ParamCam::setAllParametersFromCam() {
 		blockListeners = true;
 		
@@ -313,7 +315,9 @@ namespace ofxPvAPI {
 		setParametersRange();
 	}
 	
-		//------------------------------------------------------------------------
+	
+	//----------------------------------------------------------------------------
+	
 	void ParamCam::setParametersRange() {
 		
 		pFrameRate.setMin(ceil(getFrameRateMin()));
@@ -430,7 +434,9 @@ namespace ofxPvAPI {
 	}
 	
 	
-		//-- FRAMES ----------------------------------------------------------
+	//----------------------------------------------------------------------------
+	//-- FRAMES ------------------------------------------------------------------
+	
 	void ParamCam::triggeredListener(bool &_value)  {
 		if (isActive()) {
 			bool bT = Camera::getTriggered();
@@ -462,7 +468,10 @@ namespace ofxPvAPI {
 		}
 	}
 	
-		//-- REGION OF INTEREST ----------------------------------------------
+	
+	//----------------------------------------------------------------------------
+	//-- REGION OF INTEREST ------------------------------------------------------
+	
 	void ParamCam::ROIWidthListener(int &_value) {
 		if (isActive()) {
 			Camera::setROIWidth(_value);
@@ -511,7 +520,10 @@ namespace ofxPvAPI {
 		}
 	}
 	
-		//-- IP SETTINGS -----------------------------------------------------
+	
+	//----------------------------------------------------------------------------
+	//-- IP SETTINGS -------------------------------------------------------------
+	
 	void ParamCam::enableIPSettings() {
 		if (isActive()) {
 			ofLog(OF_LOG_ERROR, "Camera: %lu: enableIPSettings(): can't enable IP settings while device is active", deviceID);
@@ -560,7 +572,6 @@ namespace ofxPvAPI {
 		}
 	}
 	
-	
 	void ParamCam::pPersistentIpUpdateListener(bool &_value) {
 		if(!blockListeners && _value) {
 			Camera::updateIpSettings();
@@ -569,7 +580,8 @@ namespace ofxPvAPI {
 	}
 	
 	
-		//-- RANGE -----------------------------------------------------------
+	//----------------------------------------------------------------------------
+	//-- RANGE -------------------------------------------------------------------
 	
 	void ParamCam::inRange(ofParameter<int>& _parameter, int& _value) {
 		if ( _value < _parameter.getMin() || _value > _parameter.getMax()) {

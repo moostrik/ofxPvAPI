@@ -8,7 +8,6 @@ namespace ofxPvAPI {
 	class ParamCam : public Camera {
 	
 	public:
-		
 		ParamCam() : bIpParametersEnabled(false) {;}
 		virtual ~ParamCam() {;}
 		
@@ -17,8 +16,7 @@ namespace ofxPvAPI {
 		
 		ofParameterGroup	parameters;
 		
-		
-			//-- GENERAL ---------------------------------------------------------
+		//-- GENERAL -----------------------------------------------------------------
 	protected:
 		ofParameter<bool>	printAttributes;
 		ofParameter<bool>	reset;
@@ -30,8 +28,7 @@ namespace ofxPvAPI {
 		void	activateListener(bool& _value) { if (_value) 	{ activate(); _value = false; } }
 		void	deactivateListener(bool& _value) { if (_value) 	{ deactivate(); _value = false; } }
 		
-		
-			//-- FRAMES ----------------------------------------------------------
+		//-- FRAMES ------------------------------------------------------------------
 	public:
 		void	setTriggered(bool _value)	{ pTriggered.set(_value); }
 		void	setFrameRate(float _value)	{ inRange(pFrameRate, _value); pFrameRate.set(_value); }
@@ -50,8 +47,7 @@ namespace ofxPvAPI {
 		void	frameRateListener(float& _value);
 		void	triggeredListener(bool& _value);
 		
-		
-			//-- REGION OF INTEREST ----------------------------------------------
+		//-- REGION OF INTEREST ------------------------------------------------------
 	public:
 		void	setROIWidth(int _value)		{ inRange(pROIWidth, _value); pROIWidth.set(_value); }
 		void	setROIHeight(int _value)	{ inRange(pROIHeight, _value); pROIHeight.set(_value); }
@@ -70,8 +66,7 @@ namespace ofxPvAPI {
 		void	ROIXListener(int& _value);
 		void	ROIYListener(int& _value);
 		
-		
-			//-- EXPOSURE --------------------------------------------------------
+		//-- EXPOSURE ----------------------------------------------------------------
 	public:
 		void	setExposure(int _value)						{ inRange(pExposure, _value); pExposure.set(_value); }
 		void	setAutoExposure(bool _value)				{ pAutoExposure.set(_value); }
@@ -106,8 +101,7 @@ namespace ofxPvAPI {
 		void	autoExposureMinimumListener(int& _value)	{ if(!blockListeners) Camera::setAutoExposureMinimum(_value); }
 		void	autoExposureMaximumListener(int& _value)	{ if(!blockListeners) Camera::setAutoExposureMaximum(_value); }
 		
-		
-			//-- GAIN ------------------------------------------------------------
+		//-- GAIN --------------------------------------------------------------------
 	public:
 		void	setGain(int _value)							{ inRange(pGain, _value); pGain.set(_value); }
 		void 	setAutoGain(bool _value)					{ pAutoGain.set(_value); }
@@ -142,8 +136,7 @@ namespace ofxPvAPI {
 		void	autoGainMinimumListener(int& _value)		{ if(!blockListeners) Camera::setAutoGainMinimum(_value); }
 		void	autoGainMaximumListener(int& _value)		{ if(!blockListeners) Camera::setAutoGainMaximum(_value); }
 		
-		
-			//-- GAMMA HUE STURATION ---------------------------------------------
+		//-- GAMMA HUE STURATION -----------------------------------------------------
 	public:
 		void 	setGamma(float _value)						{ inRange(pGamma, _value); pGamma.set(_value); }
 		void 	setHue(float _value)						{ inRange(pHue, _value); pHue.set(_value); }
@@ -159,8 +152,7 @@ namespace ofxPvAPI {
 		void	hueListener(float& _value)					{ if(!blockListeners) Camera::setHue(_value); }
 		void	saturationListener(float& _value)			{ if(!blockListeners) Camera::setSaturation(_value); }
 		
-		
-			//-- WHITEBALANCE ----------------------------------------------------
+		//-- WHITEBALANCE ------------------------------------------------------------
 	public:
 		void 	setWhiteBalanceBlue(int _value)				{ inRange(pWhiteBalanceRed, _value); pWhiteBalanceRed.set(_value); }
 		void 	setWhiteBalanceRed(int _value)				{ inRange(pWhiteBalanceBlue, _value); pWhiteBalanceBlue.set(_value); }
@@ -186,8 +178,7 @@ namespace ofxPvAPI {
 		void	autoWhiteBalanceRateListener(int& _value)	{ if(!blockListeners) Camera::setAutoWhiteBalanceRate(_value); }
 		void	autoWhiteBalanceAdjustTolListener(int& _value) { if(!blockListeners) Camera::setAutoWhiteBalanceAdjustTol(_value); }
 		
-		
-			//-- IP SETTINGS -----------------------------------------------------
+		//-- IP SETTINGS -------------------------------------------------------------
 	public:
 		void 	enableIPSettings();
 		bool	getIPSettingsEnabled() { return bIpParametersEnabled; }
@@ -216,9 +207,7 @@ namespace ofxPvAPI {
 		void	pPersistentIpSwitchListener(bool & _value);
 		void	pPersistentIpUpdateListener(bool & _value);
 		
-		
-		//-- GENERAL -----------------------------------------------------
-		
+		//-- GENERAL -----------------------------------------------------------------
 		void	updateParametersFromCam();
 		void	setAllParametersFromCam();
 		void	setAllParametersFromInterface();

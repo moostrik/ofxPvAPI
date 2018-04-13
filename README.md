@@ -1,13 +1,13 @@
 # README #
 
-Based on libPvAPI.dylib (as the libPvAPI.a won't compile with of 0.9)
-The PvApi.h must be slightly modified
+Based on libPvAPI.dylib (as the libPvAPI.a won't compile with of 0.9).
+The PvApi.h must be slightly modified.
 
 ofxPvAPI::Camera is modelled after, but not completely compatible with, ofVideoGrabber. 
 ofxPvAPI::ParamCam adds ofParameters and an ofParameterGroup to the Camera, for easy use with ofxGui.
 ofxPvAPI::ParamCamExt adds extended functionality such as flip, rotate 90º,  homography warp and mono to RGB conversion
 
-Tested with the Prosilica GC750 and the MAKO G-223B  (monochrome) and the MAKO G125C (color) on OSX 10.13
+Tested with the Prosilica GC750 and the MAKO G-223B  (monochrome) and the MAKO G125C (color) on OSX 10.13.
 
 # TODO #
 

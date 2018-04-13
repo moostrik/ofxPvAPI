@@ -9,6 +9,7 @@
 namespace ofxPvAPI {
 	
 	class ParamCamExt : public ParamCam{
+		
 	public:
 		ParamCamExt() {}
 		virtual	~ParamCamExt() {;}

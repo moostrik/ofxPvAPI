@@ -31,13 +31,14 @@ namespace ofxPvAPI {
 		void			update();
 		void			close() { if(bDeviceActive) { deactivate(); } }
 		
-		//-- API -------------------------------------------------------------
+		
+		//-- API ---------------------------------------------------------------------
 	private:
 		void			PvApiInitialize();
 		void			PvApiUnInitialize();
 		static bool		bPvApiInitiated;
 		
-		//-- LIST & ID -------------------------------------------------------
+		//-- LIST & ID ---------------------------------------------------------------
 	public:
 		vector<ofVideoDevice> listDevices();
 		
@@ -57,7 +58,7 @@ namespace ofxPvAPI {
 		unsigned long	deviceID;
 		unsigned long	requestedDeviceID;
 		
-		//-- DEVICE ----------------------------------------------------------
+		//-- DEVICE ------------------------------------------------------------------
 	public:
 		bool			isActive() { return bDeviceActive; }
 		void			activate();  // this is taken care of by setup(), but you might want to (de)activate manually
@@ -89,7 +90,7 @@ namespace ofxPvAPI {
 		uint64_t		lastWaitTime;
 		void			waitOnAvailable();
 		
-		//-- PV FRAMES -------------------------------------------------------
+		//-- PV FRAMES ---------------------------------------------------------------
 	private:
 		static int		numPvFrames;
 		bool			bFramesAllocated;
@@ -108,7 +109,7 @@ namespace ofxPvAPI {
 		static void 	frameCallBack(tPvFrame* pFrame);
 		void			receiveFrame(tPvFrame* _frame);
 		
-		//-- FRAMES --------------------------------------------------------------
+		//-- FRAMES ------------------------------------------------------------------
 	public:
 		bool 			isFrameNew()			{ return bIsFrameNew; }
 		
@@ -140,7 +141,7 @@ namespace ofxPvAPI {
 		int 			frameMinLatency;
 		deque<timedInt> frameRateAndLatencies;
 		
-		//-- PIXELS --------------------------------------------------------------
+		//-- PIXELS ------------------------------------------------------------------
 	public:
 		ofPixels&		getPixels()	{ return pixels; }
 		float			getWidth()	{ return (pixels.isAllocated())? pixels.getWidth() : 0; } 	// pixels, not ROI
@@ -155,7 +156,7 @@ namespace ofxPvAPI {
 		ofPixelFormat	getOfPixelFormat(string _format);
 		string			getPvPixelFormat(ofPixelFormat _format);
 		
-		//-- TEXTURE -------------------------------------------------------------
+		//-- TEXTURE -----------------------------------------------------------------
 	public:
 		ofTexture&		getTexture();
 		
@@ -163,7 +164,7 @@ namespace ofxPvAPI {
 		bool			bTextureSet;
 		ofTexture		texture;
 		
-			//-- ATTRIBUTES GENERAL-----------------------------------------------
+		//-- ATTRIBUTES GENERAL-------------------------------------------------------
 	public:
 		void	videoSettings() { listAttributes();}
 		void	listAttributes();
@@ -186,7 +187,7 @@ namespace ofxPvAPI {
 		bool	setEnumAttribute(string _name, string _value);
 		string	getEnumAttribute(string _name);
 		
-			//-- REGION OF INTEREST ----------------------------------------------
+		//-- REGION OF INTEREST ------------------------------------------------------
 	public:
 		void	setROIWidth(int _value);
 		void	setROIHeight(int _value);
@@ -207,7 +208,7 @@ namespace ofxPvAPI {
 		int		getROIYMin()		{ return getIntAttributeMin("RegionY"); }
 		int		getROIYMax()		{ return getIntAttributeMax("RegionY"); }
 		
-			//-- EXPOSURE --------------------------------------------------------
+		//-- EXPOSURE ----------------------------------------------------------------
 	public:
 		void	setAutoExposure(bool state)			{ setEnumAttribute("ExposureMode", (state == true)? "Auto": "Manual"); }
 		void	setAutoExposureOnce(bool state)		{ setEnumAttribute("ExposureMode", (state == true)? "AutoOnce": "Manual"); }
@@ -265,8 +266,7 @@ namespace ofxPvAPI {
 		int		getAutoExposureTargetMin()		{ return getIntAttributeMin("ExposureAutoTarget"); }
 		int		getAutoExposureTargetMax()		{ return getIntAttributeMax("ExposureAutoTarget"); }
 		
-		
-			//-- GAIN ------------------------------------------------------------
+		//-- GAIN --------------------------------------------------------------------
 		void 	setAutoGain(bool state)			{ setEnumAttribute("GainMode", (state == true)? "Auto": "Manual"); }
 		void 	setAutoGainOnce(bool state)		{ setEnumAttribute("GainMode", (state == true)? "AutoOnce": "Manual"); }
 		bool 	getAutoGain()					{ return (getEnumAttribute("GainMode") == "Auto")? true: false; }
@@ -303,7 +303,7 @@ namespace ofxPvAPI {
 		int 	getAutoGainTargetMin()			{ return getIntAttributeMin("GainAutoTarget"); }
 		int 	getAutoGainTargetMax()			{ return getIntAttributeMax("GainAutoTarget"); }
 		
-			//-- GAMMA HUE STURATION ---------------------------------------------
+		//-- GAMMA HUE STURATION -----------------------------------------------------
 		void 	setGamma(float _value)			{ setFloatAttribute("Gamma", _value); }
 		void 	setHue(float _value)			{ setFloatAttribute("Hue", _value); }
 		void 	setSaturation(float _value)		{ setFloatAttribute("Saturation", _value); }
@@ -319,7 +319,7 @@ namespace ofxPvAPI {
 		int 	getSaturationMin()				{ return getFloatAttributeMin("Saturation"); }
 		int 	getSaturationMax()				{ return getFloatAttributeMax("Saturation"); }
 		
-			//-- WHITE BALANCE ---------------------------------------------------
+		//-- WHITE BALANCE -----------------------------------------------------------
 		void 	setAutoWhiteBalance(bool state)	{ setEnumAttribute("WhitebalMode", (state == true)? "Auto": "Manual"); }
 		void 	setAutoWhiteBalanceOnce(bool state)	{ setEnumAttribute("WhitebalMode", (state == true)? "AutoOnce": "Manual"); }
 		bool 	getAutoWhiteBalance()			{ return (getEnumAttribute("WhitebalMode") == "Auto")? true: false; }
@@ -344,7 +344,7 @@ namespace ofxPvAPI {
 		int 	getAutoWhiteBalanceRateMin()	{ return getIntAttributeMin("WhitebalAutoRate"); }
 		int 	getAutoWhiteBalanceRateMax()	{ return getIntAttributeMax("WhitebalAutoRate"); }
 		
-			//-- IP SETTINGS -----------------------------------------------------
+		//-- IP SETTINGS -------------------------------------------------------------
 	public:
 		void	listIpSettings();
 		
@@ -376,10 +376,9 @@ namespace ofxPvAPI {
 		unsigned long	IPStringToLong(string _IpAdress);
 		string			IPLongToString(unsigned long  _IpAdress);
 		
-			//-- ERROR LOGGING ---------------------------------------------------
+		//-- ERROR LOGGING -----------------------------------------------------------
 	private:
 		void			logError(tPvErr _msg);
-		
 	};
 }
 
