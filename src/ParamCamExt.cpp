@@ -14,24 +14,29 @@ namespace ofxPvAPI {
 	bool ParamCamExt::setup(){
 		ParamCam::setup();
 		
+		pixelsSet = false;
+		
+		if (ofIsGLProgrammableRenderer()) { createRed2LumShader(); }
+		
+		fhInited = false;
+		
 		// bug in OF won't allow for ofFbo's to be re-allocated with different internal format so default to RGB
 		flipFbo.allocate(640, 480, GL_RGB);
 		flipFbo.begin();
 		ofClear(0);
 		flipFbo.end();
 		
-		
-		if (ofIsGLProgrammableRenderer()) { createRed2LumShader(); }
 		flipQuad.getVertices().resize(4);
 		flipQuad.getTexCoords().resize(4);
 		flipQuad.setMode(OF_PRIMITIVE_TRIANGLE_FAN);
-		
-		pixelsSet = false;
 		
 		flipParameters.setName("flip");
 		flipParameters.add(flipH.set("flip H", false));
 		flipParameters.add(flipV.set("flip V", false));
 		flipParameters.add(rotate90.set("rotate 90", false));
+		flipH.addListener(this, &ParamCamExt::pFlipListener);
+		flipV.addListener(this, &ParamCamExt::pFlipListener);
+		rotate90.addListener(this, &ParamCamExt::pFlipListener);
 		parameters.add(flipParameters);
 		
 		homographyParameters.setName("homography warp");
@@ -46,104 +51,22 @@ namespace ofxPvAPI {
 		return true;
 	}
 	
-	//--------------------------------------------------------------
 	void ParamCamExt::update() {
 		ParamCam::update();
 		
 		if (ParamCam::isFrameNew()){
-			int w = ParamCam::getWidth();
-			int h = ParamCam::getHeight();
+			int w = (rotate90)? ParamCam::getWidth(): ParamCam::getHeight();
+			int h = (rotate90)? ParamCam::getHeight(): ParamCam::getWidth();
 			int glFormat = ofGetGLInternalFormatFromPixelFormat(getPixelFormat());
-			
-			int dstWidth = w;
-			int dstHeight = h;
-			
-			if (rotate90) {
-				dstWidth = h;
-				dstHeight = w;
-			}
-			
 			// bug in OF won't allow for ofFbo's to be re-allocated with different internal format
 			glFormat = GL_RGB;
-			if (flipFbo.getWidth() != dstWidth || flipFbo.getHeight() != dstHeight || flipFbo.getTexture().getTextureData().glInternalFormat != glFormat) {
-				flipFbo.allocate(dstWidth, dstHeight, glFormat);
+			
+			if (!fhInited || flipFbo.getWidth() != w || flipFbo.getHeight() != h || flipFbo.getTexture().getTextureData().glInternalFormat != glFormat) {
+				fhInited = true;
+				flipFbo.allocate(w, h, glFormat);
+				updateFlip();
 				updateHomography();
 			}
-			
-			vector<ofPoint> pts;
-			pts.assign(4, ofPoint(0,0));
-			
-			if (!rotate90) {	// NO ROTATION
-				if (!flipH) {
-					if (!flipV) {  // NO FLIP
-						pts[0].set(0, 0);
-						pts[1].set(w, 0);
-						pts[2].set(w, h);
-						pts[3].set(0, h);
-					}
-					else {          // FLIP V
-						pts[0].set(0, h);
-						pts[1].set(w, h);
-						pts[2].set(w, 0);
-						pts[3].set(0, 0);
-					}
-				}
-				else {
-					if (!flipV) {  // FLIP H
-						pts[0].set(w, 0);
-						pts[1].set(0, 0);
-						pts[2].set(0, h);
-						pts[3].set(w, h);
-					}
-					else {          // FLIP H & V
-						pts[0].set(w, h);
-						pts[1].set(0, h);
-						pts[2].set(0, 0);
-						pts[3].set(w, 0);
-					}
-				}
-			}
-			else {	// ROTATION
-				if (!flipH) {
-					if (!flipV) {  // NO FLIP
-						pts[0].set(0, h);
-						pts[1].set(0, 0);
-						pts[2].set(w, 0);
-						pts[3].set(w, h);
-					}
-					else {          // FLIP V
-						pts[0].set(0, 0);
-						pts[1].set(0, h);
-						pts[2].set(w, h);
-						pts[3].set(w, 0);
-					}
-				}
-				else {
-					if (!flipV) {  // FLIP H
-						pts[0].set(w, h);
-						pts[1].set(w, 0);
-						pts[2].set(0, 0);
-						pts[3].set(0, h);
-					}
-					else {          // FLIP H & V
-						pts[0].set(w, 0);
-						pts[1].set(w, h);
-						pts[2].set(0, h);
-						pts[3].set(0, 0);
-					}
-				}
-			}
-			
-			
-			flipQuad.setVertex(0, ofVec3f(0,0,0));
-			flipQuad.setVertex(1, ofVec3f(dstWidth,0,0));
-			flipQuad.setVertex(2, ofVec3f(dstWidth,dstHeight,0));
-			flipQuad.setVertex(3, ofVec3f(0,dstHeight,0));
-			
-			flipQuad.setTexCoord(0, pts[0]);
-			flipQuad.setTexCoord(1, pts[1]);
-			flipQuad.setTexCoord(2, pts[2]);
-			flipQuad.setTexCoord(3, pts[3]);
 			
 			if (ofIsGLProgrammableRenderer() && getPixelFormat() == OF_PIXELS_MONO) {
 				flipFbo.begin();
@@ -174,7 +97,9 @@ namespace ofxPvAPI {
 		}
 	}
 	
-	//--------------------------------------------------------------
+	//----------------------------------------------------------------------------
+	//-- PIXELS ------------------------------------------------------------------
+	
 	ofPixels& ParamCamExt::getPixels() {
 		if (!pixelsSet) {
 			ofTextureData& texData = this->getTexture().getTextureData();
@@ -200,7 +125,10 @@ namespace ofxPvAPI {
 		return pixels;
 	}
 	
-	//--------------------------------------------------------------
+	
+	//----------------------------------------------------------------------------
+	//-- SHADER ------------------------------------------------------------------
+	
 	void ParamCamExt::createRed2LumShader() {
 		string vertexShader, fragmentShader;
 		vertexShader = GLSL_150(
@@ -237,7 +165,87 @@ namespace ofxPvAPI {
 		red2lumShader.linkProgram();
 	}
 	
-	//--------------------------------------------------------------
+	
+	//----------------------------------------------------------------------------
+	//-- FLIP --------------------------------------------------------------------
+	
+	void ParamCamExt::updateFlip() {
+		int w = ParamCam::getWidth();
+		int h = ParamCam::getHeight();
+		
+		if (!rotate90) {	// NO ROTATION
+			flipQuad.setVertex(0, ofVec3f(0,0,0));
+			flipQuad.setVertex(1, ofVec3f(w,0,0));
+			flipQuad.setVertex(2, ofVec3f(w,h,0));
+			flipQuad.setVertex(3, ofVec3f(0,h,0));
+			if (!flipH) {
+				if (!flipV) {	// NO FLIP
+					flipQuad.setTexCoord(0, ofVec2f(0, 0) );
+					flipQuad.setTexCoord(0, ofVec2f(w, 0) );
+					flipQuad.setTexCoord(0, ofVec2f(w, h) );
+					flipQuad.setTexCoord(0, ofVec2f(0, h) );
+				}
+				else {			// FLIP V
+					flipQuad.setTexCoord(0, ofVec2f(0, h) );
+					flipQuad.setTexCoord(0, ofVec2f(w, h) );
+					flipQuad.setTexCoord(0, ofVec2f(w, 0) );
+					flipQuad.setTexCoord(0, ofVec2f(0, 0) );
+				}
+			}
+			else {
+				if (!flipV) {	// FLIP H
+					flipQuad.setTexCoord(0, ofVec2f(w, 0) );
+					flipQuad.setTexCoord(0, ofVec2f(0, 0) );
+					flipQuad.setTexCoord(0, ofVec2f(0, h) );
+					flipQuad.setTexCoord(0, ofVec2f(w, h) );
+				}
+				else {			// FLIP H & V
+					flipQuad.setTexCoord(0, ofVec2f(w, h) );
+					flipQuad.setTexCoord(0, ofVec2f(0, h) );
+					flipQuad.setTexCoord(0, ofVec2f(0, 0) );
+					flipQuad.setTexCoord(0, ofVec2f(w, 0) );
+				}
+			}
+		}
+		else {				// ROTATION
+			flipQuad.setVertex(0, ofVec3f(0,0,0));
+			flipQuad.setVertex(1, ofVec3f(h,0,0));
+			flipQuad.setVertex(2, ofVec3f(h,w,0));
+			flipQuad.setVertex(3, ofVec3f(0,w,0));
+			if (!flipH) {
+				if (!flipV) {	// NO FLIP
+					flipQuad.setTexCoord(0, ofVec2f(0, h) );
+					flipQuad.setTexCoord(0, ofVec2f(0, 0) );
+					flipQuad.setTexCoord(0, ofVec2f(w, 0) );
+					flipQuad.setTexCoord(0, ofVec2f(w, h) );
+				}
+				else {			// FLIP V
+					flipQuad.setTexCoord(0, ofVec2f(0, 0) );
+					flipQuad.setTexCoord(0, ofVec2f(0, h) );
+					flipQuad.setTexCoord(0, ofVec2f(w, h) );
+					flipQuad.setTexCoord(0, ofVec2f(w, 0) );
+				}
+			}
+			else {
+				if (!flipV) {	// FLIP H
+					flipQuad.setTexCoord(0, ofVec2f(w, h) );
+					flipQuad.setTexCoord(0, ofVec2f(w, 0) );
+					flipQuad.setTexCoord(0, ofVec2f(0, 0) );
+					flipQuad.setTexCoord(0, ofVec2f(0, h) );
+				}
+				else {			// FLIP H & V
+					flipQuad.setTexCoord(0, ofVec2f(w, 0) );
+					flipQuad.setTexCoord(0, ofVec2f(w, h) );
+					flipQuad.setTexCoord(0, ofVec2f(0, h) );
+					flipQuad.setTexCoord(0, ofVec2f(0, 0) );
+				}
+			}
+		}
+	}
+	
+	
+	//----------------------------------------------------------------------------
+	//-- HOMOGRAPHY -- Functions adapted from Arturo Castro : --------------------
 	
 	void ParamCamExt::updateHomography() {
 		int w = getWidth();
@@ -261,21 +269,20 @@ namespace ofxPvAPI {
 	ofMatrix4x4 ParamCamExt::findHomography(ofVec2f* src, ofVec2f* dst){
 		float homography[16];
 		float P[8][9]={
-			{-src[0].x, -src[0].y, -1,   0,   0,  0, src[0].x*dst[0].x, src[0].y*dst[0].x, -dst[0].x },
-			{  0,   0,  0, -src[0].x, -src[0].y, -1, src[0].x*dst[0].y, src[0].y*dst[0].y, -dst[0].y },
-			{-src[1].x, -src[1].y, -1,   0,   0,  0, src[1].x*dst[1].x, src[1].y*dst[1].x, -dst[1].x },
-			{  0,   0,  0, -src[1].x, -src[1].y, -1, src[1].x*dst[1].y, src[1].y*dst[1].y, -dst[1].y },
-			{-src[2].x, -src[2].y, -1,   0,   0,  0, src[2].x*dst[2].x, src[2].y*dst[2].x, -dst[2].x },
-			{  0,   0,  0, -src[2].x, -src[2].y, -1, src[2].x*dst[2].y, src[2].y*dst[2].y, -dst[2].y },
-			{-src[3].x, -src[3].y, -1,   0,   0,  0, src[3].x*dst[3].x, src[3].y*dst[3].x, -dst[3].x },
-			{  0,   0,  0, -src[3].x, -src[3].y, -1, src[3].x*dst[3].y, src[3].y*dst[3].y, -dst[3].y },
+			{ -src[0].x, -src[0].y, -1, 0, 0, 0, src[0].x*dst[0].x, src[0].y*dst[0].x, -dst[0].x },
+			{ 0, 0, 0, -src[0].x, -src[0].y, -1, src[0].x*dst[0].y, src[0].y*dst[0].y, -dst[0].y },
+			{ -src[1].x, -src[1].y, -1, 0, 0, 0, src[1].x*dst[1].x, src[1].y*dst[1].x, -dst[1].x },
+			{ 0, 0, 0, -src[1].x, -src[1].y, -1, src[1].x*dst[1].y, src[1].y*dst[1].y, -dst[1].y },
+			{ -src[2].x, -src[2].y, -1, 0, 0, 0, src[2].x*dst[2].x, src[2].y*dst[2].x, -dst[2].x },
+			{ 0, 0, 0, -src[2].x, -src[2].y, -1, src[2].x*dst[2].y, src[2].y*dst[2].y, -dst[2].y },
+			{ -src[3].x, -src[3].y, -1, 0, 0, 0, src[3].x*dst[3].x, src[3].y*dst[3].x, -dst[3].x },
+			{ 0, 0, 0, -src[3].x, -src[3].y, -1, src[3].x*dst[3].y, src[3].y*dst[3].y, -dst[3].y },
 		};
 		gaussian_elimination(&P[0][0],9);
-		float aux_H[]={ P[0][8],P[3][8],0,P[6][8],P[1][8],P[4][8],0,P[7][8],0,0,1,0,P[2][8],P[5][8],0,1};
+		float aux_H[]={ P[0][8], P[3][8], 0, P[6][8], P[1][8], P[4][8], 0, P[7][8], 0, 0, 1, 0, P[2][8], P[5][8], 0, 1 };
 		for(int i=0;i<16;i++) { homography[i] = aux_H[i]; }
 		return ofMatrix4x4(homography);
 	}
-	
 	
 	void ParamCamExt::gaussian_elimination(float *input, int n){
 		float * A = input;

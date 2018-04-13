@@ -66,9 +66,9 @@ void ofApp::draw(){
 	ofClear(128);
 	
 	if (!(!camera.isFrameNew() && drawNewFrameOnly)) {
-//		if (camera.getTexture().isAllocated()) {
+		if (camera.getTexture().isAllocated()) {
 			camera.getTexture().draw(gui.getWidth() + gui.getPosition().x + 10, gui.getPosition().y);
-//		}
+		}
 	}
 	
 	gui.draw();

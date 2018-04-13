@@ -1,17 +1,19 @@
 # README #
 
-Based on  libPvAPI.dylib (as the libPvAPI.a won't compile with of 0.9)
+Based on libPvAPI.dylib (as the libPvAPI.a won't compile with of 0.9)
 The PvApi.h must be slightly modified
 
-Tested with the Prosilica GC750 and the MAKO G-223B  (monochrome) and the MAKO G125C (color) on OSX 10.13
-previous versions tested on Windows 7
+ofxPvAPI::Camera is modelled after, but not completely compatible with, ofVideoGrabber. 
+ofxPvAPI::ParamCam adds ofParameters and an ofParameterGroup to the Camera, for easy use with ofxGui.
+ofxPvAPI::ParamCamExt adds extended functionality such as flip, rotate 90º,  homography warp and mono to RGB conversion
 
+Tested with the Prosilica GC750 and the MAKO G-223B  (monochrome) and the MAKO G125C (color) on OSX 10.13
 
 # TODO #
 
+- [ ] make for Windows
+- [ ] make for Linux
 - [ ] refactor parameterConnector
-- [ ] test windows
-- [ ] make linux
 
 
 # FOR MAC #
@@ -42,15 +44,15 @@ previous versions tested on Windows 7
 
 # KNOWN ISSUES AND FACTS #
 
-*	Turn off the Firewall!
-*	When setting persistentIP to false, unplug and replug the the camera.
-*	When setting persistentIP to true make sure you know what you are doing.
+*	Turn off the Firewall.
 *	The default pixel format is mono.
-*	According to the driver attribute document the autoGain should work together with the autoExposure for best lightness result. In my experiments using them simultanious gives weird results.
+*	As the extended functions are performed on the texture, ParamCamExt::getPixels() gets it's pixels from the texture and is not optimized.
 *	The example has no initial settings.XML file, save (right upper corner of the ofxGui) to create one.
-*	The cameras don't work great on wifi, but on low resolutions they might work.
+*	The cameras don't work on wifi.
 *	Sometimes it helps to turn of the Wifi
+*	Careful with the IP settings.
 *	It is recommended to set the MTU to Jumbo / 9000 (System Preferences -> Network -> Ethernet -> Advanced -> Hardware -> Configure Manually -> MTU), but in my experience it also works without.
+*	According to the driver attribute document the autoGain should work together with the autoExposure for best lightness result. In my experiments using them simultanious gives weird results.
 *	Weird install_name_tool bug: Set app deployment target > 10.7
 
 
