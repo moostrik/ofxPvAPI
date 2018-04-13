@@ -4,14 +4,13 @@
 #include "PvApi.h"
 
 //#include <stdio.h>
-
-//#ifdef _WIN32
-//#include <Ws2tcpip.h>
-//#else
+#ifdef _WIN32
+#include <Ws2tcpip.h>
+#else
 //#include <sys/socket.h>
 //#include <netinet/in.h>
-//#include <arpa/inet.h>
-//#endif
+#include <arpa/inet.h>
+#endif
 
 
 namespace ofxPvAPI {
