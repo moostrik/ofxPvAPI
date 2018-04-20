@@ -35,14 +35,14 @@ namespace ofxPvAPI {
 		parameters.add(frameRateParameters);
 		
 		roiParameters.setName("region of interest");
-		roiParameters.add(pROIWidth.set("width", 640, 1, 2048));
-		pROIWidth.addListener(this, &ParamCam::ROIWidthListener);
-		roiParameters.add(pROIHeight.set("height", 480, 1, 2048));
-		pROIHeight.addListener(this, &ParamCam::ROIHeightListener);
 		roiParameters.add(pROIX.set("x", 0, 0, 1));
 		pROIX.addListener(this, &ParamCam::ROIXListener);
 		roiParameters.add(pROIY.set("y", 0, 0, 1));
 		pROIY.addListener(this, &ParamCam::ROIYListener);
+		roiParameters.add(pROIWidth.set("width", 640, 1, 2048));
+		pROIWidth.addListener(this, &ParamCam::ROIWidthListener);
+		roiParameters.add(pROIHeight.set("height", 480, 1, 2048));
+		pROIHeight.addListener(this, &ParamCam::ROIHeightListener);
 		parameters.add(roiParameters);
 		
 		exposureParameters.setName("exposure");

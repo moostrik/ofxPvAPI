@@ -35,6 +35,7 @@ namespace ofxPvAPI {
 		parameters.add(flipParameters);
 		
 		homographyParameters.setName("homography warp");
+		homographyParameters.add(pDoHomography.set("enable", true));
 		pHomographyPoints = new ofParameter<ofVec2f>[4];
 		homographyParameters.add(pHomographyPoints[0].set("up left", ofVec2f(0,0), ofVec2f(-.5,-.5), ofVec2f(0.5,0.5)));
 		homographyParameters.add(pHomographyPoints[1].set("up right", ofVec2f(1,0), ofVec2f(0.5,-.5), ofVec2f(1.5,0.5)));
@@ -150,8 +151,9 @@ namespace ofxPvAPI {
 				ofClear(0);
 				red2lumShader.begin();
 				Camera::getTexture().bind();
+				flipQuad.draw();
 				ofPushMatrix();
-				ofMultMatrix(homography);
+				if (pDoHomography) { ofMultMatrix(homography); }
 				flipQuad.draw();
 				ofPopMatrix();
 				Camera::getTexture().unbind();
@@ -162,8 +164,9 @@ namespace ofxPvAPI {
 				flipFbo.begin();
 				ofClear(0);
 				Camera::getTexture().bind();
+				flipQuad.draw();
 				ofPushMatrix();
-				ofMultMatrix(homography);
+				if (pDoHomography) { ofMultMatrix(homography); }
 				flipQuad.draw();
 				ofPopMatrix();
 				Camera::getTexture().unbind();
@@ -243,19 +246,19 @@ namespace ofxPvAPI {
 		int w = getWidth();
 		int h = getHeight();
 		
-		ofVec2f originalCorners[4];
-		originalCorners[0] = ofVec2f(0,0);
-		originalCorners[1] = ofVec2f(w,0);
-		originalCorners[2] = ofVec2f(w,h);
-		originalCorners[3] = ofVec2f(0,h);
+		ofVec2f srcCorners[4];
+		srcCorners[0] = pHomographyPoints[0].get() * ofVec2f(w,h);
+		srcCorners[1] = pHomographyPoints[1].get() * ofVec2f(w,h);
+		srcCorners[2] = pHomographyPoints[2].get() * ofVec2f(w,h);
+		srcCorners[3] = pHomographyPoints[3].get() * ofVec2f(w,h);
 		
-		ofVec2f distortedCorners[4];
-		distortedCorners[0] = pHomographyPoints[0].get() * ofVec2f(w,h);
-		distortedCorners[1] = pHomographyPoints[1].get() * ofVec2f(w,h);
-		distortedCorners[2] = pHomographyPoints[2].get() * ofVec2f(w,h);
-		distortedCorners[3] = pHomographyPoints[3].get() * ofVec2f(w,h);
+		ofVec2f dstCorners[4];
+		dstCorners[0] = ofVec2f(0,0);
+		dstCorners[1] = ofVec2f(w,0);
+		dstCorners[2] = ofVec2f(w,h);
+		dstCorners[3] = ofVec2f(0,h);
 		
-		homography = findHomography(originalCorners, distortedCorners);
+		homography = findHomography(srcCorners, dstCorners);
 	}
 	
 	ofMatrix4x4 ParamCamExt::findHomography(ofVec2f* src, ofVec2f* dst){
@@ -316,6 +319,45 @@ namespace ofxPvAPI {
 				A[i*n+m]-=A[i*n+j]*A[j*n+m];
 				A[i*n+j]=0;
 			}
+		}
+	}
+
+	ofRectangle ParamCamExt::getOptimalRectForHomography(int _width, int _height) {
+		float minX = min((pHomographyPoints[0].get().x, pHomographyPoints[3].get().x), 0.f);
+		float maxX = max((pHomographyPoints[1].get().x, pHomographyPoints[2].get().x), 1.f);
+		float minY = min((pHomographyPoints[0].get().y, pHomographyPoints[1].get().y), 0.f);
+		float maxY = max((pHomographyPoints[2].get().y, pHomographyPoints[3].get().y), 1.f);
+		
+		float oW = (maxX - minX) * _width;
+		float oH = (maxY - minY) * _height;
+		float oAR = oH / oW;
+		
+		float maxW, maxH;
+		if (rotate90) {
+			maxW = getROIHeightMax() + getROIY();
+			maxH = getROIWidthMax() + getROIX();
+		} else {
+			maxW = getROIWidthMax() + getROIX();
+			maxH = getROIHeightMax() + getROIY();
+		}
+		
+		if (oW > maxW) {
+			oW = maxW;
+			oH = oW * oAR;
+		}
+		if (oH > maxH) {
+			oH = maxH;
+			oW = oH / oAR;
+		}
+		
+		float oX = (maxW - oW) / 2.0;
+		float oY = (maxH - oH) / 2.0;
+		
+		
+		if (rotate90) {
+			return ofRectangle(oY, oX, oH, oW);
+		} else {
+			return ofRectangle(oX, oY, oW, oH);
 		}
 	}
 }

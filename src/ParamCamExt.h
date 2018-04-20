@@ -25,6 +25,9 @@ namespace ofxPvAPI {
 		ofTexture& 	getTexture()	{ return flipFbo.getTexture(); }
 		ofPixels&   getPixels();
 		
+		ofRectangle	getMaxRectForHomography() { return getOptimalRectForHomography(Camera::getROIWidthMax(), Camera::getROIHeightMax()); }
+		ofRectangle	getOptimalRectForHomography(int _width, int _height);
+		
 	private:
 		ofParameterGroup	flipParameters;
 		ofParameter<bool>	flipH;
@@ -47,6 +50,7 @@ namespace ofxPvAPI {
 		// http://www.openframeworks.cc/forum/viewtopic.php?p=22611
 		
 		ofParameterGroup	homographyParameters;
+		ofParameter<bool>	pDoHomography;
 		ofParameter<ofVec2f>* pHomographyPoints;
 		void				pHomographyPointListener(ofVec2f& _value) { updateHomography(); }
 		
