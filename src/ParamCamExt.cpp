@@ -39,7 +39,7 @@ namespace ofxPvAPI {
 		homographyParameters.add(pHomographyPoints[0].set("up left", ofVec2f(0,0), ofVec2f(-.5,-.5), ofVec2f(0.5,0.5)));
 		homographyParameters.add(pHomographyPoints[1].set("up right", ofVec2f(1,0), ofVec2f(0.5,-.5), ofVec2f(1.5,0.5)));
 		homographyParameters.add(pHomographyPoints[2].set("down left", ofVec2f(1,1), ofVec2f(0.5,0.5), ofVec2f(1.5,1.5)));
-		homographyParameters.add(pHomographyPoints[3].set("down right", ofVec2f(0,1), ofVec2f(-.5,1.5), ofVec2f(0.5,1.5)));
+		homographyParameters.add(pHomographyPoints[3].set("down right", ofVec2f(0,1), ofVec2f(-.5,0.5), ofVec2f(0.5,1.5)));
 		for (int i=0; i<4; i++) { pHomographyPoints[i].addListener(this, &ParamCamExt::pHomographyPointListener); }
 		parameters.add(homographyParameters);
 		
