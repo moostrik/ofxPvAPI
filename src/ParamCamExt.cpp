@@ -30,8 +30,8 @@ namespace ofxPvAPI {
 		
 		distortionParameters.setName("barrel distortion");
 		distortionParameters.add(pDoDistortion.set("enable", true));
-		distortionParameters.add(pDistortionK1.set("K1", 0.0, -1.0, 1.0));
-		distortionParameters.add(pDistortionK2.set("K2", 0.0, -1.0, 1.0));
+		distortionParameters.add(pDistortionK1.set("K1", 0.0, -5.0, 5.0));
+		distortionParameters.add(pDistortionK2.set("K2", 0.0, -5.0, 5.0));
 		parameters.add(distortionParameters);
 		
 		flipParameters.setName("flip");

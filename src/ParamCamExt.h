@@ -35,7 +35,6 @@ namespace ofxPvAPI {
 		ofParameter<bool>	pDoDistortion;
 		ofParameter<float>	pDistortionK1;
 		ofParameter<float>	pDistortionK2;
-		ofParameter<float>	pDistortionScale;
 		ofShader 			barrelShader;
 		void 				createBarrelShader();
 		
