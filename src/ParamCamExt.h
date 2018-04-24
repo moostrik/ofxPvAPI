@@ -29,35 +29,42 @@ namespace ofxPvAPI {
 		ofRectangle	getOptimalRectForHomography(int _width, int _height);
 		
 	private:
+		
+		// Barrel Distortion adapted from meshula: https://www.shadertoy.com/view/MlSXR3
+		ofParameterGroup	distortionParameters;
+		ofParameter<bool>	pDoDistortion;
+		ofParameter<float>	pDistortionK1;
+		ofParameter<float>	pDistortionK2;
+		ofParameter<float>	pDistortionScale;
+		ofShader 			barrelShader;
+		void 				createBarrelShader();
+		
 		ofParameterGroup	flipParameters;
-		ofParameter<bool>	flipH;
-		ofParameter<bool>	flipV;
-		ofParameter<bool>	rotate90;
-				
-		ofFbo 		flipFbo;
-		ofMesh		flipQuad;
+		ofParameter<bool>	pFlipH;
+		ofParameter<bool>	pFlipV;
+		ofParameter<bool>	pRotate90;
+		ofFbo 				flipFbo;
+		ofMesh				flipQuad;
+		void				pFlipListener(bool & _value) { updateFlip(); }
+		void				updateFlip();
 		
-		void		updateFlip();
+//		ofParameterGroup	rotationParameters;
+//		ofParameter<bool>	pDoRotation;
+//		ofParameter<ofVec3f>pRotation;
 		
-		ofShader 	red2lumShader;
-		void 		createRed2LumShader();
-		
-		ofPixels	pixels;
-		ofPixels	pixelsRGB;
-		bool		pixelsSet;
-		
-		// Homography Functions adapted from Arturo Castro :
-		// http://www.openframeworks.cc/forum/viewtopic.php?p=22611
-		
+		// Homography Functions adapted from Arturo Castro: http://www.openframeworks.cc/forum/viewtopic.php?p=22611
 		ofParameterGroup	homographyParameters;
 		ofParameter<bool>	pDoHomography;
 		ofParameter<ofVec2f>* pHomographyPoints;
 		void				pHomographyPointListener(ofVec2f& _value) { updateHomography(); }
-		
 		void				updateHomography();
 		ofMatrix4x4			homography;
 		ofMatrix4x4			findHomography(ofVec2f* src, ofVec2f* dst);
 		void				gaussian_elimination(float *input, int n);
+		
+		ofPixels	pixels;
+		ofPixels	pixelsRGB;
+		bool		pixelsSet;
 	};
 }
 

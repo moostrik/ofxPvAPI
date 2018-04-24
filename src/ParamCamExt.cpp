@@ -20,18 +20,27 @@ namespace ofxPvAPI {
 		ofClear(0);
 		flipFbo.end();
 		
+		createBarrelShader();
 		
-		if (ofIsGLProgrammableRenderer()) { createRed2LumShader(); }
-		flipQuad.getVertices().resize(4);
-		flipQuad.getTexCoords().resize(4);
+		flipQuad.getVertices().resize(4, ofVec3f(0.0));
+		flipQuad.getTexCoords().resize(4, ofVec2f(0.0));
 		flipQuad.setMode(OF_PRIMITIVE_TRIANGLE_FAN);
 		
 		pixelsSet = false;
 		
+		distortionParameters.setName("barrel distortion");
+		distortionParameters.add(pDoDistortion.set("enable", true));
+		distortionParameters.add(pDistortionK1.set("K1", 0.0, -1.0, 1.0));
+		distortionParameters.add(pDistortionK2.set("K2", 0.0, -1.0, 1.0));
+		parameters.add(distortionParameters);
+		
 		flipParameters.setName("flip");
-		flipParameters.add(flipH.set("flip H", false));
-		flipParameters.add(flipV.set("flip V", false));
-		flipParameters.add(rotate90.set("rotate 90", false));
+		flipParameters.add(pFlipH.set("flip H", false));
+		flipParameters.add(pFlipV.set("flip V", false));
+		flipParameters.add(pRotate90.set("rotate 90", false));
+		pFlipH.addListener(this, &ParamCamExt::pFlipListener);
+		pFlipV.addListener(this, &ParamCamExt::pFlipListener);
+		pRotate90.addListener(this, &ParamCamExt::pFlipListener);
 		parameters.add(flipParameters);
 		
 		homographyParameters.setName("homography warp");
@@ -43,6 +52,11 @@ namespace ofxPvAPI {
 		homographyParameters.add(pHomographyPoints[3].set("down right", ofVec2f(0,1), ofVec2f(-.5,0.5), ofVec2f(0.5,1.5)));
 		for (int i=0; i<4; i++) { pHomographyPoints[i].addListener(this, &ParamCamExt::pHomographyPointListener); }
 		parameters.add(homographyParameters);
+		
+//		rotationParameters.setName("rotation");
+//		rotationParameters.add(pDoRotation.set("enable", true));
+//		rotationParameters.add(pRotation.set("X Y Z", ofVec3f(0,0,0), ofVec3f(-90,-90,-90), ofVec3f(90,90,90)));
+//		parameters.add(rotationParameters);
 		
 		return true;
 	}
@@ -56,122 +70,51 @@ namespace ofxPvAPI {
 			int h = ParamCam::getHeight();
 			int glFormat = ofGetGLInternalFormatFromPixelFormat(getPixelFormat());
 			
-			int dstWidth = w;
-			int dstHeight = h;
-			
-			if (rotate90) {
-				dstWidth = h;
-				dstHeight = w;
-			}
+			int dstWidth = pRotate90? h: w;
+			int dstHeight = pRotate90? w: h;
 			
 			// bug in OF won't allow for ofFbo's to be re-allocated with different internal format
 			glFormat = GL_RGB;
 			if (flipFbo.getWidth() != dstWidth || flipFbo.getHeight() != dstHeight || flipFbo.getTexture().getTextureData().glInternalFormat != glFormat) {
 				flipFbo.allocate(dstWidth, dstHeight, glFormat);
+				updateFlip();
 				updateHomography();
 			}
 			
-			vector<ofPoint> pts;
-			pts.assign(4, ofPoint(0,0));
-			
-			if (!rotate90) {	// NO ROTATION
-				if (!flipH) {
-					if (!flipV) {  // NO FLIP
-						pts[0].set(0, 0);
-						pts[1].set(w, 0);
-						pts[2].set(w, h);
-						pts[3].set(0, h);
-					}
-					else {          // FLIP V
-						pts[0].set(0, h);
-						pts[1].set(w, h);
-						pts[2].set(w, 0);
-						pts[3].set(0, 0);
-					}
-				}
-				else {
-					if (!flipV) {  // FLIP H
-						pts[0].set(w, 0);
-						pts[1].set(0, 0);
-						pts[2].set(0, h);
-						pts[3].set(w, h);
-					}
-					else {          // FLIP H & V
-						pts[0].set(w, h);
-						pts[1].set(0, h);
-						pts[2].set(0, 0);
-						pts[3].set(w, 0);
-					}
-				}
+			flipFbo.begin();
+			ofClear(0);
+			Camera::getTexture().bind();
+			if (pDoDistortion) {
+				barrelShader.begin();
+				int mW = getMaxWidth();
+				int mH = getMaxHeight();
+				float diameter = sqrt(mW * mW + mH * mH);
+				float centerX = (mW / 2.0) - pROIX.get();
+				float centerY = (mH / 2.0) - pROIY.get();
+				barrelShader.setUniform1f("diameter", diameter);
+				barrelShader.setUniform2f("center", centerX, centerY);
+				barrelShader.setUniform1f("distortion_k1", pDistortionK1.get());
+				barrelShader.setUniform1f("distortion_k2", pDistortionK2.get());
 			}
-			else {	// ROTATION
-				if (!flipH) {
-					if (!flipV) {  // NO FLIP
-						pts[0].set(0, h);
-						pts[1].set(0, 0);
-						pts[2].set(w, 0);
-						pts[3].set(w, h);
-					}
-					else {          // FLIP V
-						pts[0].set(0, 0);
-						pts[1].set(0, h);
-						pts[2].set(w, h);
-						pts[3].set(w, 0);
-					}
-				}
-				else {
-					if (!flipV) {  // FLIP H
-						pts[0].set(w, h);
-						pts[1].set(w, 0);
-						pts[2].set(0, 0);
-						pts[3].set(0, h);
-					}
-					else {          // FLIP H & V
-						pts[0].set(w, 0);
-						pts[1].set(w, h);
-						pts[2].set(0, h);
-						pts[3].set(0, 0);
-					}
-				}
+			ofPushMatrix();
+			if (pDoHomography) {
+				ofMultMatrix(homography);
 			}
-			
-			
-			flipQuad.setVertex(0, ofVec3f(0,0,0));
-			flipQuad.setVertex(1, ofVec3f(dstWidth,0,0));
-			flipQuad.setVertex(2, ofVec3f(dstWidth,dstHeight,0));
-			flipQuad.setVertex(3, ofVec3f(0,dstHeight,0));
-			
-			flipQuad.setTexCoord(0, pts[0]);
-			flipQuad.setTexCoord(1, pts[1]);
-			flipQuad.setTexCoord(2, pts[2]);
-			flipQuad.setTexCoord(3, pts[3]);
-			
-			if (ofIsGLProgrammableRenderer() && getPixelFormat() == OF_PIXELS_MONO) {
-				flipFbo.begin();
-				ofClear(0);
-				red2lumShader.begin();
-				Camera::getTexture().bind();
-				flipQuad.draw();
-				ofPushMatrix();
-				if (pDoHomography) { ofMultMatrix(homography); }
-				flipQuad.draw();
-				ofPopMatrix();
-				Camera::getTexture().unbind();
-				red2lumShader.end();
-				flipFbo.end();
-			}
-			else {
-				flipFbo.begin();
-				ofClear(0);
-				Camera::getTexture().bind();
-				flipQuad.draw();
-				ofPushMatrix();
-				if (pDoHomography) { ofMultMatrix(homography); }
-				flipQuad.draw();
-				ofPopMatrix();
-				Camera::getTexture().unbind();
-				flipFbo.end();
-			}
+//			if (pDoRotation.get()) {
+//				ofTranslate(dstWidth * 0.5, dstHeight * 0.5);
+//				ofPushMatrix();
+//				ofRotateX(pRotation.get().x);
+//				ofRotateY(pRotation.get().y);
+//				ofRotateZ(pRotation.get().z);
+//				ofTranslate(dstWidth * -0.5, dstHeight * -0.5);
+//				flipQuad.draw();
+//				ofPopMatrix();
+//			}
+			flipQuad.draw();
+			ofPopMatrix();
+			Camera::getTexture().unbind();
+			barrelShader.end();
+			flipFbo.end();
 			
 			pixelsSet = false;
 		}
@@ -204,40 +147,189 @@ namespace ofxPvAPI {
 	}
 	
 	//--------------------------------------------------------------
-	void ParamCamExt::createRed2LumShader() {
+	void ParamCamExt::createBarrelShader() {
 		string vertexShader, fragmentShader;
-		vertexShader = GLSL_150(
-								uniform mat4 textureMatrix;
-								uniform mat4 modelViewProjectionMatrix;
-								
-								in vec4  position;
-								in vec2  texcoord;
-								
-								out vec2 texCoordVarying;
-								
-								void main(){
-									texCoordVarying = (textureMatrix*vec4(texcoord.x,texcoord.y,0,1)).xy;
-									gl_Position = modelViewProjectionMatrix * position;
-								}
-								);
 		
-		fragmentShader = GLSL_150(
-								  uniform sampler2DRect tex0;
-								  
-								  in vec2 texCoordVarying;
-								  
-								  out vec4 fragColor;
-								  
-								  void main(){
-									  float red = texture(tex0, texCoordVarying).x;
-									  fragColor = vec4(red, red, red, 1.0);
-								  }
-								  );
+		if (ofIsGLProgrammableRenderer()) {
+			vertexShader = GLSL_150(
+									uniform mat4 modelViewProjectionMatrix;
+									uniform mat4 textureMatrix;
+									
+									in vec4  position;
+									in vec2  texcoord;
+									
+									out vec2 texCoordVarying;
+									
+									void main(){
+										gl_Position = modelViewProjectionMatrix * position;
+										texCoordVarying = (textureMatrix*vec4(texcoord.x,texcoord.y,0,1)).xy;
+									}
+									);
+			
+			fragmentShader = GLSL_150(
+									  uniform sampler2DRect tex0;
+									  
+									  uniform float distortion_k1;
+									  uniform float distortion_k2;
+									  uniform float diameter;
+									  uniform vec2  center;
+									  
+									  in vec2 texCoordVarying;
+									  
+									  out vec4 fragColor;
+									  
+									  vec2 brownConradyDistortion(vec2 uv)
+									  {
+										  // positive values of K1 give barrel distortion, negative give pincushion
+										  float r2 = uv.x*uv.x + uv.y*uv.y;
+										  uv *= 1.0 + distortion_k1 * r2 + distortion_k2 * r2 * r2;
+										  
+										  // tangential distortion (due to off center lens elements)
+										  // is not modeled in this function, but if it was, the terms would go here
+										  return uv;
+									  }
+									  
+									  void main(){
+										  vec2 uv = texCoordVarying.xy;
+										  uv -= center;
+										  uv /= diameter;
+										  uv = brownConradyDistortion(uv);
+										  uv *= diameter;
+										  uv += center;
+										  fragColor = texture( tex0,uv);
+									  }
+									  );
+		}
+		else {
+			
+			vertexShader = GLSL_120(
+									void main() {
+										gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex;
+										gl_TexCoord[0] = gl_MultiTexCoord0;
+									}
+									);
+			
+			
+			fragmentShader = GLSL_120(
+									  uniform sampler2DRect tex0;
+									  
+									  uniform float distortion_k1;
+									  uniform float distortion_k2;
+									  uniform float diameter;
+									  uniform vec2  center;
+									  
+									  vec2 brownConradyDistortion(vec2 uv)
+									  {
+										  float r2 = uv.x*uv.x + uv.y*uv.y;
+										  uv *= 1.0 + distortion_k1 * r2 + distortion_k2 * r2 * r2;
+										  return uv;
+									  }
+									  
+									  void main()
+									  {
+										  vec2 uv = gl_TexCoord[0].st;
+										  uv -= center;
+										  uv /= diameter;
+										  uv = brownConradyDistortion(uv);
+										  uv *= diameter;
+										  uv += center;
+										  gl_FragColor = texture2DRect(tex0, uv);
+									  }
+									  );
+		}
 		
-		red2lumShader.setupShaderFromSource(GL_VERTEX_SHADER, vertexShader);
-		red2lumShader.setupShaderFromSource(GL_FRAGMENT_SHADER, fragmentShader);
-		red2lumShader.bindDefaults();
-		red2lumShader.linkProgram();
+		barrelShader.setupShaderFromSource(GL_VERTEX_SHADER, vertexShader);
+		barrelShader.setupShaderFromSource(GL_FRAGMENT_SHADER, fragmentShader);
+		barrelShader.bindDefaults();
+		barrelShader.linkProgram();
+	}
+	
+	//--------------------------------------------------------------
+	void ParamCamExt::updateFlip() {
+		
+		int w = ParamCam::getWidth();
+		int h = ParamCam::getHeight();
+		
+		vector<ofPoint> pts;
+		pts.assign(4, ofPoint(0,0));
+		
+		if (!pRotate90) {	// NO ROTATION
+			if (!pFlipH) {
+				if (!pFlipV) {  // NO FLIP
+					pts[0].set(0, 0);
+					pts[1].set(w, 0);
+					pts[2].set(w, h);
+					pts[3].set(0, h);
+				}
+				else {          // FLIP V
+					pts[0].set(0, h);
+					pts[1].set(w, h);
+					pts[2].set(w, 0);
+					pts[3].set(0, 0);
+				}
+			}
+			else {
+				if (!pFlipV) {  // FLIP H
+					pts[0].set(w, 0);
+					pts[1].set(0, 0);
+					pts[2].set(0, h);
+					pts[3].set(w, h);
+				}
+				else {          // FLIP H & V
+					pts[0].set(w, h);
+					pts[1].set(0, h);
+					pts[2].set(0, 0);
+					pts[3].set(w, 0);
+				}
+			}
+		}
+		else {	// ROTATION
+			if (!pFlipH) {
+				if (!pFlipV) {  // NO FLIP
+					pts[0].set(0, h);
+					pts[1].set(0, 0);
+					pts[2].set(w, 0);
+					pts[3].set(w, h);
+				}
+				else {          // FLIP V
+					pts[0].set(0, 0);
+					pts[1].set(0, h);
+					pts[2].set(w, h);
+					pts[3].set(w, 0);
+				}
+			}
+			else {
+				if (!pFlipV) {  // FLIP H
+					pts[0].set(w, h);
+					pts[1].set(w, 0);
+					pts[2].set(0, 0);
+					pts[3].set(0, h);
+				}
+				else {          // FLIP H & V
+					pts[0].set(w, 0);
+					pts[1].set(w, h);
+					pts[2].set(0, h);
+					pts[3].set(0, 0);
+				}
+			}
+		}
+		
+		flipQuad.setTexCoord(0, pts[0]);
+		flipQuad.setTexCoord(1, pts[1]);
+		flipQuad.setTexCoord(2, pts[2]);
+		flipQuad.setTexCoord(3, pts[3]);
+		
+		int dstWidth = w;
+		int dstHeight = h;
+		
+		if (pRotate90) {
+			dstWidth = h;
+			dstHeight = w;
+		}
+		flipQuad.setVertex(0, ofVec3f(0,0,0));
+		flipQuad.setVertex(1, ofVec3f(dstWidth,0,0));
+		flipQuad.setVertex(2, ofVec3f(dstWidth,dstHeight,0));
+		flipQuad.setVertex(3, ofVec3f(0,dstHeight,0));
 	}
 	
 	//--------------------------------------------------------------
@@ -333,12 +425,12 @@ namespace ofxPvAPI {
 		float oAR = oH / oW;
 		
 		float maxW, maxH;
-		if (rotate90) {
-			maxW = getROIHeightMax() + getROIY();
-			maxH = getROIWidthMax() + getROIX();
+		if (pRotate90) {
+			maxW = getROIHeightMax();
+			maxH = getROIWidthMax();
 		} else {
-			maxW = getROIWidthMax() + getROIX();
-			maxH = getROIHeightMax() + getROIY();
+			maxW = getROIHeightMax();
+			maxH = getROIWidthMax();
 		}
 		
 		if (oW > maxW) {
@@ -354,7 +446,7 @@ namespace ofxPvAPI {
 		float oY = (maxH - oH) / 2.0;
 		
 		
-		if (rotate90) {
+		if (pRotate90) {
 			return ofRectangle(oY, oX, oH, oW);
 		} else {
 			return ofRectangle(oX, oY, oW, oH);
