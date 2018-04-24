@@ -142,9 +142,11 @@ namespace ofxPvAPI {
 		
 		//-- PIXELS --------------------------------------------------------------
 	public:
-		ofPixels&		getPixels()	{ return pixels; }
-		float			getWidth()	{ return (pixels.isAllocated())? pixels.getWidth() : 0; } 	// pixels, not ROI
-		float			getHeight()	{ return (pixels.isAllocated())? pixels.getHeight() : 0; }	// pixels, not ROI
+		ofPixels&		getPixels()		{ return pixels; }
+		float			getWidth()		{ return (pixels.isAllocated())? pixels.getWidth() : 0; } 	// pixels, not ROI
+		float			getHeight()		{ return (pixels.isAllocated())? pixels.getHeight() : 0; }	// pixels, not ROI
+		int 			getMaxWidth() 	{ return maxWidth; }
+		int 			getMaxHeight() 	{ return maxHeight; }
 		
 		bool			setPixelFormat(ofPixelFormat _pixelFormat); // for now only before setup
 		ofPixelFormat	getPixelFormat() { return pixelFormat; }
@@ -154,6 +156,9 @@ namespace ofxPvAPI {
 		ofPixelFormat	pixelFormat;
 		ofPixelFormat	getOfPixelFormat(string _format);
 		string			getPvPixelFormat(ofPixelFormat _format);
+		
+		int				maxWidth;
+		int				maxHeight;
 		
 		//-- TEXTURE -------------------------------------------------------------
 	public:
@@ -199,13 +204,13 @@ namespace ofxPvAPI {
 		int		getROIY()			{ return getIntAttribute("RegionY"); }
 		
 		int 	getROIWidthMin()	{ return getIntAttributeMin("Width"); }
-		int 	getROIWidthMax()	{ return getIntAttributeMax("Width"); }
+		int 	getROIWidthMax()	{ return getIntAttributeMax("Width"); }			// takes ROIX into account
 		int 	getROIHeightMin()	{ return getIntAttributeMin("Height"); }
-		int 	getROIHeightMax()	{ return getIntAttributeMax("Height"); }
+		int 	getROIHeightMax()	{ return getIntAttributeMax("Height"); }		// takes ROIY into account
 		int		getROIXMin()		{ return getIntAttributeMin("RegionX"); }
-		int		getROIXMax()		{ return getIntAttributeMax("RegionX"); }
+		int		getROIXMax()		{ return getIntAttributeMax("RegionX"); }		// takes ROIWidth into account
 		int		getROIYMin()		{ return getIntAttributeMin("RegionY"); }
-		int		getROIYMax()		{ return getIntAttributeMax("RegionY"); }
+		int		getROIYMax()		{ return getIntAttributeMax("RegionY"); }		// takes ROIHeight into account
 		
 			//-- EXPOSURE --------------------------------------------------------
 	public:
@@ -264,7 +269,6 @@ namespace ofxPvAPI {
 		int		getAutoExposureRateMax()		{ return getIntAttributeMax("ExposureAutoRate"); }
 		int		getAutoExposureTargetMin()		{ return getIntAttributeMin("ExposureAutoTarget"); }
 		int		getAutoExposureTargetMax()		{ return getIntAttributeMax("ExposureAutoTarget"); }
-		
 		
 			//-- GAIN ------------------------------------------------------------
 		void 	setAutoGain(bool state)			{ setEnumAttribute("GainMode", (state == true)? "Auto": "Manual"); }

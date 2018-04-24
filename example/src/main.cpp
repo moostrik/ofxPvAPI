@@ -1,10 +1,8 @@
 #include "ofMain.h"
 #include "ofApp.h"
 
-#ifdef TARGET_OSX
-#define _OSX
-#define _x86
-#endif
+//#define USE_PROGRAMMABLE_GL
+
 //========================================================================
 int main( ){
 	

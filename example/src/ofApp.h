@@ -26,5 +26,5 @@ public:
 	string persistentSubnet;
 	string persistentGateway;
 	
-	int lGHeight, lCSize;
+	int lGHeight, lCWidth, LCHeight;
 };

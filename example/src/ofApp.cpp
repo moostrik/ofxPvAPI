@@ -50,7 +50,8 @@ void ofApp::setup(){
 	}
 	
 	lGHeight = 0;
-	lCSize = 0;
+	lCWidth = 0;
+	LCHeight = 0;
 }
 
 //--------------------------------------------------------------
@@ -60,9 +61,10 @@ void ofApp::update(){
 	fps.set(ofGetFrameRate() + 0.5);
 	
 	// reshape window to fit camera image and gui
-	if (lGHeight != gui.getHeight() || lCSize != camera.getPixels().getTotalBytes()) {
+	if (lGHeight != gui.getHeight() || lCWidth != camera.getWidth() || LCHeight != camera.getHeight()) {
 		lGHeight = gui.getHeight();
-		lCSize = camera.getPixels().getTotalBytes();
+		lCWidth = camera.getWidth();
+		LCHeight = camera.getHeight();
 		ofSetWindowShape(30 + gui.getWidth() + max(640.f, camera.getWidth()), 20 + max(gui.getHeight(), camera.getHeight()));
 	}
 	
