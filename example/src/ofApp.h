@@ -25,4 +25,6 @@ public:
 	string persistentIP;
 	string persistentSubnet;
 	string persistentGateway;
+	
+	int lGHeight, lCWidth, LCHeight;
 };

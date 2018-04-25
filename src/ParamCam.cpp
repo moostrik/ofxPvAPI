@@ -26,22 +26,22 @@ namespace ofxPvAPI {
 		frameRateParameters.add(pTriggered.set("trigger mode", false));
 		latencyParameters.setName("latency (ms)");
 		latencyParameters.add(pFrameLatency.set("avgerage", 0, 0, 60));
-		latencyParameters.add(pFrameMaxLatency.set("min", 0, 0, 60));
-		latencyParameters.add(pFrameMinLatency.set("max", 0, 0, 60));
+		latencyParameters.add(pFrameMaxLatency.set("max", 0, 0, 60));
+		latencyParameters.add(pFrameMinLatency.set("min", 0, 0, 60));
 		frameRateParameters.add(latencyParameters);
 		pTriggered.addListener(this, &ParamCam::triggeredListener);
 		pFrameRate.addListener(this, &ParamCam::frameRateListener);
 		parameters.add(frameRateParameters);
 		
 		roiParameters.setName("region of interest");
-		roiParameters.add(pROIWidth.set("width", 640, 1, 2048));
-		pROIWidth.addListener(this, &ParamCam::ROIWidthListener);
-		roiParameters.add(pROIHeight.set("height", 480, 1, 2048));
-		pROIHeight.addListener(this, &ParamCam::ROIHeightListener);
 		roiParameters.add(pROIX.set("x", 0, 0, 1));
 		pROIX.addListener(this, &ParamCam::ROIXListener);
 		roiParameters.add(pROIY.set("y", 0, 0, 1));
 		pROIY.addListener(this, &ParamCam::ROIYListener);
+		roiParameters.add(pROIWidth.set("width", 640, 1, 2048));
+		pROIWidth.addListener(this, &ParamCam::ROIWidthListener);
+		roiParameters.add(pROIHeight.set("height", 480, 1, 2048));
+		pROIHeight.addListener(this, &ParamCam::ROIHeightListener);
 		parameters.add(roiParameters);
 		
 		exposureParameters.setName("exposure");
@@ -167,13 +167,6 @@ namespace ofxPvAPI {
 		}
 		else {
 			bLoadFromInterface = true;
-		}
-		
-		if (pTriggered) {
-			bool bl = blockListeners;
-			blockListeners = true;
-			pFrameRate = ofGetTargetFrameRate();
-			blockListeners = bl;
 		}
 	}
 	

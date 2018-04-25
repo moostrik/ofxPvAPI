@@ -5,6 +5,8 @@ namespace ofxPvAPI {
 	
 	Camera::Camera() :
 	bFramesAllocated(false),
+	maxWidth(0),
+	maxHeight(0),
 	bDeviceActive(false),
 	bWaitForDeviceToBecomeAvailable(false),
 	waitInterval(2000),
@@ -149,7 +151,6 @@ namespace ofxPvAPI {
 			while (framesDropped.size() > 0 && framesDropped[0].time < magicTimeWindow) { framesDropped.pop_front(); }
 			frameDrop = 0;
 			for (int i=0; i<framesDropped.size(); i++) { frameDrop += framesDropped[i].value; }
-			
 		}
 	}
 	
@@ -528,8 +529,9 @@ namespace ofxPvAPI {
 		unsigned long frameSize = 0;
 		tPvErr error = PvAttrUint32Get( deviceHandle, "TotalBytesPerFrame", &frameSize );
 		
-		int width = getIntAttribute("Width");
-		int height = getIntAttribute("Height");
+		int width = getROIWidth();
+		int height = getROIHeight();
+		
 		
 		if( error == ePvErrSuccess ){
 			for (int i=0; i<numPvFrames; i++) {
@@ -539,6 +541,8 @@ namespace ofxPvAPI {
 				pvFrames[i].Width = width;
 				pvFrames[i].Height = height;
 			}
+			maxWidth = getROIX() + getROIWidthMax();
+			maxHeight = getROIY() + getROIHeightMax();
 			bFramesAllocated = true;
 		} else {
 			ofLog(OF_LOG_ERROR, "Camera: %lu failed to allocate capture buffer", deviceID);
@@ -553,6 +557,8 @@ namespace ofxPvAPI {
 				delete (char*)pvFrames[i].ImageBuffer;
 			}
 			delete[] pvFrames;
+			maxWidth = 0;
+			maxHeight = 0;
 			bFramesAllocated = false;
 		}
 	}
@@ -697,6 +703,10 @@ namespace ofxPvAPI {
 				}
 				if (!texture.isAllocated()) {
 					texture.allocate(w, h, glFormat);
+					if (ofIsGLProgrammableRenderer() && getPixelFormat() == OF_PIXELS_MONO) { // make RGB
+						texture.setSwizzle(GL_TEXTURE_SWIZZLE_G, GL_RED);
+						texture.setSwizzle(GL_TEXTURE_SWIZZLE_B, GL_RED);
+					}
 				}
 				texture.loadData(getPixels());
 				bTextureSet = true;
