@@ -707,7 +707,7 @@ namespace ofxPvAPI {
 				}
 				if (!texture.isAllocated()) {
 					texture.allocate(w, h, glInternalFormat);
-					if (ofIsGLProgrammableRenderer() && getPixelFormat() == OF_PIXELS_MONO) {
+					if (ofIsGLProgrammableRenderer() && getPixelFormat() == OF_PIXELS_MONO) { // make RGB
 						texture.setSwizzle(GL_TEXTURE_SWIZZLE_G, GL_RED);
 						texture.setSwizzle(GL_TEXTURE_SWIZZLE_B, GL_RED);
 					}
