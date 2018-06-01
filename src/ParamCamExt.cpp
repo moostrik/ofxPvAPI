@@ -14,19 +14,22 @@ namespace ofxPvAPI {
 	bool ParamCamExt::setup(){
 		ParamCam::setup();
 		
-		// bug in OF won't allow for ofFbo's to be re-allocated with different internal format so default to RGB
-		flipFbo.allocate(640, 480, GL_RGB);
-		flipFbo.begin();
+		// OF won't allow for ofFbo's to be re-allocated with different internal format, so I use a pointer
+		flipFbo = new ofFbo;
+		flipFbo->allocate(640, 480, GL_R8);
+		flipFbo->getTexture().setSwizzle(GL_TEXTURE_SWIZZLE_G, GL_RED);
+		flipFbo->getTexture().setSwizzle(GL_TEXTURE_SWIZZLE_B, GL_RED);
+		flipFbo->begin();
 		ofClear(0);
-		flipFbo.end();
-		
-		createBarrelShader();
+		flipFbo->end();
 		
 		flipQuad.getVertices().resize(4, glm::vec3(0.0));
 		flipQuad.getTexCoords().resize(4, glm::vec2(0.0));
 		flipQuad.setMode(OF_PRIMITIVE_TRIANGLE_FAN);
 		
 		pixelsSet = false;
+		
+		createBarrelShader();
 		
 		distortionParameters.setName("barrel distortion");
 		distortionParameters.add(pDoDistortion.set("enable", true));
@@ -58,6 +61,9 @@ namespace ofxPvAPI {
 //		rotationParameters.add(pRotation.set("X Y Z", glm::vec3(0,0,0), glm::vec3(-90,-90,-90), glm::vec3(90,90,90)));
 //		parameters.add(rotationParameters);
 		
+		updateFlip();
+		updateHomography();
+		
 		return true;
 	}
 	
@@ -68,20 +74,26 @@ namespace ofxPvAPI {
 		if (ParamCam::isFrameNew()){
 			int w = ParamCam::getWidth();
 			int h = ParamCam::getHeight();
-			int glFormat = ofGetGLInternalFormatFromPixelFormat(getPixelFormat());
+			int glInternalFormat = ofGetGLInternalFormatFromPixelFormat(getPixelFormat());
+			if (glInternalFormat == GL_LUMINANCE) glInternalFormat = GL_RGB; // openGL 2.x
 			
 			int dstWidth = pRotate90? h: w;
 			int dstHeight = pRotate90? w: h;
 			
-			// bug in OF won't allow for ofFbo's to be re-allocated with different internal format
-			glFormat = GL_RGB;
-			if (flipFbo.getWidth() != dstWidth || flipFbo.getHeight() != dstHeight || flipFbo.getTexture().getTextureData().glInternalFormat != glFormat) {
-				flipFbo.allocate(dstWidth, dstHeight, glFormat);
+			if (flipFbo->getWidth() != dstWidth || flipFbo->getHeight() != dstHeight || flipFbo->getTexture().getTextureData().glInternalFormat != glInternalFormat) {
+				flipFbo->clear();
+				delete flipFbo;
+				flipFbo = new ofFbo;
+				flipFbo->allocate(dstWidth, dstHeight, glInternalFormat);
+				if (ofIsGLProgrammableRenderer() && glInternalFormat == GL_R8) {
+					flipFbo->getTexture().setSwizzle(GL_TEXTURE_SWIZZLE_G, GL_RED);
+					flipFbo->getTexture().setSwizzle(GL_TEXTURE_SWIZZLE_B, GL_RED);
+				}
 				updateFlip();
 				updateHomography();
 			}
 			
-			flipFbo.begin();
+			flipFbo->begin();
 			ofClear(0);
 			Camera::getTexture().bind();
 			if (pDoDistortion) {
@@ -114,7 +126,7 @@ namespace ofxPvAPI {
 			ofPopMatrix();
 			Camera::getTexture().unbind();
 			barrelShader.end();
-			flipFbo.end();
+			flipFbo->end();
 			
 			pixelsSet = false;
 		}
@@ -246,9 +258,8 @@ namespace ofxPvAPI {
 	
 	//--------------------------------------------------------------
 	void ParamCamExt::updateFlip() {
-		
-		int w = ParamCam::getWidth();
-		int h = ParamCam::getHeight();
+		int w = getWidth();
+		int h = getHeight();
 		
 		vector<glm::vec2> pts;
 		pts.assign(4, glm::vec2(0,0));

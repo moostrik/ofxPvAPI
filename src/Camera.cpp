@@ -698,15 +698,16 @@ namespace ofxPvAPI {
 			int w = getWidth();
 			int h = getHeight();
 			if (isFrameNew() && !bTextureSet) {				
-				int glFormat = ofGetGLInternalFormatFromPixelFormat(getPixelFormat());
+				int glInternalFormat = ofGetGLInternalFormatFromPixelFormat(getPixelFormat());
+//				if (glInternalFormat == GL_LUMINANCE) glInternalFormat = GL_R8;
 				if (texture.isAllocated()) {
-					if (texture.getWidth() != w || texture.getHeight() != h || texture.getTextureData().glInternalFormat != glFormat) {
+					if (texture.getWidth() != w || texture.getHeight() != h || texture.getTextureData().glInternalFormat != glInternalFormat) {
 						texture.clear();
 					}
 				}
 				if (!texture.isAllocated()) {
-					texture.allocate(w, h, glFormat);
-					if (ofIsGLProgrammableRenderer() && getPixelFormat() == OF_PIXELS_MONO) { // make RGB
+					texture.allocate(w, h, glInternalFormat);
+					if (ofIsGLProgrammableRenderer() && getPixelFormat() == OF_PIXELS_MONO) {
 						texture.setSwizzle(GL_TEXTURE_SWIZZLE_G, GL_RED);
 						texture.setSwizzle(GL_TEXTURE_SWIZZLE_B, GL_RED);
 					}
