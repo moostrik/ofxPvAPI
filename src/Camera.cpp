@@ -32,6 +32,9 @@ namespace ofxPvAPI {
 	Camera::~Camera(){
 		if( bDeviceActive ) {
 			deactivate();
+			if (texture.isAllocated()) {
+				texture.clear();
+			}
 		}
 		if (numActiveDevices == 0 && bPvApiInitiated) {	PvApiUnInitialize(); }
 	}
@@ -330,7 +333,7 @@ namespace ofxPvAPI {
 			numActiveDevices--;
 			
 			if (texture.isAllocated()) {
-				texture.clear();
+//				texture.clear();
 			}
 			
 			fps = 0;
