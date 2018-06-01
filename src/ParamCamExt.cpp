@@ -22,8 +22,8 @@ namespace ofxPvAPI {
 		
 		createBarrelShader();
 		
-		flipQuad.getVertices().resize(4, ofVec3f(0.0));
-		flipQuad.getTexCoords().resize(4, ofVec2f(0.0));
+		flipQuad.getVertices().resize(4, glm::vec3(0.0));
+		flipQuad.getTexCoords().resize(4, glm::vec2(0.0));
 		flipQuad.setMode(OF_PRIMITIVE_TRIANGLE_FAN);
 		
 		pixelsSet = false;
@@ -45,17 +45,17 @@ namespace ofxPvAPI {
 		
 		homographyParameters.setName("homography warp");
 		homographyParameters.add(pDoHomography.set("enable", true));
-		pHomographyPoints = new ofParameter<ofVec2f>[4];
-		homographyParameters.add(pHomographyPoints[0].set("up left", ofVec2f(0,0), ofVec2f(-.5,-.5), ofVec2f(0.5,0.5)));
-		homographyParameters.add(pHomographyPoints[1].set("up right", ofVec2f(1,0), ofVec2f(0.5,-.5), ofVec2f(1.5,0.5)));
-		homographyParameters.add(pHomographyPoints[2].set("down left", ofVec2f(1,1), ofVec2f(0.5,0.5), ofVec2f(1.5,1.5)));
-		homographyParameters.add(pHomographyPoints[3].set("down right", ofVec2f(0,1), ofVec2f(-.5,0.5), ofVec2f(0.5,1.5)));
+		pHomographyPoints = new ofParameter<glm::vec2>[4];
+		homographyParameters.add(pHomographyPoints[0].set("up left", glm::vec2(0,0), glm::vec2(-.5,-.5), glm::vec2(0.5,0.5)));
+		homographyParameters.add(pHomographyPoints[1].set("up right", glm::vec2(1,0), glm::vec2(0.5,-.5), glm::vec2(1.5,0.5)));
+		homographyParameters.add(pHomographyPoints[2].set("down left", glm::vec2(1,1), glm::vec2(0.5,0.5), glm::vec2(1.5,1.5)));
+		homographyParameters.add(pHomographyPoints[3].set("down right", glm::vec2(0,1), glm::vec2(-.5,0.5), glm::vec2(0.5,1.5)));
 		for (int i=0; i<4; i++) { pHomographyPoints[i].addListener(this, &ParamCamExt::pHomographyPointListener); }
 		parameters.add(homographyParameters);
 		
 //		rotationParameters.setName("rotation");
 //		rotationParameters.add(pDoRotation.set("enable", true));
-//		rotationParameters.add(pRotation.set("X Y Z", ofVec3f(0,0,0), ofVec3f(-90,-90,-90), ofVec3f(90,90,90)));
+//		rotationParameters.add(pRotation.set("X Y Z", glm::vec3(0,0,0), glm::vec3(-90,-90,-90), glm::vec3(90,90,90)));
 //		parameters.add(rotationParameters);
 		
 		return true;
@@ -250,66 +250,62 @@ namespace ofxPvAPI {
 		int w = ParamCam::getWidth();
 		int h = ParamCam::getHeight();
 		
-		vector<ofPoint> pts;
-		pts.assign(4, ofPoint(0,0));
+		vector<glm::vec2> pts;
+		pts.assign(4, glm::vec2(0,0));
 		
 		if (!pRotate90) {	// NO ROTATION
 			if (!pFlipH) {
 				if (!pFlipV) {  // NO FLIP
-					pts[0].set(0, 0);
-					pts[1].set(w, 0);
-					pts[2].set(w, h);
-					pts[3].set(0, h);
-				}
-				else {          // FLIP V
-					pts[0].set(0, h);
-					pts[1].set(w, h);
-					pts[2].set(w, 0);
-					pts[3].set(0, 0);
+					pts[0] = glm::vec2(0, 0);
+					pts[1] = glm::vec2(w, 0);
+					pts[2] = glm::vec2(w, h);
+					pts[3] = glm::vec2(0, h);
+				} else {          // FLIP V
+					pts[0] = glm::vec2(0, h);
+					pts[1] = glm::vec2(w, h);
+					pts[2] = glm::vec2(w, 0);
+					pts[3] = glm::vec2(0, 0);
 				}
 			}
 			else {
 				if (!pFlipV) {  // FLIP H
-					pts[0].set(w, 0);
-					pts[1].set(0, 0);
-					pts[2].set(0, h);
-					pts[3].set(w, h);
-				}
-				else {          // FLIP H & V
-					pts[0].set(w, h);
-					pts[1].set(0, h);
-					pts[2].set(0, 0);
-					pts[3].set(w, 0);
+					pts[0] = glm::vec2(w, 0);
+					pts[1] = glm::vec2(0, 0);
+					pts[2] = glm::vec2(0, h);
+					pts[3] = glm::vec2(w, h);
+				} else {          // FLIP H & V
+					pts[0] = glm::vec2(w, h);
+					pts[1] = glm::vec2(0, h);
+					pts[2] = glm::vec2(0, 0);
+					pts[3] = glm::vec2(w, 0);
 				}
 			}
 		}
 		else {	// ROTATION
 			if (!pFlipH) {
 				if (!pFlipV) {  // NO FLIP
-					pts[0].set(0, h);
-					pts[1].set(0, 0);
-					pts[2].set(w, 0);
-					pts[3].set(w, h);
-				}
-				else {          // FLIP V
-					pts[0].set(0, 0);
-					pts[1].set(0, h);
-					pts[2].set(w, h);
-					pts[3].set(w, 0);
+					pts[0] = glm::vec2(0, h);
+					pts[1] = glm::vec2(0, 0);
+					pts[2] = glm::vec2(w, 0);
+					pts[3] = glm::vec2(w, h);
+				} else {          // FLIP V
+					pts[0] = glm::vec2(0, 0);
+					pts[1] = glm::vec2(0, h);
+					pts[2] = glm::vec2(w, h);
+					pts[3] = glm::vec2(w, 0);
 				}
 			}
 			else {
 				if (!pFlipV) {  // FLIP H
-					pts[0].set(w, h);
-					pts[1].set(w, 0);
-					pts[2].set(0, 0);
-					pts[3].set(0, h);
-				}
-				else {          // FLIP H & V
-					pts[0].set(w, 0);
-					pts[1].set(w, h);
-					pts[2].set(0, h);
-					pts[3].set(0, 0);
+					pts[0] = glm::vec2(0, h);
+					pts[1] = glm::vec2(0, 0);
+					pts[2] = glm::vec2(w, 0);
+					pts[3] = glm::vec2(w, h);
+				} else {          // FLIP H & V
+					pts[0] = glm::vec2(0, h);
+					pts[1] = glm::vec2(0, 0);
+					pts[2] = glm::vec2(w, 0);
+					pts[3] = glm::vec2(w, h);
 				}
 			}
 		}
@@ -326,10 +322,10 @@ namespace ofxPvAPI {
 			dstWidth = h;
 			dstHeight = w;
 		}
-		flipQuad.setVertex(0, ofVec3f(0,0,0));
-		flipQuad.setVertex(1, ofVec3f(dstWidth,0,0));
-		flipQuad.setVertex(2, ofVec3f(dstWidth,dstHeight,0));
-		flipQuad.setVertex(3, ofVec3f(0,dstHeight,0));
+		flipQuad.setVertex(0, glm::vec3(0,0,0));
+		flipQuad.setVertex(1, glm::vec3(dstWidth,0,0));
+		flipQuad.setVertex(2, glm::vec3(dstWidth,dstHeight,0));
+		flipQuad.setVertex(3, glm::vec3(0,dstHeight,0));
 	}
 	
 	//--------------------------------------------------------------
@@ -338,22 +334,22 @@ namespace ofxPvAPI {
 		int w = getWidth();
 		int h = getHeight();
 		
-		ofVec2f srcCorners[4];
-		srcCorners[0] = pHomographyPoints[0].get() * ofVec2f(w,h);
-		srcCorners[1] = pHomographyPoints[1].get() * ofVec2f(w,h);
-		srcCorners[2] = pHomographyPoints[2].get() * ofVec2f(w,h);
-		srcCorners[3] = pHomographyPoints[3].get() * ofVec2f(w,h);
+		glm::vec2 srcCorners[4];
+		srcCorners[0] = pHomographyPoints[0].get() * glm::vec2(w,h);
+		srcCorners[1] = pHomographyPoints[1].get() * glm::vec2(w,h);
+		srcCorners[2] = pHomographyPoints[2].get() * glm::vec2(w,h);
+		srcCorners[3] = pHomographyPoints[3].get() * glm::vec2(w,h);
 		
-		ofVec2f dstCorners[4];
-		dstCorners[0] = ofVec2f(0,0);
-		dstCorners[1] = ofVec2f(w,0);
-		dstCorners[2] = ofVec2f(w,h);
-		dstCorners[3] = ofVec2f(0,h);
+		glm::vec2 dstCorners[4];
+		dstCorners[0] = glm::vec2(0,0);
+		dstCorners[1] = glm::vec2(w,0);
+		dstCorners[2] = glm::vec2(w,h);
+		dstCorners[3] = glm::vec2(0,h);
 		
 		homography = findHomography(srcCorners, dstCorners);
 	}
 	
-	ofMatrix4x4 ParamCamExt::findHomography(ofVec2f* src, ofVec2f* dst){
+	ofMatrix4x4 ParamCamExt::findHomography(glm::vec2* src, glm::vec2* dst){
 		float homography[16];
 		float P[8][9]={
 			{-src[0].x, -src[0].y, -1,   0,   0,  0, src[0].x*dst[0].x, src[0].y*dst[0].x, -dst[0].x },

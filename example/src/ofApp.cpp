@@ -38,6 +38,7 @@ void ofApp::setup(){
 	gui.add(camera.parameters);
 	gui.loadFromFile("settings.xml");
 	
+	
 	// minimize submenus
 	for (int i=0; i< gui.getNumControls(); i++) {
 		ofxGuiGroup * group  = dynamic_cast<ofxGuiGroup*>(gui.getControl(i));
@@ -61,12 +62,12 @@ void ofApp::update(){
 	fps.set(ofGetFrameRate() + 0.5);
 	
 	// reshape window to fit camera image and gui
-	if (lGHeight != gui.getHeight() || lCWidth != camera.getWidth() || LCHeight != camera.getHeight()) {
-		lGHeight = gui.getHeight();
-		lCWidth = camera.getWidth();
-		LCHeight = camera.getHeight();
-		ofSetWindowShape(30 + gui.getWidth() + max(640.f, camera.getWidth()), 20 + max(gui.getHeight(), camera.getHeight()));
-	}
+//	if (lGHeight != gui.getHeight() || lCWidth != camera.getWidth() || LCHeight != camera.getHeight()) {
+//		lGHeight = gui.getHeight();
+//		lCWidth = camera.getWidth();
+//		LCHeight = camera.getHeight();
+//		ofSetWindowShape(30 + gui.getWidth() + max(640.f, camera.getWidth()), 20 + max(gui.getHeight(), camera.getHeight()));
+//	}
 	
 	
 }

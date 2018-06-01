@@ -7,6 +7,7 @@ namespace ofxPvAPI {
 		Camera::setup();		
 		
 		parameters.clear();
+		
 		string dID = "unknown";
 		if (Camera::getRequestedDeviceID() > 0) { dID = ofToString(Camera::getRequestedDeviceID()); }
 		parameters.setName("camera " + dID);

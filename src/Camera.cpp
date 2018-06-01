@@ -666,7 +666,7 @@ namespace ofxPvAPI {
 				return true;
 			}
 			else {
-				ofLogWarning("Camera") << "setPixelFormat(): requested pixel format " << _pixelFormat << " not supported";
+				ofLogWarning("Camera") << "setPixelFormat(): requested pixel format not supported";
 				return false;
 			}
 		}

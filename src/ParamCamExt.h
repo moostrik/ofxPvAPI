@@ -54,11 +54,11 @@ namespace ofxPvAPI {
 		// Homography Functions adapted from Arturo Castro: http://www.openframeworks.cc/forum/viewtopic.php?p=22611
 		ofParameterGroup	homographyParameters;
 		ofParameter<bool>	pDoHomography;
-		ofParameter<ofVec2f>* pHomographyPoints;
-		void				pHomographyPointListener(ofVec2f& _value) { updateHomography(); }
+		ofParameter<glm::vec2>* pHomographyPoints;
+		void				pHomographyPointListener(glm::vec2& _value) { updateHomography(); }
 		void				updateHomography();
 		ofMatrix4x4			homography;
-		ofMatrix4x4			findHomography(ofVec2f* src, ofVec2f* dst);
+		ofMatrix4x4			findHomography(ofDefaultVec2* src, ofDefaultVec2* dst);
 		void				gaussian_elimination(float *input, int n);
 		
 		ofPixels	pixels;
