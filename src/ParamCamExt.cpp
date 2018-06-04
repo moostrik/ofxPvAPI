@@ -258,13 +258,14 @@ namespace ofxPvAPI {
 	
 	//--------------------------------------------------------------
 	void ParamCamExt::updateFlip() {
-		int w = getWidth();
-		int h = getHeight();
+		int w, h;
 		
 		vector<glm::vec2> pts;
 		pts.assign(4, glm::vec2(0,0));
 		
 		if (!pRotate90) {	// NO ROTATION
+			w = getWidth();
+			h = getHeight();
 			if (!pFlipH) {
 				if (!pFlipV) {  // NO FLIP
 					pts[0] = glm::vec2(0, 0);
@@ -293,6 +294,8 @@ namespace ofxPvAPI {
 			}
 		}
 		else {	// ROTATION
+			w = getHeight();
+			h = getWidth();
 			if (!pFlipH) {
 				if (!pFlipV) {  // NO FLIP
 					pts[0] = glm::vec2(0, h);
@@ -308,10 +311,10 @@ namespace ofxPvAPI {
 			}
 			else {
 				if (!pFlipV) {  // FLIP H
-					pts[0] = glm::vec2(0, h);
-					pts[1] = glm::vec2(0, 0);
-					pts[2] = glm::vec2(w, 0);
-					pts[3] = glm::vec2(w, h);
+					pts[0] = glm::vec2(w, h);
+					pts[1] = glm::vec2(w, 0);
+					pts[2] = glm::vec2(0, 0);
+					pts[3] = glm::vec2(0, h);
 				} else {          // FLIP H & V
 					pts[0] = glm::vec2(0, h);
 					pts[1] = glm::vec2(0, 0);
