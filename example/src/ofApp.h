@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ParamCamExt.h"
+#include "ofxPvApi.h"
 #include "ofxGui.h"
 
 
