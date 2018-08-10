@@ -1,13 +1,13 @@
 # README #
 
-Based on libPvAPI.dylib (as the libPvAPI.a won't compile with of 0.9).
+Based on libPvAPI.dylib (as the libPvAPI.a won't compile with of >= 0.9).
 The PvApi.h must be slightly modified.
 
 ofxPvAPI::Camera is modelled after, but not completely compatible with, ofVideoGrabber. 
 ofxPvAPI::ParamCam adds ofParameters and an ofParameterGroup to the Camera, for easy use with ofxGui.
 ofxPvAPI::ParamCamExt adds extended functionality such as flip, rotate 90º,  homography warp and mono to RGB conversion
 
-Tested with the Prosilica GC750 and the MAKO G-223B  (monochrome) and the MAKO G125C (color) on OSX 10.13.
+Tested with the Prosilica GC750 and the MAKO G-223B  (monochrome) and the MAKO G125C (color) on OSX 10.13 with of 0.10.
 
 # TODO #
 
@@ -49,7 +49,7 @@ Tested with the Prosilica GC750 and the MAKO G-223B  (monochrome) and the MAKO G
 *	As the extended functions are performed on the texture, ParamCamExt::getPixels() gets it's pixels from the texture and is not optimized.
 *	The example has no initial settings.XML file, save (right upper corner of the ofxGui) to create one.
 *	The cameras don't work on wifi.
-*	Sometimes it helps to turn of the Wifi
+*	Sometimes it helps to turn off the Wifi
 *	Careful with the IP settings.
 *	It is recommended to set the MTU to Jumbo / 9000 (System Preferences -> Network -> Ethernet -> Advanced -> Hardware -> Configure Manually -> MTU), but in my experience it also works without.
 *	According to the driver attribute document the autoGain should work together with the autoExposure for best lightness result. In my experiments using them simultanious gives weird results.
@@ -57,7 +57,7 @@ Tested with the Prosilica GC750 and the MAKO G-223B  (monochrome) and the MAKO G
 
 
 # FOR WINDOWS #
-NOT TESTED FOR OF 0.9 / Win 10. below the obsolete intructions for of 0.8.x and windows 7, maybe they will be of some help
+NOT TESTED FOR OF Win 10. below the obsolete intructions for of 0.8.x and windows 7, maybe they will be of some help
 
 1.	Add `ofxPvApi` to your addons folder
 2.	Download the [legacy SDK](https://www.alliedvision.com/fileadmin/content/software/software/PvAPI/PvAPI_win_1.28.exe "PvAPI SDK for Windows  v1.28") from  [Allied Vision](https://www.alliedvision.com/en/support/software-downloads.html "Software Downloads") and copy the following files from the SDK to the addon.
