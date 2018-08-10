@@ -39,7 +39,7 @@ namespace ofxPvAPI {
 		
 		//-- LIST & ID ---------------------------------------------------------------
 	public:
-		vector<ofVideoDevice> listDevices();
+		vector<ofVideoDevice> listDevices(bool _silent = false);
 		
 		int 			getDeviceID() { return deviceID; }
 		

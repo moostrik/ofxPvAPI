@@ -164,7 +164,7 @@ namespace ofxPvAPI {
 	int Camera::numActiveDevices = 0;
 	
 	
-	vector<ofVideoDevice> Camera::listDevices(){
+	vector<ofVideoDevice> Camera::listDevices(bool _silent){
 		
 		vector <ofVideoDevice> devices;
 		
@@ -175,11 +175,8 @@ namespace ofxPvAPI {
 		
 		count = PvCameraListEx( devList, cameraCount, &connected, sizeof(tPvCameraInfoEx) );
 		
-		if( connected > cameraCount ) {
-			ofLog(OF_LOG_VERBOSE, "Camera: more cameras connected than will be listed");
-		}
+		if(!_silent) { cout << endl << "################################################" << endl << "##             LISTING CAMERAS" << endl; }
 		
-		ofLog(OF_LOG_VERBOSE, "Camera: listing available capture devices:");
 		for(int i = 0; i < count; i++){
 			ofVideoDevice vd;
 			vd.id = devList[i].UniqueId;
@@ -188,32 +185,35 @@ namespace ofxPvAPI {
 			vd.bAvailable = devList[i].PermittedAccess > 2;
 			devices.push_back(vd);
 			
-			ofLog(OF_LOG_VERBOSE, "%i: %s | model: %s | id: %d | available: %d", i, vd.deviceName.c_str(), vd.hardwareName.c_str(), vd.id, vd.bAvailable);
+			if(!_silent) { cout << "## no:" << i << "  name: " << vd.deviceName.c_str() << "  id: " << vd.id << "  available: " << vd.bAvailable << endl; }
 		}
 		
-		if (cameraCount == 0)
-		ofLog(OF_LOG_VERBOSE, "Camera: no cameras found");
+		if (cameraCount == 0 && !_silent){ cout << "## no cameras found" << endl; }
+		if(!_silent) { cout << "##" << endl << "################################################" << endl << endl; }
 		
 		delete[] devList;
 		return devices;
 	}
 	
 	bool Camera::isDeviceFound(int _deviceID) {
-		vector<ofVideoDevice> deviceList = listDevices();
+		vector<ofVideoDevice> deviceList = listDevices(true);
 		bool requestedDeviceFound = false;
 		for (int i=0; i<deviceList.size(); i++) {
 			if (requestedDeviceID == deviceList[i].id) {
 				requestedDeviceFound = true;
-				ofLog(OF_LOG_VERBOSE, "Camera: %lu found", requestedDeviceID);
-			} else {
-				ofLog(OF_LOG_NOTICE, "Camera: %lu not found", requestedDeviceID);
 			}
 		}
+		if (requestedDeviceFound) {
+			ofLog(OF_LOG_VERBOSE, "Camera: %lu found", requestedDeviceID);
+		} else {
+			ofLog(OF_LOG_NOTICE, "Camera: %lu not found", requestedDeviceID);
+		}
+		
 		return requestedDeviceFound;
 	}
 	
 	bool Camera::isDeviceAvailable(int _deviceID) {
-		vector<ofVideoDevice> deviceList = listDevices();
+		vector<ofVideoDevice> deviceList = listDevices(true);
 		bool requestedDeviceFound = false;
 		bool requestedDeviceAvailable = false;
 		for (int i=0; i<deviceList.size(); i++) {
@@ -233,7 +233,7 @@ namespace ofxPvAPI {
 	}
 	
 	int Camera::getFirstAvailableDeviceID() {
-		vector<ofVideoDevice> deviceList = listDevices();
+		vector<ofVideoDevice> deviceList = listDevices(true);
 		for (int i=0; i<deviceList.size(); i++) {
 			if (deviceList[i].bAvailable) {
 				return deviceList[i].id;
