@@ -618,16 +618,23 @@ namespace ofxPvAPI {
 	}
 	
 	void Camera::receiveFrame(tPvFrame* _frame) {
-		if (_frame->Status == ePvErrSuccess) {
-			PvCaptureQueueFrame(deviceHandle, _frame, frameCallBack);
-			float& time = *(float*)_frame->Context[2];
-			time = ofGetElapsedTimef();
-			capuredFrameQueue.push_front(_frame);
+		if (_frame == NULL) {
+			ofLogWarning("Camera::receiveFrame") << "FRAME == NULL"; // sometimes the first frame received is NULL
 		}
-		else if (_frame->Status != ePvErrCancelled) {
-			PvCaptureQueueFrame(deviceHandle, _frame, frameCallBack);
-			if (_frame->Status != ePvErrBufferTooSmall) { // don't log error on resize;
-				logError(_frame->Status);
+		else {
+			if (_frame->Status == ePvErrSuccess) {
+				PvCaptureQueueFrame(deviceHandle, _frame, frameCallBack);
+				float& time = *(float*)_frame->Context[2];
+				time = ofGetElapsedTimef();
+				unsigned int& uniqueID = *(unsigned int*)_frame->Context[1];
+				uniqueID = PvFrameID++;
+				capuredFrameQueue.push_front(_frame);
+			}
+			else if (_frame->Status != ePvErrCancelled) {
+				PvCaptureQueueFrame(deviceHandle, _frame, frameCallBack);
+				if (_frame->Status != ePvErrBufferTooSmall) { // don't log error on resize;
+					logError(_frame->Status);
+				}
 			}
 		}
 	}

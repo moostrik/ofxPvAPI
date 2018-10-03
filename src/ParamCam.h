@@ -14,10 +14,12 @@ namespace ofxPvAPI {
 		void	setup();
 		void	update();
 		
-		ofParameterGroup	parameters;
+		ofParameterGroup& getParameters() { return parameters; }
 		
 		//-- GENERAL -----------------------------------------------------------------
 	protected:
+		ofParameterGroup	parameters;
+		
 		ofParameter<bool>	printAttributes;
 		ofParameter<bool>	reset;
 		ofParameter<bool>	pActivate;
