@@ -13,6 +13,8 @@ namespace ofxPvAPI {
 	lastWaitTime(0),
 	bIsFrameNew(false),
 	bTextureSet(false),
+	numPvFrames(4),
+	PvFrameID(0),
 	frameDrop(0),
 	frameLatency(0),
 	frameAvgLatency(0),
@@ -510,10 +512,7 @@ namespace ofxPvAPI {
 	
 	//----------------------------------------------------------------------------
 	//-- PV FRAMES ---------------------------------------------------------------
-	
-	int Camera::numPvFrames = 4;
-	unsigned int Camera::PvFrameID = 0;
-	
+		
 	void Camera::allocateFrames() {
 		if (!bFramesAllocated) {
 			pvFrames = new tPvFrame[numPvFrames];

@@ -31,7 +31,7 @@ namespace ofxPvAPI {
 		virtual ~Camera();
 		
 		bool			setup();
-		void			update();
+		virtual void	update();
 		void			close() { if(bDeviceActive) { deactivate(); } }
 		
 		
@@ -67,9 +67,13 @@ namespace ofxPvAPI {
 		void			activate(); // this is taken care of by setup(), but you might want to (de)activate manually
 		void			deactivate();
 		
-	private:
+	protected:
 		tPvHandle		deviceHandle;
 		bool			bDeviceActive;
+		
+		void			waitForDeviceToBecomeAvailable();
+		
+	private:
 		static int		numActiveDevices;
 		
 		static void		plugCallBack(void* Context, tPvInterface Interface, tPvLinkEvent Event, unsigned long UniqueId);
@@ -88,15 +92,14 @@ namespace ofxPvAPI {
 		
 		bool			setPacketSizeToMax();
 		
-		void			waitForDeviceToBecomeAvailable();
 		bool			bWaitForDeviceToBecomeAvailable;
 		int				waitInterval;
 		uint64_t		lastWaitTime;
 		
 		//-- PV FRAMES ---------------------------------------------------------------
-	private:
-		static int		numPvFrames;
-		static unsigned int		PvFrameID;
+	protected:
+		int				numPvFrames;
+		unsigned int	PvFrameID;
 		bool			bFramesAllocated;
 		tPvFrame*		pvFrames;
 		deque<tPvFrame*>	capuredFrameQueue;
@@ -105,7 +108,7 @@ namespace ofxPvAPI {
 		void			deallocateFrames();
 		void			resizeFrames();
 		
-		bool			queueFrames();
+		virtual bool	queueFrames();
 		bool			clearQueue();
 		
 		static void		frameCallBack(tPvFrame* pFrame);
@@ -130,7 +133,7 @@ namespace ofxPvAPI {
 		void			setFrameRate(float rate);
 		void			setFrameOffset(int offset) { frameOffset = offset; }
 		
-	private:
+	protected:
 		bool			bIsFrameNew;
 		int				frameOffset;
 		int				frameDrop;
@@ -152,7 +155,7 @@ namespace ofxPvAPI {
 		bool			setPixelFormat(ofPixelFormat _pixelFormat); // for now only before setup
 		ofPixelFormat	getPixelFormat() { return pixelFormat; }
 		
-	private:
+	protected:
 		ofPixels		pixels;
 		ofPixelFormat	pixelFormat;
 		ofPixelFormat	getOfPixelFormat(string _format);
@@ -382,7 +385,7 @@ namespace ofxPvAPI {
 		string			IPLongToString(unsigned long _IpAdress);
 		
 		//-- ERROR LOGGING -----------------------------------------------------------
-	private:
+	protected:
 		void			logError(tPvErr _msg);
 	};
 }
