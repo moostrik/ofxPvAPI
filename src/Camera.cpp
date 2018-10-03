@@ -13,9 +13,7 @@ namespace ofxPvAPI {
 	lastWaitTime(0),
 	bIsFrameNew(false),
 	bTextureSet(false),
-	fps(0),
 	frameDrop(0),
-	bTriggered(0),
 	frameLatency(0),
 	frameAvgLatency(0),
 	frameMaxLatency(0),
@@ -97,63 +95,63 @@ namespace ofxPvAPI {
 	}
 	
 	void Camera::update() {
-		waitOnAvailable();
-		
 		bIsFrameNew = false;
 		
-		if (bDeviceActive) {
-			if (bTriggered) { triggerFrame(); }
+		if (!bDeviceActive) {
+			waitForDeviceToBecomeAvailable();
+		}
+		else {
+			// drop excess frames
+			if ( capuredFrameQueue.size() > frameOffset + 1) {
+				while (capuredFrameQueue.size() > frameOffset + 1) {
+					capuredFrameQueue.pop_back();
+					framesDropped.emplace_front(ofGetElapsedTimef());
+				}
+			}
+			
 			if ( capuredFrameQueue.size() > 0) {
-				size_t frameoffset = (bTriggered)? 0 : 1;
-				frameoffset = min(capuredFrameQueue.size(), frameoffset);
-				tPvFrame& frame = *capuredFrameQueue[frameoffset];
-				float time = ofGetElapsedTimef();
-				if (frame.Status == ePvErrSuccess) {
-					pixels.setFromExternalPixels((unsigned char *)frame.ImageBuffer, frame.Width, frame.Height, pixelFormat);
+				size_t offset = min(capuredFrameQueue.size() - 1, (size_t)frameOffset);
+				
+				tPvFrame* frame = capuredFrameQueue[offset];
+				if (frame->Status == ePvErrSuccess) {
+					pixels.setFromExternalPixels((unsigned char *)frame->ImageBuffer, frame->Width, frame->Height, pixelFormat);
 					bIsFrameNew = true;
 					bTextureSet = false;
 					
-					float frameTime = *(float*)frame.Context[2];
-					timedInt timedLatency;
-					timedLatency.time = time;
-					frameLatency = (time - frameTime) * 1000;
-					timedLatency.value = frameLatency;
-					frameRateAndLatencies.push_back(timedLatency);
+					frameLatency = (ofGetElapsedTimef() - *(float*)frame->Context[2]) * 1000;
+					latencies.emplace_front(frameLatency);
+					
+					{ // DOUBLE FRAME CHECK keep for now
+						int frameID = *(unsigned int*)frame->Context[1];
+						if (frameID == lastframeID) {
+							cout << "using frame twice " << capuredFrameQueue.size() <<  endl;
+						}
+						lastframeID	= frameID;
+					}
 				}
 				else {
-					logError(frame.Status);
+					logError(frame->Status);
 				}
 				capuredFrameQueue.pop_back();
-				
-				timedInt timedDrops;
-				timedDrops.time = time;
-				while (capuredFrameQueue.size() > frameoffset) {
-					capuredFrameQueue.pop_back();
-					timedDrops.value++;
-				}
-				framesDropped.push_back(timedDrops);
 			}
 		
-			float magicTimeWindow = ofGetElapsedTimef() - (1 - (1.0 / max(fps, 1) / 3.0)); // a little less as one
+			float magicTimeWindow = ofGetElapsedTimef() - .97; // a little less as one
 			
-			while (frameRateAndLatencies.size() > 0 && frameRateAndLatencies[0].time < magicTimeWindow) {
-				frameRateAndLatencies.pop_front();
-			}
-			fps = frameRateAndLatencies.size();
+			while (framesDropped.size() > 0 && framesDropped[0] < magicTimeWindow) { framesDropped.pop_back(); }
+			frameDrop = 0;
+			for (auto fd : framesDropped) { frameDrop++; }
+			
+			while (latencies.size() > 0 && latencies[latencies.size() - 1].time < magicTimeWindow) { latencies.pop_back(); }
 			
 			frameMaxLatency = 0;
 			frameMinLatency = 10000;
-			float tL = 0;
-			for (int i=0; i<frameRateAndLatencies.size(); i++) {
-				tL += frameRateAndLatencies[i].value;
-				frameMaxLatency = max(frameMaxLatency, frameRateAndLatencies[i].value);
-				frameMinLatency = min(frameMinLatency, frameRateAndLatencies[i].value);
+			float totalLatency = 0;
+			for (int i=0; i<latencies.size(); i++) {
+				totalLatency += latencies[i].value;
+				frameMaxLatency = max(frameMaxLatency, latencies[i].value);
+				frameMinLatency = min(frameMinLatency, latencies[i].value);
 			}
-			frameAvgLatency = (tL / frameRateAndLatencies.size());
-			
-			while (framesDropped.size() > 0 && framesDropped[0].time < magicTimeWindow) { framesDropped.pop_front(); }
-			frameDrop = 0;
-			for (int i=0; i<framesDropped.size(); i++) { frameDrop += framesDropped[i].value; }
+			frameAvgLatency = (totalLatency / latencies.size());
 		}
 	}
 	
@@ -304,8 +302,7 @@ namespace ofxPvAPI {
 		}
 		
 		setPacketSizeToMax();
-		if (bTriggered) { setEnumAttribute("FrameStartTriggerMode","Software"); }
-		else { setEnumAttribute("FrameStartTriggerMode","FixedRate"); }
+		setEnumAttribute("FrameStartTriggerMode","FixedRate"); 
 		setEnumAttribute("AcquisitionMode", "Continuous");
 		
 		allocateFrames();
@@ -336,7 +333,6 @@ namespace ofxPvAPI {
 //				texture.clear();
 			}
 			
-			fps = 0;
 			frameDrop = 0;
 			frameLatency = 0;
 			frameAvgLatency = 0;
@@ -344,7 +340,7 @@ namespace ofxPvAPI {
 			frameMaxLatency = 0;
 			
 			framesDropped.clear();
-			frameRateAndLatencies.clear();
+			latencies.clear();
 		}
 		else {
 			ofLog(OF_LOG_NOTICE,"Camera: %lu cant't deactivate, as it is not activated", deviceID);
@@ -388,7 +384,7 @@ namespace ofxPvAPI {
 		}
 	}
 	
-	void Camera::waitOnAvailable() {
+	void Camera::waitForDeviceToBecomeAvailable() {
 		
 		if (bWaitForDeviceToBecomeAvailable && lastWaitTime + waitInterval < ofGetElapsedTimeMillis()) {
 			if (!isDeviceFound(deviceID)) {
@@ -516,6 +512,7 @@ namespace ofxPvAPI {
 	//-- PV FRAMES ---------------------------------------------------------------
 	
 	int Camera::numPvFrames = 4;
+	unsigned int Camera::PvFrameID = 0;
 	
 	void Camera::allocateFrames() {
 		if (!bFramesAllocated) {
@@ -523,11 +520,14 @@ namespace ofxPvAPI {
 			if (pvFrames) { memset(pvFrames,0,sizeof(tPvFrame) * numPvFrames); }
 			
 			for (int i=0; i<numPvFrames; i++) {
-				pvFrames[i].Context[0] = this;
-				pvFrames[i].Context[1] = new int(i);
-				pvFrames[i].Context[2] = new float(0);
+				pvFrames[i].Context[0] = this; 					// Camera Context
+				pvFrames[i].Context[1] = new unsigned int(0);	// Frame ID
+				pvFrames[i].Context[2] = new float(0);			// TimeStamp
+				pvFrames[i].Context[3] = new int(i);			// For Debug Purposes
 			}
 		}
+		
+		capuredFrameQueue.clear();
 		
 		unsigned long frameSize = 0;
 		tPvErr error = PvAttrUint32Get( deviceHandle, "TotalBytesPerFrame", &frameSize );
@@ -578,7 +578,7 @@ namespace ofxPvAPI {
 	
 	bool Camera::queueFrames(){
 		for (int i=0; i<numPvFrames; i++) {
-			tPvErr error = PvCaptureQueueFrame( deviceHandle, &pvFrames[i], frameCallBack);
+			tPvErr error = PvCaptureQueueFrame( deviceHandle, &pvFrames[i], frameCallBack); // use of memory after it is freed?
 			if (error != ePvErrSuccess ){
 				ofLog(OF_LOG_NOTICE, "Camera: " + ofToString(deviceID) + " failed to queue frame " + ofToString(i));
 				logError(error);
@@ -596,19 +596,6 @@ namespace ofxPvAPI {
 			return false;
 		}
 		return true;
-	}
-	
-	
-	bool Camera::triggerFrame(){
-		tPvErr error = PvCommandRun(deviceHandle,"FrameStartTriggerSoftware");
-		if( error == ePvErrSuccess ){
-			//			ofLog(OF_LOG_VERBOSE, "Camera: %lu frame triggered", deviceID);
-			return true;
-		} else {
-			ofLog(OF_LOG_ERROR, "Camera: %lu can not trigger frame", deviceID);
-			logError(error);
-			return false;
-		}
 	}
 	
 	
@@ -642,19 +629,6 @@ namespace ofxPvAPI {
 	
 	//----------------------------------------------------------------------------
 	//-- FRAMES ------------------------------------------------------------------
-	
-	void Camera::setTriggered(bool _value) {
-		bTriggered = _value;
-		if (bTriggered) {
-			setEnumAttribute("FrameStartTriggerMode","Software");
-			setFrameRate(ofGetTargetFrameRate());
-		}
-		else {
-			setEnumAttribute("FrameStartTriggerMode","FixedRate");
-		}
-		setExposure(min(getExposure(), getExposureMaxForCurrentFrameRate()));
-		setAutoExposureRangeFromFrameRate();
-	}
 	
 	void Camera::setFrameRate(float rate) {
 		setFloatAttribute("FrameRate", rate);

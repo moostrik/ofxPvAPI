@@ -15,14 +15,18 @@
 
 namespace ofxPvAPI {
 	
-	struct timedInt {
-		float time = 0;
-		int value = 0;
+	class timeInt {
+	public:
+		timeInt(int _value) { time = ofGetElapsedTimef(); value = _value; }
+		float time;
+		int value;
 	};
 	
 	class Camera {
 		
 	public :
+		unsigned int lastframeID;
+		
 		Camera();
 		virtual ~Camera();
 		
@@ -84,14 +88,15 @@ namespace ofxPvAPI {
 		
 		bool			setPacketSizeToMax();
 		
+		void			waitForDeviceToBecomeAvailable();
 		bool			bWaitForDeviceToBecomeAvailable;
 		int				waitInterval;
 		uint64_t		lastWaitTime;
-		void			waitOnAvailable();
 		
 		//-- PV FRAMES ---------------------------------------------------------------
 	private:
 		static int		numPvFrames;
+		static unsigned int		PvFrameID;
 		bool			bFramesAllocated;
 		tPvFrame*		pvFrames;
 		deque<tPvFrame*>	capuredFrameQueue;
@@ -103,8 +108,6 @@ namespace ofxPvAPI {
 		bool			queueFrames();
 		bool			clearQueue();
 		
-		bool			triggerFrame();
-		
 		static void 	frameCallBack(tPvFrame* pFrame);
 		void			receiveFrame(tPvFrame* _frame);
 		
@@ -112,33 +115,31 @@ namespace ofxPvAPI {
 	public:
 		bool 			isFrameNew()			{ return bIsFrameNew; }
 		
-		int 			getFps() 				{ return fps; }
-		int 			getFrameDrop() 			{ return frameDrop; }
+		int 			getFrameDrop()			{ return frameDrop; }
+		int 			getFrameOffset()		{ return frameOffset; }
 		float			getFrameRate()			{ return getFloatAttribute("FrameRate"); }
 		float			getFrameRateMax()		{ return getFloatAttributeMax("FrameRate"); }
 		float			getFrameRateMin()		{ return getFloatAttributeMin("FrameRate"); }
-		float			getTriggered()			{ return bTriggered; }
 		
 		// this latency is the time between receiving a completed frame and setting the pixels in update();
-		int 			getLatency() 			{ return frameLatency; }	// of the latest frame
-		int 			getAvgLatency() 		{ return frameAvgLatency; } // in the last second
-		int 			getMaxLatency() 		{ return frameMaxLatency; }	// in the last second
-		int 			getMinLatency() 		{ return frameMinLatency; }	// in the last second
+		int 			getLatency()			{ return frameLatency; }	// of the latest frame
+		int 			getAvgLatency()			{ return frameAvgLatency; } // in the last second
+		int 			getMaxLatency()			{ return frameMaxLatency; }	// in the last second
+		int 			getMinLatency()			{ return frameMinLatency; }	// in the last second
 		
-		void			setTriggered(bool _value);
 		void			setFrameRate(float rate);
+		void			setFrameOffset(int offset) { frameOffset = offset; }
 		
 	private:
 		bool			bIsFrameNew;
-		int 			fps;
+		int				frameOffset;
 		int 			frameDrop;
-		deque<timedInt> framesDropped;
-		bool			bTriggered;
+		deque<float>	framesDropped;
 		int 			frameLatency;
 		int 			frameAvgLatency;
 		int 			frameMaxLatency;
 		int 			frameMinLatency;
-		deque<timedInt> frameRateAndLatencies;
+		deque<timeInt>	latencies;
 		
 		//-- PIXELS ------------------------------------------------------------------
 	public:
@@ -219,7 +220,7 @@ namespace ofxPvAPI {
 		bool	getAutoExposure()					{ return (getEnumAttribute("ExposureMode") == "Auto")? true: false; }
 		bool	getAutoExposureOnce()				{ return (getEnumAttribute("ExposureMode") == "AutoOnce")? true: false; }
 		
-		int 	getExposureMaxForCurrentFrameRate() { return bTriggered? 200000 / getFrameRate() : 1000000 / getFrameRate(); }
+		int 	getExposureMaxForCurrentFrameRate() { return 1000000 / getFrameRate(); }
 		void	setAutoExposureRangeFromFrameRate()	{ setAutoExposureMaximum(getExposureMaxForCurrentFrameRate()); setAutoExposureMinimum(getAutoExposureMinimumMin());}
 		
 		void	setExposure(int _value)				{ setIntAttribute("ExposureValue", _value); }

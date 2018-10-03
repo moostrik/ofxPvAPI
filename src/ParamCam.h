@@ -32,22 +32,21 @@ namespace ofxPvAPI {
 		
 		//-- FRAMES ------------------------------------------------------------------
 	public:
-		void	setTriggered(bool _value)	{ pTriggered.set(_value); }
 		void	setFrameRate(float _value)	{ inRange(pFrameRate, _value); pFrameRate.set(_value); }
+		void	setFrameOffset(int _value)	{ pFrameOffset.set(_value); }
 		
 	protected:
 		ofParameterGroup	frameRateParameters;
-		ofParameterGroup	latencyParameters;
-		ofParameter<int>	pFps;
+		ofParameter<float>	pFrameRate;
+		ofParameter<int>	pFrameOffset;
 		ofParameter<int>	pFrameDrop;
+		ofParameterGroup	latencyParameters;
 		ofParameter<int>	pFrameLatency;
 		ofParameter<int>	pFrameMaxLatency;
 		ofParameter<int>	pFrameMinLatency;
-		ofParameter<float>	pFrameRate;
-		ofParameter<bool>	pTriggered;
 		
 		void	frameRateListener(float& _value);
-		void	triggeredListener(bool& _value);
+		void	frameOffsetListener(int& _value);
 		
 		//-- REGION OF INTEREST ------------------------------------------------------
 	public:
