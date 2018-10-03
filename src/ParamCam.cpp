@@ -440,7 +440,7 @@ namespace ofxPvAPI {
 		}
 	}
 	
-	void ParamCam::frameOffsetListener(int &_value)  {
+	void ParamCam::frameOffsetListener(int &_value) {
 		Camera::setFrameOffset(_value);
 	}
 	

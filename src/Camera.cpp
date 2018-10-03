@@ -124,7 +124,7 @@ namespace ofxPvAPI {
 					{ // DOUBLE FRAME CHECK keep for now
 						int frameID = *(unsigned int*)frame->Context[1];
 						if (frameID == lastframeID) {
-							cout << "using frame twice " << capuredFrameQueue.size() <<  endl;
+							cout << "using frame twice " << capuredFrameQueue.size() << endl;
 						}
 						lastframeID	= frameID;
 					}
@@ -360,7 +360,7 @@ namespace ofxPvAPI {
 	void Camera::plugCamera(unsigned long _cameraUid) {
 		
 		cout << "plug " << _cameraUid << endl;
-		if (requestedDeviceID == 0  && numActiveDevices == 0) {
+		if (requestedDeviceID == 0 && numActiveDevices == 0) {
 			ofLog(OF_LOG_NOTICE, "Camera: no camera ID specified, defaulting to camera %lu", _cameraUid);
 			requestedDeviceID = _cameraUid;
 		}
@@ -1152,7 +1152,7 @@ namespace ofxPvAPI {
 					}
 				}
 			}
-			if (persistentIpGateway  != "" ) {
+			if (persistentIpGateway != "" ) {
 				if (!inet_pton(AF_INET, persistentIpGateway.c_str(), &gw)){
 					ofLogWarning("Camera: ") << deviceID << ", failed to change IP settings: Gateway " << persistentIpGateway << " is not a valid adress";
 					return;

@@ -45,7 +45,7 @@ namespace ofxPvAPI {
 	public:
 		vector<ofVideoDevice> listDevices(bool _silent = false);
 		
-		int 			getDeviceID() { return deviceID; }
+		int				getDeviceID() { return deviceID; }
 		
 		void			setDeviceID(int _deviceID) { requestDeviceByID(_deviceID); }
 		void			requestDeviceByID(int _deviceID);
@@ -64,15 +64,15 @@ namespace ofxPvAPI {
 		//-- DEVICE ------------------------------------------------------------------
 	public:
 		bool			isActive() { return bDeviceActive; }
-		void			activate();  // this is taken care of by setup(), but you might want to (de)activate manually
+		void			activate(); // this is taken care of by setup(), but you might want to (de)activate manually
 		void			deactivate();
 		
 	private:
 		tPvHandle		deviceHandle;
-		bool 			bDeviceActive;
+		bool			bDeviceActive;
 		static int		numActiveDevices;
 		
-		static void 	plugCallBack(void* Context, tPvInterface Interface, tPvLinkEvent Event, unsigned long UniqueId);
+		static void		plugCallBack(void* Context, tPvInterface Interface, tPvLinkEvent Event, unsigned long UniqueId);
 		void			plugCamera(unsigned long cameraUid);
 		void			unplugCamera(unsigned long cameraUid);
 		
@@ -101,31 +101,31 @@ namespace ofxPvAPI {
 		tPvFrame*		pvFrames;
 		deque<tPvFrame*>	capuredFrameQueue;
 		
-		void 			allocateFrames();
-		void 			deallocateFrames();
+		void			allocateFrames();
+		void			deallocateFrames();
 		void			resizeFrames();
 		
 		bool			queueFrames();
 		bool			clearQueue();
 		
-		static void 	frameCallBack(tPvFrame* pFrame);
+		static void		frameCallBack(tPvFrame* pFrame);
 		void			receiveFrame(tPvFrame* _frame);
 		
 		//-- FRAMES ------------------------------------------------------------------
 	public:
-		bool 			isFrameNew()			{ return bIsFrameNew; }
+		bool			isFrameNew()			{ return bIsFrameNew; }
 		
-		int 			getFrameDrop()			{ return frameDrop; }
-		int 			getFrameOffset()		{ return frameOffset; }
+		int				getFrameDrop()			{ return frameDrop; }
+		int				getFrameOffset()		{ return frameOffset; }
 		float			getFrameRate()			{ return getFloatAttribute("FrameRate"); }
 		float			getFrameRateMax()		{ return getFloatAttributeMax("FrameRate"); }
 		float			getFrameRateMin()		{ return getFloatAttributeMin("FrameRate"); }
 		
 		// this latency is the time between receiving a completed frame and setting the pixels in update();
-		int 			getLatency()			{ return frameLatency; }	// of the latest frame
-		int 			getAvgLatency()			{ return frameAvgLatency; } // in the last second
-		int 			getMaxLatency()			{ return frameMaxLatency; }	// in the last second
-		int 			getMinLatency()			{ return frameMinLatency; }	// in the last second
+		int				getLatency()			{ return frameLatency; }	// of the latest frame
+		int				getAvgLatency()			{ return frameAvgLatency; } // in the last second
+		int				getMaxLatency()			{ return frameMaxLatency; }	// in the last second
+		int				getMinLatency()			{ return frameMinLatency; }	// in the last second
 		
 		void			setFrameRate(float rate);
 		void			setFrameOffset(int offset) { frameOffset = offset; }
@@ -133,21 +133,21 @@ namespace ofxPvAPI {
 	private:
 		bool			bIsFrameNew;
 		int				frameOffset;
-		int 			frameDrop;
+		int				frameDrop;
 		deque<float>	framesDropped;
-		int 			frameLatency;
-		int 			frameAvgLatency;
-		int 			frameMaxLatency;
-		int 			frameMinLatency;
+		int				frameLatency;
+		int				frameAvgLatency;
+		int				frameMaxLatency;
+		int				frameMinLatency;
 		deque<timeInt>	latencies;
 		
 		//-- PIXELS ------------------------------------------------------------------
 	public:
 		ofPixels&		getPixels()		{ return pixels; }
-		float			getWidth()		{ return (pixels.isAllocated())? pixels.getWidth() : 0; } 	// pixels, not ROI
+		float			getWidth()		{ return (pixels.isAllocated())? pixels.getWidth() : 0; }	// pixels, not ROI
 		float			getHeight()		{ return (pixels.isAllocated())? pixels.getHeight() : 0; }	// pixels, not ROI
-		int 			getMaxWidth() 	{ return maxWidth; }
-		int 			getMaxHeight() 	{ return maxHeight; }
+		int				getMaxWidth()	{ return maxWidth; }
+		int				getMaxHeight()	{ return maxHeight; }
 		
 		bool			setPixelFormat(ofPixelFormat _pixelFormat); // for now only before setup
 		ofPixelFormat	getPixelFormat() { return pixelFormat; }
@@ -199,15 +199,15 @@ namespace ofxPvAPI {
 		void	setROIX(int _value);
 		void	setROIY(int _value);
 		
-		int 	getROIWidth()		{ return getIntAttribute("Width"); }
-		int 	getROIHeight()		{ return getIntAttribute("Height"); }
+		int		getROIWidth()		{ return getIntAttribute("Width"); }
+		int		getROIHeight()		{ return getIntAttribute("Height"); }
 		int		getROIX()			{ return getIntAttribute("RegionX"); }
 		int		getROIY()			{ return getIntAttribute("RegionY"); }
 		
-		int 	getROIWidthMin()	{ return getIntAttributeMin("Width"); }
-		int 	getROIWidthMax()	{ return getIntAttributeMax("Width"); }			// takes ROIX into account
-		int 	getROIHeightMin()	{ return getIntAttributeMin("Height"); }
-		int 	getROIHeightMax()	{ return getIntAttributeMax("Height"); }		// takes ROIY into account
+		int		getROIWidthMin()	{ return getIntAttributeMin("Width"); }
+		int		getROIWidthMax()	{ return getIntAttributeMax("Width"); }			// takes ROIX into account
+		int		getROIHeightMin()	{ return getIntAttributeMin("Height"); }
+		int		getROIHeightMax()	{ return getIntAttributeMax("Height"); }		// takes ROIY into account
 		int		getROIXMin()		{ return getIntAttributeMin("RegionX"); }
 		int		getROIXMax()		{ return getIntAttributeMax("RegionX"); }		// takes ROIWidth into account
 		int		getROIYMin()		{ return getIntAttributeMin("RegionY"); }
@@ -220,18 +220,18 @@ namespace ofxPvAPI {
 		bool	getAutoExposure()					{ return (getEnumAttribute("ExposureMode") == "Auto")? true: false; }
 		bool	getAutoExposureOnce()				{ return (getEnumAttribute("ExposureMode") == "AutoOnce")? true: false; }
 		
-		int 	getExposureMaxForCurrentFrameRate() { return 1000000 / getFrameRate(); }
+		int		getExposureMaxForCurrentFrameRate() { return 1000000 / getFrameRate(); }
 		void	setAutoExposureRangeFromFrameRate()	{ setAutoExposureMaximum(getExposureMaxForCurrentFrameRate()); setAutoExposureMinimum(getAutoExposureMinimumMin());}
 		
 		void	setExposure(int _value)				{ setIntAttribute("ExposureValue", _value); }
 		
 			// Range: [1 - 100] Default: 50 Units: percent
 			// The general lightness or darkness of the auto exposure feature; specifically, the target mean histogram level of the image, 0 being black, 100 being white.
-		void 	setAutoExposureTarget(int _value)	{ setIntAttribute("ExposureAutoTarget", _value); }
+		void	setAutoExposureTarget(int _value)	{ setIntAttribute("ExposureAutoTarget", _value); }
 		
 			// Range: [1 - 100] Default: 100 Units: percent
 			// The rate at which the auto exposure function changes the exposure setting.
-		void 	setAutoExposureRate(int _value)		{ setIntAttribute("ExposureAutoRate", _value); }
+		void	setAutoExposureRate(int _value)		{ setIntAttribute("ExposureAutoRate", _value); }
 		
 			// Range: [0 – 50] Default: 5 Units: percent
 			// Tolerance in variation from ExposureAutoTarget in which the auto exposure algorithm will not respond.
@@ -240,13 +240,13 @@ namespace ofxPvAPI {
 		
 			// Range: [0 - 1000] Default: 0 Units: 0.01% i.e. 1000 = 10%
 			// The total pixels from top of the distribution that are ignored by the auto exposure algorithm.
-		void 	setAutoExposureOutliers(int _value)	{ setIntAttribute("ExposureAutoOutliers", _value); }
+		void	setAutoExposureOutliers(int _value)	{ setIntAttribute("ExposureAutoOutliers", _value); }
 		
 			// Range: [Camera dependent - 1000000] Default: 500000 Units: μs
 			// The upper bound to the exposure setting in Autoexposure mode. This is useful in situations where frame rate is important.
 			// This value would normally be set to something less than 1x10^6/ (desired frame rate).
 		void	setAutoExposureMinimum(int _value)	{ setIntAttribute("ExposureAutoMin", _value); }
-		void 	setAutoExposureMaximum(int _value)	{ setIntAttribute("ExposureAutoMax", _value); }
+		void	setAutoExposureMaximum(int _value)	{ setIntAttribute("ExposureAutoMax", _value); }
 		
 		int		getExposure()					{ return getIntAttribute("ExposureValue"); }
 		int		getAutoExposureAdjustTol()		{ return getIntAttribute("ExposureAutoAdjustTol"); }
@@ -272,82 +272,82 @@ namespace ofxPvAPI {
 		int		getAutoExposureTargetMax()		{ return getIntAttributeMax("ExposureAutoTarget"); }
 		
 		//-- GAIN --------------------------------------------------------------------
-		void 	setAutoGain(bool state)			{ setEnumAttribute("GainMode", (state == true)? "Auto": "Manual"); }
-		void 	setAutoGainOnce(bool state)		{ setEnumAttribute("GainMode", (state == true)? "AutoOnce": "Manual"); }
-		bool 	getAutoGain()					{ return (getEnumAttribute("GainMode") == "Auto")? true: false; }
-		bool 	getAutoGainOnce()				{ return (getEnumAttribute("GainMode") == "AutoOnce")? true: false; }
+		void	setAutoGain(bool state)			{ setEnumAttribute("GainMode", (state == true)? "Auto": "Manual"); }
+		void	setAutoGainOnce(bool state)		{ setEnumAttribute("GainMode", (state == true)? "AutoOnce": "Manual"); }
+		bool	getAutoGain()					{ return (getEnumAttribute("GainMode") == "Auto")? true: false; }
+		bool	getAutoGainOnce()				{ return (getEnumAttribute("GainMode") == "AutoOnce")? true: false; }
 		
 		void	setGain(int _value)				{ setIntAttribute("GainValue", _value); }
-		void 	setAutoGainAdjustTol(int _value){ setIntAttribute("GainAutoAdjustTol", _value); }
-		void 	setAutoGainMinimum(int _value)	{ setIntAttribute("GainAutoMin", _value); }
-		void 	setAutoGainMaximum(int _value)	{ setIntAttribute("GainAutoMax", _value); }
-		void 	setAutoGainOutliers(int _value) { setIntAttribute("GainAutoOutliers", _value); }
-		void 	setAutoGainRate(int _value)		{ setIntAttribute("GainAutoRate", _value); }
-		void 	setAutoGainTarget(int _value)	{ setIntAttribute("GainAutoTarget", _value); }
+		void	setAutoGainAdjustTol(int _value){ setIntAttribute("GainAutoAdjustTol", _value); }
+		void	setAutoGainMinimum(int _value)	{ setIntAttribute("GainAutoMin", _value); }
+		void	setAutoGainMaximum(int _value)	{ setIntAttribute("GainAutoMax", _value); }
+		void	setAutoGainOutliers(int _value) { setIntAttribute("GainAutoOutliers", _value); }
+		void	setAutoGainRate(int _value)		{ setIntAttribute("GainAutoRate", _value); }
+		void	setAutoGainTarget(int _value)	{ setIntAttribute("GainAutoTarget", _value); }
 		
-		int 	getGain()						{ return getIntAttribute("GainValue"); }
-		int 	getAutoGainAdjustTol()			{ return getIntAttribute("GainAutoAdjustTol"); }
-		int 	getAutoGainMinimum()			{ return getIntAttribute("GainAutoMin"); }
-		int 	getAutoGainMaximum()			{ return getIntAttribute("GainAutoMax"); }
-		int 	getAutoGainOutliers()			{ return getIntAttribute("GainAutoOutliers"); }
-		int 	getAutoGainRate()				{ return getIntAttribute("GainAutoRate"); }
-		int 	getAutoGainTarget()				{ return getIntAttribute("GainAutoTarget"); }
+		int		getGain()						{ return getIntAttribute("GainValue"); }
+		int		getAutoGainAdjustTol()			{ return getIntAttribute("GainAutoAdjustTol"); }
+		int		getAutoGainMinimum()			{ return getIntAttribute("GainAutoMin"); }
+		int		getAutoGainMaximum()			{ return getIntAttribute("GainAutoMax"); }
+		int		getAutoGainOutliers()			{ return getIntAttribute("GainAutoOutliers"); }
+		int		getAutoGainRate()				{ return getIntAttribute("GainAutoRate"); }
+		int		getAutoGainTarget()				{ return getIntAttribute("GainAutoTarget"); }
 		
-		int 	getGainMin()					{ return getIntAttributeMin("GainValue"); }
-		int 	getGainMax()					{ return getIntAttributeMax("GainValue"); }
-		int 	getAutoGainAdjustTolMin()		{ return getIntAttributeMin("GainAutoAdjustTol"); }
-		int 	getAutoGainAdjustTolMax()		{ return getIntAttributeMax("GainAutoAdjustTol"); }
-		int 	getAutoGainMinimumMin()			{ return getIntAttributeMin("GainAutoMin"); }
-		int 	getAutoGainMinimumMax()			{ return getIntAttributeMax("GainAutoMin"); }
-		int 	getAutoGainMaximumMin()			{ return getIntAttributeMin("GainAutoMax"); }
-		int 	getAutoGainMaximumMax()			{ return getIntAttributeMax("GainAutoMax"); }
-		int 	getAutoGainOutliersMin()		{ return getIntAttributeMin("GainAutoOutliers"); }
-		int 	getAutoGainOutliersMax()		{ return getIntAttributeMax("GainAutoOutliers"); }
-		int 	getAutoGainRateMin()			{ return getIntAttributeMin("GainAutoRate"); }
-		int 	getAutoGainRateMax()			{ return getIntAttributeMax("GainAutoRate"); }
-		int 	getAutoGainTargetMin()			{ return getIntAttributeMin("GainAutoTarget"); }
-		int 	getAutoGainTargetMax()			{ return getIntAttributeMax("GainAutoTarget"); }
+		int		getGainMin()					{ return getIntAttributeMin("GainValue"); }
+		int		getGainMax()					{ return getIntAttributeMax("GainValue"); }
+		int		getAutoGainAdjustTolMin()		{ return getIntAttributeMin("GainAutoAdjustTol"); }
+		int		getAutoGainAdjustTolMax()		{ return getIntAttributeMax("GainAutoAdjustTol"); }
+		int		getAutoGainMinimumMin()			{ return getIntAttributeMin("GainAutoMin"); }
+		int		getAutoGainMinimumMax()			{ return getIntAttributeMax("GainAutoMin"); }
+		int		getAutoGainMaximumMin()			{ return getIntAttributeMin("GainAutoMax"); }
+		int		getAutoGainMaximumMax()			{ return getIntAttributeMax("GainAutoMax"); }
+		int		getAutoGainOutliersMin()		{ return getIntAttributeMin("GainAutoOutliers"); }
+		int		getAutoGainOutliersMax()		{ return getIntAttributeMax("GainAutoOutliers"); }
+		int		getAutoGainRateMin()			{ return getIntAttributeMin("GainAutoRate"); }
+		int		getAutoGainRateMax()			{ return getIntAttributeMax("GainAutoRate"); }
+		int		getAutoGainTargetMin()			{ return getIntAttributeMin("GainAutoTarget"); }
+		int		getAutoGainTargetMax()			{ return getIntAttributeMax("GainAutoTarget"); }
 		
 		//-- GAMMA HUE STURATION -----------------------------------------------------
-		void 	setGamma(float _value)			{ setFloatAttribute("Gamma", _value); }
-		void 	setHue(float _value)			{ setFloatAttribute("Hue", _value); }
-		void 	setSaturation(float _value)		{ setFloatAttribute("Saturation", _value); }
+		void	setGamma(float _value)			{ setFloatAttribute("Gamma", _value); }
+		void	setHue(float _value)			{ setFloatAttribute("Hue", _value); }
+		void	setSaturation(float _value)		{ setFloatAttribute("Saturation", _value); }
 		
-		float 	getGamma()						{ return getFloatAttribute("Gamma"); }
-		float 	getHue()						{ return getFloatAttribute("Hue"); }
-		float 	getSaturation()					{ return getFloatAttribute("Saturation"); }
+		float	getGamma()						{ return getFloatAttribute("Gamma"); }
+		float	getHue()						{ return getFloatAttribute("Hue"); }
+		float	getSaturation()					{ return getFloatAttribute("Saturation"); }
 		
-		int 	getGammaMin()					{ return getFloatAttributeMin("Gamma"); }
-		int 	getGammaMax()					{ return getFloatAttributeMax("Gamma"); }
-		int 	getHueMin()						{ return getFloatAttributeMin("Hue"); }
-		int 	getHueMax()						{ return getFloatAttributeMax("Hue"); }
-		int 	getSaturationMin()				{ return getFloatAttributeMin("Saturation"); }
-		int 	getSaturationMax()				{ return getFloatAttributeMax("Saturation"); }
+		int		getGammaMin()					{ return getFloatAttributeMin("Gamma"); }
+		int		getGammaMax()					{ return getFloatAttributeMax("Gamma"); }
+		int		getHueMin()						{ return getFloatAttributeMin("Hue"); }
+		int		getHueMax()						{ return getFloatAttributeMax("Hue"); }
+		int		getSaturationMin()				{ return getFloatAttributeMin("Saturation"); }
+		int		getSaturationMax()				{ return getFloatAttributeMax("Saturation"); }
 		
 		//-- WHITE BALANCE -----------------------------------------------------------
-		void 	setAutoWhiteBalance(bool state)	{ setEnumAttribute("WhitebalMode", (state == true)? "Auto": "Manual"); }
-		void 	setAutoWhiteBalanceOnce(bool state)	{ setEnumAttribute("WhitebalMode", (state == true)? "AutoOnce": "Manual"); }
-		bool 	getAutoWhiteBalance()			{ return (getEnumAttribute("WhitebalMode") == "Auto")? true: false; }
-		bool 	getAutoWhiteBalanceOnce()		{ return (getEnumAttribute("WhitebalMode") == "AutoOnce")? true: false; }
+		void	setAutoWhiteBalance(bool state)	{ setEnumAttribute("WhitebalMode", (state == true)? "Auto": "Manual"); }
+		void	setAutoWhiteBalanceOnce(bool state)	{ setEnumAttribute("WhitebalMode", (state == true)? "AutoOnce": "Manual"); }
+		bool	getAutoWhiteBalance()			{ return (getEnumAttribute("WhitebalMode") == "Auto")? true: false; }
+		bool	getAutoWhiteBalanceOnce()		{ return (getEnumAttribute("WhitebalMode") == "AutoOnce")? true: false; }
 		
-		void 	setWhiteBalanceBlue(int _value)	{ setIntAttribute("WhitebalValueBlue", _value); }
-		void 	setWhiteBalanceRed(int _value)	{ setIntAttribute("WhitebalValueRed", _value); }
-		void 	setAutoWhiteBalanceAdjustTol(int _value) { setIntAttribute("WhitebalAutoAdjustTol", _value); }
-		void 	setAutoWhiteBalanceRate(int _value) { setIntAttribute("WhitebalAutoRate", _value); }
+		void	setWhiteBalanceBlue(int _value)	{ setIntAttribute("WhitebalValueBlue", _value); }
+		void	setWhiteBalanceRed(int _value)	{ setIntAttribute("WhitebalValueRed", _value); }
+		void	setAutoWhiteBalanceAdjustTol(int _value) { setIntAttribute("WhitebalAutoAdjustTol", _value); }
+		void	setAutoWhiteBalanceRate(int _value) { setIntAttribute("WhitebalAutoRate", _value); }
 		
-		int 	getWhiteBalanceBlue()			{ return getIntAttribute("WhitebalValueBlue"); }
-		int 	getWhiteBalanceRed()			{ return getIntAttribute("WhitebalValueRed"); }
-		int 	getAutoWhiteBalanceAdjustTol()	{ return getIntAttribute("WhitebalAutoAdjustTol"); }
-		int 	getAutoWhiteBalanceRate()		{ return getIntAttribute("WhitebalAutoRate"); }
+		int		getWhiteBalanceBlue()			{ return getIntAttribute("WhitebalValueBlue"); }
+		int		getWhiteBalanceRed()			{ return getIntAttribute("WhitebalValueRed"); }
+		int		getAutoWhiteBalanceAdjustTol()	{ return getIntAttribute("WhitebalAutoAdjustTol"); }
+		int		getAutoWhiteBalanceRate()		{ return getIntAttribute("WhitebalAutoRate"); }
 		
-		int 	getWhiteBalanceBlueMin()		{ return getIntAttributeMin("WhitebalValueBlue"); }
-		int 	getWhiteBalanceBlueMax()		{ return getIntAttributeMax("WhitebalValueBlue"); }
-		int 	getWhiteBalanceRedMin()			{ return getIntAttributeMin("WhitebalValueRed"); }
-		int 	getWhiteBalanceRedMax()			{ return getIntAttributeMax("WhitebalValueRed"); }
-		int 	getAutoWhiteBalanceAdjustTolMin(){return getIntAttributeMin("WhitebalAutoAdjustTol"); }
-		int 	getAutoWhiteBalanceAdjustTolMax(){return getIntAttributeMax("WhitebalAutoAdjustTol"); }
-		int 	getAutoWhiteBalanceRateMin()	{ return getIntAttributeMin("WhitebalAutoRate"); }
-		int 	getAutoWhiteBalanceRateMax()	{ return getIntAttributeMax("WhitebalAutoRate"); }
+		int		getWhiteBalanceBlueMin()		{ return getIntAttributeMin("WhitebalValueBlue"); }
+		int		getWhiteBalanceBlueMax()		{ return getIntAttributeMax("WhitebalValueBlue"); }
+		int		getWhiteBalanceRedMin()			{ return getIntAttributeMin("WhitebalValueRed"); }
+		int		getWhiteBalanceRedMax()			{ return getIntAttributeMax("WhitebalValueRed"); }
+		int		getAutoWhiteBalanceAdjustTolMin(){return getIntAttributeMin("WhitebalAutoAdjustTol"); }
+		int		getAutoWhiteBalanceAdjustTolMax(){return getIntAttributeMax("WhitebalAutoAdjustTol"); }
+		int		getAutoWhiteBalanceRateMin()	{ return getIntAttributeMin("WhitebalAutoRate"); }
+		int		getAutoWhiteBalanceRateMax()	{ return getIntAttributeMax("WhitebalAutoRate"); }
 		
 		//-- IP SETTINGS -------------------------------------------------------------
 	public:
@@ -379,7 +379,7 @@ namespace ofxPvAPI {
 		string			persistentIpGateway;
 		
 		unsigned long	IPStringToLong(string _IpAdress);
-		string			IPLongToString(unsigned long  _IpAdress);
+		string			IPLongToString(unsigned long _IpAdress);
 		
 		//-- ERROR LOGGING -----------------------------------------------------------
 	private:
