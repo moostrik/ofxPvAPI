@@ -2,7 +2,7 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-	ofSetFrameRate(60);
+	ofSetFrameRate(30);
 	ofSetVerticalSync(true);
 	
 	ofSetLogLevel(OF_LOG_VERBOSE);
@@ -36,7 +36,7 @@ void ofApp::setup(){
 	gui.add(fps.set("FPS", 0, 0, 100));
 	gui.add(toggleFullScreen.set("fullScreen (F)", false));
 	gui.add(drawNewFrameOnly.set("draw new frame only", false));
-	gui.add(camera.parameters);
+	gui.add(camera.getParameters());
 	gui.loadFromFile("settings.xml");
 	
 	toggleFullScreen.addListener(this, &ofApp::toggleFullScreenListener);

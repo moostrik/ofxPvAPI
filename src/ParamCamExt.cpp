@@ -1,10 +1,3 @@
-//
-//  ParamCamExt.cpp
-//  plCam
-//
-//  Created by PLPLPL.PL on 08/01/16.
-//
-//
 
 #include "ParamCamExt.h"
 
@@ -167,8 +160,8 @@ namespace ofxPvAPI {
 									uniform mat4 modelViewProjectionMatrix;
 									uniform mat4 textureMatrix;
 									
-									in vec4  position;
-									in vec2  texcoord;
+									in vec4 position;
+									in vec2 texcoord;
 									
 									out vec2 texCoordVarying;
 									
@@ -267,12 +260,12 @@ namespace ofxPvAPI {
 			w = getWidth();
 			h = getHeight();
 			if (!pFlipH) {
-				if (!pFlipV) {  // NO FLIP
+				if (!pFlipV) {	// NO FLIP
 					pts[0] = glm::vec2(0, 0);
 					pts[1] = glm::vec2(w, 0);
 					pts[2] = glm::vec2(w, h);
 					pts[3] = glm::vec2(0, h);
-				} else {          // FLIP V
+				} else {		// FLIP V
 					pts[0] = glm::vec2(0, h);
 					pts[1] = glm::vec2(w, h);
 					pts[2] = glm::vec2(w, 0);
@@ -280,12 +273,12 @@ namespace ofxPvAPI {
 				}
 			}
 			else {
-				if (!pFlipV) {  // FLIP H
+				if (!pFlipV) {	// FLIP H
 					pts[0] = glm::vec2(w, 0);
 					pts[1] = glm::vec2(0, 0);
 					pts[2] = glm::vec2(0, h);
 					pts[3] = glm::vec2(w, h);
-				} else {          // FLIP H & V
+				} else {		// FLIP H & V
 					pts[0] = glm::vec2(w, h);
 					pts[1] = glm::vec2(0, h);
 					pts[2] = glm::vec2(0, 0);
@@ -297,12 +290,12 @@ namespace ofxPvAPI {
 			w = getHeight();
 			h = getWidth();
 			if (!pFlipH) {
-				if (!pFlipV) {  // NO FLIP
+				if (!pFlipV) {	// NO FLIP
 					pts[0] = glm::vec2(0, h);
 					pts[1] = glm::vec2(0, 0);
 					pts[2] = glm::vec2(w, 0);
 					pts[3] = glm::vec2(w, h);
-				} else {          // FLIP V
+				} else {		// FLIP V
 					pts[0] = glm::vec2(0, 0);
 					pts[1] = glm::vec2(0, h);
 					pts[2] = glm::vec2(w, h);
@@ -310,12 +303,12 @@ namespace ofxPvAPI {
 				}
 			}
 			else {
-				if (!pFlipV) {  // FLIP H
+				if (!pFlipV) {	// FLIP H
 					pts[0] = glm::vec2(w, h);
 					pts[1] = glm::vec2(w, 0);
 					pts[2] = glm::vec2(0, 0);
 					pts[3] = glm::vec2(0, h);
-				} else {          // FLIP H & V
+				} else {		// FLIP H & V
 					pts[0] = glm::vec2(0, h);
 					pts[1] = glm::vec2(0, 0);
 					pts[2] = glm::vec2(w, 0);

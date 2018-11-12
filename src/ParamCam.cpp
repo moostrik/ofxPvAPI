@@ -22,16 +22,15 @@ namespace ofxPvAPI {
 		
 		frameRateParameters.setName("framerate");
 		frameRateParameters.add(pFrameRate.set("frame rate", 60, 0, 60));
-		frameRateParameters.add(pFps.set("fps (actual rate)", 0, 0, 60));
-		frameRateParameters.add(pFrameDrop.set("drops per second", 0, 0, 60));
-		frameRateParameters.add(pTriggered.set("trigger mode", false));
+		frameRateParameters.add(pFrameOffset.set("frame offset", 0, 0, 2));
+		frameRateParameters.add(pFrameDrop.set("drops (last sec)", 0, 0, 60));
 		latencyParameters.setName("latency (ms)");
 		latencyParameters.add(pFrameLatency.set("avgerage", 0, 0, 60));
 		latencyParameters.add(pFrameMaxLatency.set("max", 0, 0, 60));
 		latencyParameters.add(pFrameMinLatency.set("min", 0, 0, 60));
 		frameRateParameters.add(latencyParameters);
-		pTriggered.addListener(this, &ParamCam::triggeredListener);
 		pFrameRate.addListener(this, &ParamCam::frameRateListener);
+		pFrameOffset.addListener(this, &ParamCam::frameOffsetListener);
 		parameters.add(frameRateParameters);
 		
 		roiParameters.setName("region of interest");
@@ -153,7 +152,6 @@ namespace ofxPvAPI {
 		blockListeners = !isActive();
 		
 		if (isActive()) {
-			pFps = getFps();
 			pFrameDrop = getFrameDrop();
 			pFrameLatency = getLatency();
 			pFrameMaxLatency = getMaxLatency();
@@ -317,9 +315,6 @@ namespace ofxPvAPI {
 		pFrameRate.setMin(ceil(getFrameRateMin()));
 		pFrameRate.setMax(floor(getFrameRateMax()));
 		setParameterInItsOwnRange(pFrameRate);
-		pFps.setMin(ceil(getFrameRateMin()));
-		pFps.setMax(floor(getFrameRateMax()));
-		setParameterInItsOwnRange(pFps);
 		
 		pROIWidth.setMin(getROIWidthMin());
 		pROIWidth.setMax(getROIWidthMax());
@@ -431,23 +426,6 @@ namespace ofxPvAPI {
 	//----------------------------------------------------------------------------
 	//-- FRAMES ------------------------------------------------------------------
 	
-	void ParamCam::triggeredListener(bool &_value)  {
-		if (isActive()) {
-			bool bT = Camera::getTriggered();
-			if (_value != bT) {
-				Camera::setTriggered(_value);
-			
-				pExposure.setMax(getExposureMaxForCurrentFrameRate());
-				pAutoExposureMaximum.setMax(Camera::getAutoExposureMaximum());
-				blockListeners = true;
-				pFrameRate.set(Camera::getFrameRate());
-				pExposure.set(Camera::getExposure());
-				pAutoExposureMaximum.set(Camera::getAutoExposureMaximum());
-				blockListeners = false;
-			}
-		}
-	}
-	
 	void ParamCam::frameRateListener(float &_value) {
 		if (isActive()) {
 			_value = int(_value + .5);
@@ -460,6 +438,10 @@ namespace ofxPvAPI {
 			pAutoExposureMaximum.set(Camera::getAutoExposureMaximum());
 			blockListeners = false;
 		}
+	}
+	
+	void ParamCam::frameOffsetListener(int &_value) {
+		Camera::setFrameOffset(_value);
 	}
 	
 	
@@ -476,8 +458,6 @@ namespace ofxPvAPI {
 			pFrameRate.setMax(floor(getFrameRateMax()));
 			setParameterInItsOwnRange(pFrameRate);
 			Camera::setFrameRate(pFrameRate.get());
-			pFps.setMax(floor(getFrameRateMax()));
-			setParameterInItsOwnRange(pFps);
 		}
 	}
 	
@@ -491,8 +471,6 @@ namespace ofxPvAPI {
 			pFrameRate.setMax(floor(getFrameRateMax()));
 			setParameterInItsOwnRange(pFrameRate);
 			Camera::setFrameRate(pFrameRate.get());
-			pFps.setMax(floor(getFrameRateMax()));
-			setParameterInItsOwnRange(pFps);
 		}
 	}
 	
