@@ -15,7 +15,7 @@ void ofApp::setup(){
 	
 	//	when deviceID is not provided the camera defaults to first in list (if detected on setup)
 	//  select camera by deviceID
-	camera.setDeviceID(6022891);
+	camera.setDeviceID(6055547);
 	
 	//	select camera by IP
 //	camera.setDeviceID(camera.getDeviceIDFromIpAdress("10.0.0.50"));
@@ -34,10 +34,12 @@ void ofApp::setup(){
 	
 	gui.setup("settings");
 	gui.add(fps.set("FPS", 0, 0, 100));
+	gui.add(toggleFullScreen.set("fullScreen (F)", false));
 	gui.add(drawNewFrameOnly.set("draw new frame only", false));
 	gui.add(camera.parameters);
 	gui.loadFromFile("settings.xml");
 	
+	toggleFullScreen.addListener(this, &ofApp::toggleFullScreenListener);
 	
 	// minimize submenus
 	for (int i=0; i< gui.getNumControls(); i++) {
@@ -49,27 +51,12 @@ void ofApp::setup(){
 			}
 		}
 	}
-	
-	lGHeight = 0;
-	lCWidth = 0;
-	LCHeight = 0;
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
 	camera.update();
-	
 	fps.set(ofGetFrameRate() + 0.5);
-	
-	// reshape window to fit camera image and gui
-//	if (lGHeight != gui.getHeight() || lCWidth != camera.getWidth() || LCHeight != camera.getHeight()) {
-//		lGHeight = gui.getHeight();
-//		lCWidth = camera.getWidth();
-//		LCHeight = camera.getHeight();
-//		ofSetWindowShape(30 + gui.getWidth() + max(640.f, camera.getWidth()), 20 + max(gui.getHeight(), camera.getHeight()));
-//	}
-	
-	
 }
 
 //--------------------------------------------------------------
@@ -78,12 +65,15 @@ void ofApp::draw(){
 	
 	if (!(!camera.isFrameNew() && drawNewFrameOnly)) {
 		if (camera.getTexture().isAllocated()) {
-			camera.getTexture().draw(gui.getWidth() + gui.getPosition().x + 10, gui.getPosition().y);
+			int x = gui.getWidth() + gui.getPosition().x + 10;
+			int y = gui.getPosition().y;
+			int w = ofGetWindowWidth() - x - 10;
+			int h = w * (camera.getHeight() / camera.getWidth());
+			camera.getTexture().draw(x, y, w, h);
 		}
 	}
 	
 	gui.draw();
-	
 }
 
 //--------------------------------------------------------------
@@ -97,6 +87,9 @@ void ofApp::keyPressed(int key){
 			break;
 		case 'G':
 			camera.setPersistentIpGateway(persistentGateway);
+			break;
+		case 'F':
+			toggleFullScreen.set(!toggleFullScreen.get());
 			break;
 			
 		default:
