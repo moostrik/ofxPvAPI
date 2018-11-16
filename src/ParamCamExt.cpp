@@ -44,8 +44,8 @@ namespace ofxPvAPI {
 		pHomographyPoints = new ofParameter<glm::vec2>[4];
 		homographyParameters.add(pHomographyPoints[0].set("up left", glm::vec2(0,0), glm::vec2(-.5,-.5), glm::vec2(0.5,0.5)));
 		homographyParameters.add(pHomographyPoints[1].set("up right", glm::vec2(1,0), glm::vec2(0.5,-.5), glm::vec2(1.5,0.5)));
-		homographyParameters.add(pHomographyPoints[2].set("down left", glm::vec2(1,1), glm::vec2(0.5,0.5), glm::vec2(1.5,1.5)));
-		homographyParameters.add(pHomographyPoints[3].set("down right", glm::vec2(0,1), glm::vec2(-.5,0.5), glm::vec2(0.5,1.5)));
+		homographyParameters.add(pHomographyPoints[2].set("down right", glm::vec2(1,1), glm::vec2(0.5,0.5), glm::vec2(1.5,1.5)));
+		homographyParameters.add(pHomographyPoints[3].set("down left", glm::vec2(0,1), glm::vec2(-.5,0.5), glm::vec2(0.5,1.5)));
 		for (int i=0; i<4; i++) { pHomographyPoints[i].addListener(this, &ParamCamExt::pHomographyPointListener); }
 		parameters.add(homographyParameters);
 		
