@@ -143,8 +143,6 @@ namespace ofxPvAPI {
 		
 		bLoadFromInterface = true;
 		blockListeners = !isActive();
-		
-		return true;
 	}
 	
 	void ParamCam::update() {
