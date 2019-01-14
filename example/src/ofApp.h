@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxPvApi.h"
+#include "ofxPvAPI.h"
 #include "ofxGui.h"
 
 
