@@ -78,7 +78,7 @@ namespace ofxPvAPI {
 	//----------------------------------------------------------------------------
 	//-- OF ----------------------------------------------------------------------
 	
-	bool Camera::setup() {
+	void Camera::setup() {
 		
 		if (requestedDeviceID == 0 && numActiveDevices == 0) { // default first camera only
 			requestedDeviceID = getFirstAvailableDeviceID();

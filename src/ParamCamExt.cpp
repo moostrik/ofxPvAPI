@@ -4,7 +4,7 @@
 
 namespace ofxPvAPI {
 	
-	bool ParamCamExt::setup(){
+	void ParamCamExt::setup(){
 		ParamCam::setup();
 		
 		// OF won't allow for ofFbo's to be re-allocated with different internal format, so I use a pointer
