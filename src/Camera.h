@@ -30,7 +30,7 @@ namespace ofxPvAPI {
 		Camera();
 		virtual ~Camera();
 		
-		bool			setup();
+		void			setup();
 		virtual void	update();
 		void			close() { if(bDeviceActive) { deactivate(); } }
 		

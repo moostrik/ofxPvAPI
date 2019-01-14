@@ -78,7 +78,7 @@ namespace ofxPvAPI {
 	//----------------------------------------------------------------------------
 	//-- OF ----------------------------------------------------------------------
 	
-	bool Camera::setup() {
+	void Camera::setup() {
 		
 		if (requestedDeviceID == 0 && numActiveDevices == 0) { // default first camera only
 			requestedDeviceID = getFirstAvailableDeviceID();
@@ -660,13 +660,14 @@ namespace ofxPvAPI {
 		if (_format == "Mono8") { return OF_PIXELS_MONO; }
 		else if (_format == "Rgb24") { return OF_PIXELS_RGB; }
 		else { ofLogWarning("Camera") << "pixel format not recognized, defaulting to OF_PIXELS_MONO"; }
+		return OF_PIXELS_MONO;
 	}
 	
 	string Camera::getPvPixelFormat(ofPixelFormat _format) {
 		if (_format == OF_PIXELS_MONO) { return "Mono8"; }
 		else if (_format == OF_PIXELS_RGB) { return "Rgb24"; }
 		else { ofLogWarning("Camera") << "pixel format not recognized, defaulting to Mono8"; }
-		
+		return "Mono8";
 	}
 	
 	
@@ -893,6 +894,7 @@ namespace ofxPvAPI {
 			ofLog(OF_LOG_WARNING, "Camera: Normalized Attribute Not Supported");
 			break;
 		}
+		return 0;
 	}
 	
 	float Camera::getNormalizedAttribute(string _name) {
@@ -926,6 +928,7 @@ namespace ofxPvAPI {
 			ofLog(OF_LOG_WARNING, "Camera: Normalized Attribute Not Supported");
 			break;
 		}
+		return 0;
 	}
 	
 	

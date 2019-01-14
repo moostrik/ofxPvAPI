@@ -20,26 +20,17 @@ Tested with the Prosilica GC750 and the MAKO G-223B  (monochrome) and the MAKO G
 
 1.	Add `ofxPvApi` to your addons folder
 2.	Download the [legacy SDK](https://www.alliedvision.com/fileadmin/content/software/software/PvAPI/PvAPI_1.28_OSX.tgz "PvAPI_1.28_OSX.tgz") from [Allied Vision](https://www.alliedvision.com/en/support/software-downloads.html "Software Downloads") and copy the following files from the SDK to the addon.
-*	 `/bin-pc/x64/4.2/libPvAPI.dylib` (or  `/bin-pc/x86/4.2/libPvAPI.dylib` for 32 bit) into `/ofxPvApi/libs/PvAPI/lib/osx/`
+*	 `/bin-pc/x64/4.2/libPvAPI.dylib` into `/ofxPvApi/libs/PvAPI/lib/osx/`
 *	 `/inc-pc/PvApi.h` into `/ofxPvApi/libs/PvAPI/include`
-3. 	modify `PvApi.h` to include
-```
-    #ifdef TARGET_OSX
-    #define _OSX
-    #define _x64
-    #endif
-```
-*	before `#ifndef PVAPI_H_INCLUDE` (line 79) will do fine
-*	as far as I could determen `#define _x86`  does the same as  `#define _x64`
-4. 	Create example (or update your app) using the projectGenerator
-5.	include libPvAPI.dylib in the example (or your app) by adding the following lines to Project -> Build Phases -> Run Script
+3. 	Create example (or update your app) using the projectGenerator
+4.	include libPvAPI.dylib in the example (or your app) by adding the following lines to Project -> Build Phases -> Run Script
 ```
     # Copy libPvAPI and change install directory for PvAPI to run
     rsync -aved ../../../addons/ofxPvApi/libs/PvAPI/lib/osx/libPvAPI.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/";
     install_name_tool -change libPvAPI.dylib @executable_path/../Frameworks/libPvAPI.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/$PRODUCT_NAME";
 ```
 *	When adding the addon manually in Xcode make sure to add the libPvAPI.dylib to Project -> Build Settings -> Other Linker Flags `../../../addons/ofxPvApi/libs/PvAPI/lib/osx/libPvAPI.dylib`
-6. 	Turn off the Firewall
+5. 	Turn off the Firewall
 
 
 # KNOWN ISSUES AND FACTS #
