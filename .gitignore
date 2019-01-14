@@ -35,6 +35,10 @@ xcuserdata
 *.xcscheme
 openFrameworks-Info.plist
 
+# Linux
+*.so
+*.a
+example
 
 #Visual Studio files
 *.[Oo]bj
