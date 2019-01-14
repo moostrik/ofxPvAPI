@@ -15,7 +15,7 @@ void ofApp::setup(){
 	
 	//	when deviceID is not provided the camera defaults to first in list (if detected on setup)
 	//  select camera by deviceID
-	camera.setDeviceID(6055547);
+	camera.setDeviceID(6022891);
 	
 	//	select camera by IP
 //	camera.setDeviceID(camera.getDeviceIDFromIpAdress("10.0.0.50"));
