@@ -15,6 +15,7 @@ namespace ofxPvAPI {
 	bTextureSet(false),
 	numPvFrames(4),
 	PvFrameID(0),
+	frameOffset(1),
 	frameDrop(0),
 	frameLatency(0),
 	frameAvgLatency(0),

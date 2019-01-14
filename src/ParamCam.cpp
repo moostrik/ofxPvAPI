@@ -22,7 +22,7 @@ namespace ofxPvAPI {
 		
 		frameRateParameters.setName("framerate");
 		frameRateParameters.add(pFrameRate.set("frame rate", 60, 0, 60));
-		frameRateParameters.add(pFrameOffset.set("frame offset", 0, 0, 2));
+		frameRateParameters.add(pFrameOffset.set("frame offset", 1, 0, 2));
 		frameRateParameters.add(pFrameDrop.set("drops (last sec)", 0, 0, 60));
 		latencyParameters.setName("latency (ms)");
 		latencyParameters.add(pFrameLatency.set("avgerage", 0, 0, 60));
