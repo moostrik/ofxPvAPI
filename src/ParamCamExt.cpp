@@ -56,8 +56,6 @@ namespace ofxPvAPI {
 		
 		updateFlip();
 		updateHomography();
-		
-		return true;
 	}
 	
 	//--------------------------------------------------------------
