@@ -40,10 +40,10 @@ void ofApp::setup(){
 	toggleFullScreen.addListener(this, &ofApp::toggleFullScreenListener);
 	
 	// minimize submenus
-	for (int i=0; i< gui.getNumControls(); i++) {
+	for (int i=0; i< (int)gui.getNumControls(); i++) {
 		ofxGuiGroup * group  = dynamic_cast<ofxGuiGroup*>(gui.getControl(i));
 		if (group) {
-			for (int j=0; j< group->getNumControls(); j++) {
+			for (int j=0; j< (int)group->getNumControls(); j++) {
 				ofxGuiGroup * subgroup = dynamic_cast<ofxGuiGroup*>(group->getControl(j));
 				if(subgroup)subgroup->minimizeAll();
 			}
