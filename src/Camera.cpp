@@ -1,6 +1,9 @@
 
 #include "Camera.h"
 
+#include <chrono>
+#include <thread>
+
 namespace ofxPvAPI {
 	
 	Camera::Camera() :
@@ -54,9 +57,9 @@ namespace ofxPvAPI {
 		else {
 			tPvErr error = PvInitialize();
 			if( error == ePvErrSuccess ) {
-//				ofSleepMillis(500); // wait for cams to register
+				//	ofSleepMillis(500); // wait for cams to register DOES NOT WORK ON LINUX, so
+				std::this_thread::sleep_for(std::chrono::milliseconds(500));
 				ofLog(OF_LOG_NOTICE, "Camera: PvAPI initialized");
-				
 			} else {
 				ofLog(OF_LOG_ERROR, "Camera: unable to initialize PvAPI");
 				logError(error);
