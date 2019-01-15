@@ -18,26 +18,26 @@ Tested with the Prosilica GC750 and the MAKO G-223B  (monochrome) and the MAKO G
 
 # FOR MAC #
 
-1.	Add `ofxPvApi` to your addons folder
+1.	Add `ofxPvAPI` to your addons folder
 2.	Download the [legacy SDK](https://www.alliedvision.com/fileadmin/content/software/software/PvAPI/PvAPI_1.28_OSX.tgz "PvAPI_1.28_OSX.tgz") from [Allied Vision](https://www.alliedvision.com/en/support/software-downloads.html "Software Downloads") and copy the following files from the SDK to the addon.
-*	 `/bin-pc/x64/libPvAPI.dylib` into `/ofxPvApi/libs/PvAPI/lib/osx/`
-*	 `/inc-pc/PvApi.h` into `/ofxPvApi/libs/PvAPI/include`
+*	 `/bin-pc/x64/libPvAPI.dylib` into `/ofxPvAPI/libs/PvAPI/lib/osx/`
+*	 `/inc-pc/PvApi.h` into `/ofxPvAPI/libs/PvAPI/include`
 3. 	Create example (or update your app) using the projectGenerator
 4.	include libPvAPI.dylib in the example (or your app) by adding the following lines to Project -> Build Phases -> Run Script
+```	
+# Copy libPvAPI and change install directory for PvAPI to run
+rsync -aved "$OF_PATH/addons/ofxPvApi/libs/PvAPI/lib/osx/libPvAPI.dylib" "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/";
+install_name_tool -change libPvAPI.dylib @executable_path/../Frameworks/libPvAPI.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/$PRODUCT_NAME";
 ```
-    # Copy libPvAPI and change install directory for PvAPI to run
-    rsync -aved ../../../addons/ofxPvApi/libs/PvAPI/lib/osx/libPvAPI.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/";
-    install_name_tool -change libPvAPI.dylib @executable_path/../Frameworks/libPvAPI.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/$PRODUCT_NAME";
-```
-*	When adding the addon manually in Xcode make sure to add the libPvAPI.dylib to Project -> Build Settings -> Other Linker Flags `../../../addons/ofxPvApi/libs/PvAPI/lib/osx/libPvAPI.dylib`
+*	When adding the addon manually in Xcode make sure to add the libPvAPI.dylib to Project -> Build Settings -> Other Linker Flags `../../../addons/ofxPvAPI/libs/PvAPI/lib/osx/libPvAPI.dylib`
 5. 	Turn off the Firewall
 
 # FOR LINUX #
 
-1.	Add `ofxPvApi` to your addons folder
+1.	Add `ofxPvAPI` to your addons folder
 2.	Download the [legacy SDK](https://www.alliedvision.com/fileadmin/content/software/software/PvAPI/PvAPI_1.28_Linux.tgz "PvAPI_1.28_Linux.tgz") from [Allied Vision](https://www.alliedvision.com/en/support/software-downloads.html "Software Downloads") and copy the following files from the SDK to the addon.
-*	 `/lib-pc/x64/4.7/libPvAPI.a` into `/ofxPvApi/libs/PvAPI/lib/linux/`
-*	 `/inc-pc/PvApi.h` into `/ofxPvApi/libs/PvAPI/include`
+*	 `/lib-pc/x64/4.7/libPvAPI.a` into `/ofxPvAPI/libs/PvAPI/lib/linux/`
+*	 `/inc-pc/PvApi.h` into `/ofxPvAPI/libs/PvAPI/include`
 3. 	Create example with make
 
 # KNOWN ISSUES AND FACTS #
@@ -72,4 +72,3 @@ NOT TESTED FOR OF Win 10. below the obsolete intructions for of 0.8.x and window
 5.	copy `PvAPI.dll`: IN Build Events -> Post Build Event - > Command Line ADD
 	`xcopy /y "$(ProjectDir)..\..\..\addons\ofxPvApi\libs\PvAPI\lib\win32\PvAPI.dll"  "$(ProjectDir)bin"`
 6.	Turn off the Firewall (cameras don't work otherwise)
-
