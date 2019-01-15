@@ -70,6 +70,7 @@ namespace ofxPvAPI {
 		if(getPixelFormat() != OF_PIXELS_RGB) {
 			parameters.add(pGain.set("gain", 0, 0, 30));
 			pGain.addListener(this, &ParamCam::gainListener);
+			pAutoWhiteBalance.set(false);
 		}
 		else {
 			gainParameters.setName("gain");
