@@ -26,7 +26,7 @@ tested on macOS 10.13 with OF 0.10.0 and Xcode 9.3
 4.	include libPvAPI.dylib in the example (or your app) by adding the following script to Project -> Build Phases -> Run Script
 ```	
 # Copy libPvAPI and change install directory for PvAPI to run
-rsync -aved "$OF_PATH/addons/ofxPvApi/libs/PvAPI/lib/osx/libPvAPI.dylib" "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/";
+rsync -aved "$OF_PATH/addons/ofxPvAPI/libs/PvAPI/lib/osx/libPvAPI.dylib" "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/";
 install_name_tool -change libPvAPI.dylib @executable_path/../Frameworks/libPvAPI.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/$PRODUCT_NAME";
 ```
 
